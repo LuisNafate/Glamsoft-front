@@ -1,0 +1,473 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Lato', sans-serif;
+}
+.main-header {
+    background: #000;
+    padding: 20px 40px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #333;
+}
+
+/* NIVEL 1: Iconos de Navegación */
+.header-level-1 {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-left {
+    display: flex;
+    gap: 15px;
+}
+
+.header-left a {
+    text-decoration: none;
+}
+
+.header-left a i.nav-icon {
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.header-left a:hover i.nav-icon {
+    color: #b8860b;
+}
+
+/* NIVEL 2: Logo y Botones */
+.header-level-2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    font-family: 'GFS Didot', serif;
+    font-size: 28px;
+    letter-spacing: 8px;
+    font-weight: 400;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-right .nav-icon {
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.header-right .nav-icon:hover {
+    color: #b8860b;
+}
+
+.btn-agendar {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-agendar:hover {
+    background: #b8860b;
+    border-color: #b8860b;
+    color: #000;
+}
+
+/* NIVEL 3: Navegación */
+.header-level-3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+.main-nav ul li {
+    position: relative;
+}
+
+.main-nav ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+}
+
+.main-nav ul li a:hover,
+.main-nav ul li a.active {
+    color: #b8860b;
+}
+
+.main-nav ul li a i {
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--color-bg-dark);
+    border: 1px solid var(--color-accent-gold);
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    list-style: none;
+    padding: 6px 0;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+/* Animación visible */
+.dropdown:hover .dropdown-menu,
+.dropdown-menu.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Estilo de opciones */
+.dropdown-menu li a {
+    color: var(--color-text-light);
+    font-family: var(--font-text);
+    padding: 8px 14px;
+    font-size: 14px;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-menu li a:hover {
+    background: var(--color-border-dark);
+    color: var(--color-accent-gold);
+}
+
+h2 {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-left: 5%; 
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+/*
+|--------------------------------------------------------------------------
+| ETIQUETA DE UBICACIÓN
+|--------------------------------------------------------------------------
+*/
+
+.location-tag {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0 30px 0;
+}
+
+.location-tag h1 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--color-border-dark);
+    padding-bottom: 15px;
+}
+
+
+/* GRID DE PORTAFOLIO ASIMÉTRICO (Gallery View)*/
+/* NIVEL 3: Navegación Principal (Inferior y Centrada) */
+.header-level-3 {
+    display: flex;
+    justify-content: center; /* Asegura el centrado horizontal de la barra principal */
+    align-items: center;
+    padding-top: 15px;
+    padding-bottom: 5px; 
+}
+
+/* Navegación Principal y BARRA DESLIZANTE */
+.main-nav {
+    position: relative;
+    /* CLAVE: Añadir un padding horizontal para que la barra deslizante tenga un límite visual más amplio */
+    padding: 0 20px; 
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 40px; 
+    text-transform: uppercase;
+    font-family: var(--font-text);
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.main-nav a {
+    /* Padding uniforme para que el indicador calcule el ancho de forma consistente */
+    padding: 5px 10px; 
+    display: block;
+}
+
+/* Elemento deslizante (Controlado por JS) */
+.active-indicator {
+    position: absolute;
+    bottom: 0; 
+    height: 2px;
+    background-color: var(--color-accent-gold); /* Asegura el color dorado */
+    width: 0; 
+    transition: left 0.3s ease, width 0.3s ease; 
+}
+
+.portfolio-gallery-section {
+    width: 90%;
+    max-width: 1200px;
+    margin: 120px auto 0; /* Aumentamos el margen superior */
+    padding: 30px 0 100px 0;
+}
+
+/* Aseguramos que todo el contenido principal esté por debajo del navbar */
+main {
+    margin-top: 170px; 
+    position: relative;
+    z-index: 1;
+}
+
+/* Aseguramos que el navbar esté por encima */
+.main-header {
+    background: #000;
+    padding: 20px 40px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #333;
+}
+
+.gallery-grid {
+    display: grid;
+    /* Define 4 columnas base para la asimetría */
+    grid-template-columns: repeat(4, 1fr); 
+    /* Altura automática, pero con un mínimo para asegurar espacio */
+    grid-auto-rows: 250px; 
+    gap: 15px; 
+    align-items: stretch;
+}
+
+.gallery-item {
+    background-color: var(--color-border-dark);
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent; 
+    /* CLAVE: Transición para suavizar la animación de la clase JS */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Contenido interno para manejar la imagen de fondo */
+.gallery-item .item-content {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Reglas de Posición para el Layout Asimétrico */
+.item-main-portrait {
+    grid-row: span 2; 
+}
+.item-wide-rect {
+    grid-column: span 2; 
+}
+.item-tall-rect {
+    grid-row: span 2; 
+}
+.item-main-landscape {
+    grid-column: span 2;
+}
+
+/* CLASE DE HOVER CONTROLADA POR JAVASCRIPT */
+.is-hovering {
+    border-color: var(--color-accent-gold) !important; 
+    box-shadow: 0 0 15px rgba(184, 134, 11, 0.4); 
+    transform: scale(1.02); /* Efecto de zoom ligero */
+    z-index: 5;
+}
+
+/* Media Query para responsividad */
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: 1fr; 
+        grid-auto-rows: 300px;
+    }
+    .gallery-item {
+        /* Eliminamos los spans para que todo sea de una fila en móvil */
+        grid-column: span 1 !important;
+        grid-row: span 1 !important;
+    }
+}
+/* ===================================
+   FOOTER
+   =================================== */
+
+.main-footer {
+    background: #000;
+    padding: 40px;
+    border-top: 1px solid #333;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.contact-info h3, 
+.schedule-info h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.contact-info p,
+.schedule-info p {
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #ccc;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.social-links a:hover {
+    background: #b8860b;
+    border-color: #b8860b;
+    transform: translateY(-3px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .main-header {
+        padding: 15px 20px;
+    }
+
+    .logo {
+        font-size: 20px;
+        letter-spacing: 4px;
+    }
+
+    .main-nav ul {
+        gap: 20px;
+    }
+
+    .main-nav ul li a {
+        font-size: 10px;
+    }
+
+    main {
+        padding: 20px;
+        margin-top: 160px;
+    }
+
+    .portfolio-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .destacado-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .comentarios-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-image {
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-right {
+        gap: 10px;
+    }
+
+    .btn-agendar {
+        padding: 8px 12px;
+        font-size: 9px;
+    }
+
+    .portfolio-grid {
+        grid-template-columns: 1fr;
+    }
+}
