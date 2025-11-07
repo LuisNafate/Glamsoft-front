@@ -87,11 +87,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderServiceDetails();
 
     // Botones agendar
-    document.body.addEventListener('click', e => {
-        if(e.target.classList.contains('agendar-btn')) {
-            alert('Función de agendar - Integrar sistema de reservas');
-        }
-    });
+    // Botones agendar
+document.body.addEventListener('click', e => {
+    if (e.target.classList.contains('agendar-btn')) {
+        // Redirigir a la página de agendar
+        window.location.href = "agendar.html";
+    }
+});
+
 
     // Resaltar servicio activo
     const serviceItems = document.querySelectorAll('.service-item');

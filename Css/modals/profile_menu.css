@@ -1,0 +1,65 @@
+/* --- Estilos para el Menú Desplegable de Perfil --- */
+
+.profile-menu-modal {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 60px; /* Ajusta esto según la altura de tu header */
+    right: 20px; /* Ajusta esto para alinearlo con el icono de usuario */
+    background-color: #1a1a1a; /* Fondo oscuro */
+    color: #f0f0f0;
+    border-radius: 8px;
+    width: 220px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    z-index: 1001; /* Encima del contenido, pero no necesariamente de otros modales */
+    padding: 1.25rem;
+    box-sizing: border-box;
+}
+
+.profile-menu-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #333; /* Línea divisoria sutil */
+}
+
+.profile-menu-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #d9d9d9; /* Avatar gris claro */
+    margin-right: 12px;
+}
+
+.profile-menu-name {
+    font-family: 'Lato', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.profile-menu-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-menu-nav li {
+    margin-bottom: 1rem;
+}
+
+.profile-menu-nav li:last-child {
+    margin-bottom: 0;
+}
+
+.profile-menu-nav a {
+    font-family: 'Lato', sans-serif;
+    color: #f0f0f0;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 300;
+    transition: color 0.2s ease;
+}
+
+.profile-menu-nav a:hover {
+    color: #aaa; /* Un hover sutil */
+}

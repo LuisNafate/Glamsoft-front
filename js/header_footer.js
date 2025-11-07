@@ -54,6 +54,18 @@ function loadModalAuth() {
         .catch(err => console.error('Error cargando modal auth:', err));
 }
 
+// NUEVO: Cargar y configurar el menú de perfil
+function loadModalProfileMenu() {
+    const modalPlaceholder = document.getElementById('modal-placeholder');
+    fetch('modals/profile_menu.html')
+        .then(res => res.text())
+        .then(html => {
+            modalPlaceholder.innerHTML += html;
+            initProfileMenuEvents(); // Configurar el botón de logout
+        })
+        .catch(err => console.error('Error cargando modal de perfil:', err));
+}
+
 // ================== Modal Notificaciones ==================
 function initBellIcon() {
     const bellIcon = document.querySelector('.fa-bell');
@@ -137,6 +149,26 @@ function initializeModalEvents() {
     }
 }
 
+// NUEVO: Lógica para el botón de "Cerrar Sesión"
+function initProfileMenuEvents() {
+    const logoutBtn = document.getElementById('logoutButton');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Lógica de logout
+            isUserLoggedIn = false;
+            localStorage.setItem('isLoggedIn', 'false'); // O removeItem('isLoggedIn')
+            
+            alert('Has cerrado sesión.');
+            
+            // Ocultar el menú y recargar la página
+            document.getElementById('profileMenuModal').style.display = 'none';
+            window.location.reload(); 
+        });
+    }
+}
+
 // ================== Cargar Notificaciones ==================
 function loadNotificaciones() {
     const lista = document.getElementById('notificaciones-list');
@@ -156,29 +188,59 @@ function loadNotificaciones() {
     });
 }
 
-// ================== Sistema de Autenticación ==================
+// ================== Sistema de Autenticación (MODIFICADO) ==================
 let isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
+// NUEVO: Función para abrir/cerrar el menú de perfil
+function toggleProfileMenu() {
+    const profileModal = document.getElementById('profileMenuModal');
+    if (profileModal) {
+        const isVisible = profileModal.style.display === 'block';
+        // Cerrar todos los otros modales primero
+        closeAllModals(); 
+        // Mostrar/ocultar el menú de perfil
+        profileModal.style.display = isVisible ? 'none' : 'block';
+    }
+}
+
+// MODIFICADO: Listener de clic principal
 document.addEventListener('click', e => {
-    if (e.target.classList.contains('auth-trigger')) {
+    
+    // Selector modificado para incluir el icono y el elemento dentro de él si se hace clic
+    const authTrigger = e.target.closest('.auth-trigger');
+    const profileModal = document.getElementById('profileMenuModal');
+
+    if (authTrigger) {
+        // Si se hace clic en el icono de usuario
         e.preventDefault();
-        const targetUrl = e.target.getAttribute('data-target');
         if (isUserLoggedIn) {
-            window.location.href = targetUrl;
+            // Usuario LOGUEADO: Abrir menú de perfil
+            toggleProfileMenu();
         } else {
-            openModal();
+            // Usuario NO LOGUEADO: Abrir modal de autenticación
+            const targetUrl = authTrigger.getAttribute('data-target');
+            openModal(); // Esto abre 'authModal'
             sessionStorage.setItem('redirectAfterAuth', targetUrl);
+        }
+    } else if (profileModal && profileModal.style.display === 'block') {
+        // NUEVO: Lógica de "click-outside"
+        // Si el menú de perfil está abierto Y el clic fue FUERA de él
+        if (!profileModal.contains(e.target)) {
+            profileModal.style.display = 'none';
         }
     }
 });
+
 
 function openModal() {
     const modal = document.getElementById('authModal');
     if (modal) modal.style.display = 'flex';
 }
 
-// ================== CIERRE GLOBAL DE MODALES ==================
+// ================== CIERRE GLOBAL DE MODALES (MODIFICADO) ==================
 function initGlobalModalClose() {
+    // MODIFICADO: Excluimos el profileMenuModal de esta lógica,
+    // ya que tiene su propio "click-outside"
     const modals = document.querySelectorAll('#authModal, #notificaciones-modal');
 
     modals.forEach(modal => {
@@ -200,7 +262,7 @@ function initGlobalModalClose() {
             modalContent.addEventListener('click', e => e.stopPropagation());
         }
 
-        // Cerrar si se hace clic fuera del contenido
+        // Cerrar si se hace clic fuera del contenido (en el overlay)
         modal.addEventListener('click', () => {
             closeAllModals();
         });
@@ -215,15 +277,17 @@ function initGlobalModalClose() {
 }
 
 function closeAllModals() {
-    const allModals = document.querySelectorAll('#authModal, #notificaciones-modal');
+    // MODIFICADO: Ahora cierra también el menú de perfil
+    const allModals = document.querySelectorAll('#authModal, #notificaciones-modal, #profileMenuModal');
     allModals.forEach(m => m.style.display = 'none');
 }
 
-// ================== Inicialización ==================
+// ================== Inicialización (MODIFICADO) ==================
 document.addEventListener('DOMContentLoaded', () => {
     loadHeaderFooter();
     loadModalNotificaciones();
     loadModalAuth();
+    loadModalProfileMenu(); // NUEVO: Cargar el menú de perfil
 
     // Esperar un poco para asegurar que las modales se carguen antes de aplicar eventos
     setTimeout(initGlobalModalClose, 800);
