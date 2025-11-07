@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Citas - NOMBRE</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="../Css/header_footer.css">
+    
+    <link rel="stylesheet" href="../Css/historial_citas.css">
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+
+    <main>
+        <section class="historial-container">
+            <h2 class="section-title">Historial de citas</h2>
+            
+            <div class="filtro-container">
+                <label for="filtro-fecha">Filtrar</label>
+                <div class="search-bar">
+                    <input type="text" id="filtro-fecha" placeholder="Fecha">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Estatus</th>
+                            <th>Fecha Cita</th>
+                            <th>Fecha Solicitud</th>
+                            <th>Servicios</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Pendiente</td>
+                            <td>DD/MM/YY</td>
+                            <td>DD/MM/YY</td>
+                            <td>Servicio</td>
+                            <td>$$</td>
+                        </tr>
+                        <tr>
+                            <td>Confirmada</td>
+                            <td>DD/MM/YY</td>
+                            <td>DD/MM/YY</td>
+                            <td>Servicio</td>
+                            <td>$$</td>
+                        </tr>
+                        <tr>
+                            <td>Rechazada</td>
+                            <td>DD/MM/YY</td>
+                            <td>DD/MM/YY</td>
+                            <td>Servicio</td>
+                            <td>$$</td>
+                        </tr>
+                        <tr>
+                            <td>Perdida</td>
+                            <td>DD/MM/YY</td>
+                            <td>DD/MM/YY</td>
+                            <td>Servicio</td>
+                            <td>$$</td>
+                        </tr>
+                        </tbody>
+                </table>
+            </div>
+
+        </section>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="../js/header_footer.js"></script>
+    </body>
+</html>

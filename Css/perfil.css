@@ -1,0 +1,175 @@
+/* --- Estilos de la Página de Perfil --- */
+
+:root {
+    --primary-border: #8B7355; /* Un tono oscuro de dorado/bronce */
+    --text-primary: #f0f0f0;
+    --text-secondary: #aaa;
+    --bg-main: #111;
+    --bg-input: #1a1a1a;
+    --bg-secondary-btn: #444;
+}
+
+main {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    padding: 4rem 2rem;
+    min-height: 70vh;
+}
+
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* --- Clases de utilidad --- */
+.profile-section.hidden {
+    display: none;
+}
+
+/* --- Títulos y Enlaces --- */
+.profile-name {
+    font-family: 'GFS Didot', serif;
+    font-size: 2.5rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.section-title {
+    font-family: 'GFS Didot', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2.5rem;
+}
+
+.link-historial {
+    font-family: 'Lato', sans-serif;
+    color: var(--text-secondary);
+    text-decoration: underline;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+/* --- Formularios --- */
+.profile-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.profile-form-group label {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.profile-form-group input {
+    width: 100%;
+    background-color: var(--bg-input);
+    border: 1px solid var(--primary-border);
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+}
+
+.profile-form-group input::placeholder {
+    color: var(--primary-border);
+    opacity: 0.8;
+}
+
+.profile-form-group input:disabled {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    opacity: 1; /* Asegura que el texto sea legible */
+}
+
+/* --- Botones --- */
+.btn-outline, .btn-secondary {
+    padding: 0.8rem 2rem;
+    border-radius: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--primary-border);
+    color: var(--text-primary);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-border);
+    color: var(--bg-main);
+}
+
+.btn-secondary {
+    background-color: var(--bg-secondary-btn);
+    border: 1px solid var(--bg-secondary-btn);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: #555;
+    border-color: #555;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* --- Vista "Ver Perfil" (Grid) --- */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+}
+
+.profile-comments h3 {
+    font-family: 'GFS Didot', serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.comment-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.comment-box {
+    height: 150px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--primary-border);
+    border-radius: 4px;
+}
+
+/* --- Vista "Editar Perfil" (Formulario) --- */
+#edit-profile-form {
+    max-width: 500px; /* Limita el ancho del formulario de edición */
+}
+
+/* --- Media Query para móviles --- */
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr; /* Una sola columna en móvil */
+        gap: 3rem;
+    }
+
+    .comment-list {
+        grid-template-columns: 1fr; /* Comentarios en una columna */
+    }
+}

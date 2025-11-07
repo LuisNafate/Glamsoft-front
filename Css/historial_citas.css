@@ -1,0 +1,118 @@
+/* --- Estilos de la Página "Historial de Citas" --- */
+
+:root {
+    --primary-border: #8B7355; /* Mismo tono de perfil.css */
+    --text-primary: #f0f0f0;
+    --text-secondary: #aaa;
+    --bg-main: #111;
+    --bg-input: #1a1a1a;
+}
+
+main {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    padding: 4rem 2rem;
+    min-height: 70vh;
+}
+
+.historial-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-family: 'GFS Didot', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2.5rem;
+}
+
+/* --- Filtro / Barra de Búsqueda --- */
+.filtro-container {
+    margin-bottom: 2rem;
+    max-width: 350px;
+}
+
+.filtro-container label {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.search-bar {
+    position: relative;
+}
+
+.search-bar input {
+    width: 100%;
+    background-color: transparent; /* Fondo transparente */
+    border: 1px solid var(--primary-border);
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    padding-right: 3rem; /* Espacio para el icono */
+    color: var(--text-primary);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+}
+
+.search-bar input::placeholder {
+    color: var(--primary-border);
+    opacity: 0.8;
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-border);
+}
+
+/* --- Tabla de Historial --- */
+.table-container {
+    overflow-x: auto; /* Permite scroll horizontal en móviles */
+    border: 1px solid var(--primary-border);
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 1.25rem 1rem;
+    text-align: left;
+    font-family: 'Lato', sans-serif;
+    border-top: 1px solid var(--primary-border);
+}
+
+/* Cabecera de la tabla */
+thead th {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    background-color: var(--bg-input); /* Fondo oscuro para cabecera */
+    border-top: none; /* La primera fila no necesita borde superior */
+}
+
+/* Cuerpo de la tabla */
+tbody td {
+    color: var(--text-primary);
+    background-color: var(--bg-main); /* Fondo principal */
+}
+
+/* Estilo de fila sutil (opcional) */
+tbody tr:nth-child(even) td {
+    background-color: #151515; /* Un gris apenas más claro */
+}
+
+tbody tr:hover td {
+    background-color: var(--bg-input);
+}
