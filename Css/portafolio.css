@@ -256,13 +256,13 @@ h2 {
     transition: left 0.3s ease, width 0.3s ease; 
 }
 
+/* AJUSTA ESTA REGLA */
 .portfolio-gallery-section {
     width: 90%;
     max-width: 1200px;
-    margin: 120px auto 0; /* Aumentamos el margen superior */
-    padding: 30px 0 100px 0;
+    margin: 0 auto 100px auto; /* CAMBIADO: 120px -> 0 */
+    padding: 30px 0 0 0; /* Mantenemos un padding si quieres */
 }
-
 /* Aseguramos que todo el contenido principal esté por debajo del navbar */
 main {
     margin-top: 170px; 
@@ -282,28 +282,31 @@ main {
     border-bottom: 1px solid #333;
 }
 
+/* =====================================
+CSS DE LA GALERÍA DE 3 COLUMNAS
+=====================================
+Reemplaza tu .gallery-grid y tus clases .item-
+(como .item-main-portrait, etc.) por ESTE bloque.
+*/
+
 .gallery-grid {
     display: grid;
-    /* Define 4 columnas base para la asimetría */
-    grid-template-columns: repeat(4, 1fr); 
-    /* Altura automática, pero con un mínimo para asegurar espacio */
+    /* CLAVE: 3 columnas como en tu diseño */
+    grid-template-columns: repeat(3, 1fr);
+    /* Una altura de fila base. Los items se estirarán (span) */
     grid-auto-rows: 250px; 
-    gap: 15px; 
-    align-items: stretch;
+    gap: 15px;
 }
 
 .gallery-item {
-    background-color: var(--color-border-dark);
+    background-color: #222; /* Color mientras carga la imagen */
     border-radius: 5px;
     overflow: hidden;
     cursor: pointer;
-    position: relative;
     border: 1px solid transparent; 
-    /* CLAVE: Transición para suavizar la animación de la clase JS */
     transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-/* Contenido interno para manejar la imagen de fondo */
 .gallery-item .item-content {
     width: 100%;
     height: 100%;
@@ -312,39 +315,57 @@ main {
     background-repeat: no-repeat;
 }
 
-/* Reglas de Posición para el Layout Asimétrico */
-.item-main-portrait {
-    grid-row: span 2; 
-}
-.item-wide-rect {
-    grid-column: span 2; 
-}
-.item-tall-rect {
-    grid-row: span 2; 
-}
-.item-main-landscape {
-    grid-column: span 2;
-}
-
-/* CLASE DE HOVER CONTROLADA POR JAVASCRIPT */
-.is-hovering {
-    border-color: var(--color-accent-gold) !important; 
+/* CLASE DE HOVER (La tuya, funciona perfecto) */
+.js-hover-item.is-hovering {
+    border-color: #b8860b !important; 
     box-shadow: 0 0 15px rgba(184, 134, 11, 0.4); 
-    transform: scale(1.02); /* Efecto de zoom ligero */
+    transform: scale(1.02);
     z-index: 5;
 }
 
-/* Media Query para responsividad */
+/* =====================================
+LAYOUT ESPECÍFICO DE LA IMAGEN
+=====================================
+Estas clases (item-1, item-2, etc.) coinciden con el HTML nuevo
+y posicionan cada bloque exactamente como en tu diseño.
+*/
+
+/* (C1, R1-2) Portrait */
+.item-1 { grid-column: 1 / 2; grid-row: 1 / 3; } 
+/* (C2-3, R1) Landscape */
+.item-2 { grid-column: 2 / 4; grid-row: 1 / 2; } 
+/* (C3, R2-3) Portrait */
+.item-3 { grid-column: 3 / 4; grid-row: 2 / 4; } 
+/* (C1, R3-5) Tall Portrait */
+.item-4 { grid-column: 1 / 2; grid-row: 3 / 6; } 
+/* (C2, R2-3) Portrait (Imagen roja) */
+.item-5 { grid-column: 2 / 3; grid-row: 2 / 4; } 
+/* (C2, R4-5) Portrait */
+.item-6 { grid-column: 2 / 3; grid-row: 4 / 6; } 
+/* (C3, R4-6) Tall Portrait */
+.item-7 { grid-column: 3 / 4; grid-row: 4 / 7; } 
+/* (C1-2, R6) Landscape */
+.item-8 { grid-column: 1 / 3; grid-row: 6 / 7; }
+
+/* =====================================
+MEDIA QUERY PARA LA GALERÍA
+=====================================
+Asegúrate de que tu media query para 768px incluya esto
+para resetear la galería en móviles.
+*/
 @media (max-width: 768px) {
     .gallery-grid {
-        grid-template-columns: 1fr; 
-        grid-auto-rows: 300px;
+        grid-template-columns: 1fr; /* Cambia a 1 columna */
+        grid-auto-rows: 300px; /* Filas fijas en móvil */
     }
+    
+    /* Resetea los spans en móvil */
     .gallery-item {
-        /* Eliminamos los spans para que todo sea de una fila en móvil */
         grid-column: span 1 !important;
         grid-row: span 1 !important;
     }
+    
+    /* ... (tus otras reglas de 768px para el header, etc.) ... */
 }
 /* ===================================
    FOOTER

@@ -1,143 +1,87 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendar</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <title>Agendar - NOMBRE</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=GFS+Didot
+    &family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/
+6.0.0-beta3/css/all.min.css">
+
     <link rel="stylesheet" href="../Css/agendar.css">
+    <link rel="stylesheet" href="../Css/header_footer.css">
 </head>
 <body>
-    <header class="main-header three-level-nav">
-        <div class="header-level-1">
-            <div class="header-left">
-                <a href="#" id="undo-button"><i class="fas fa-arrow-left nav-icon"></i></a>
-                <a href="#" id="reload-button"><i class="fas fa-redo nav-icon"></i></a>
-            </div>
-        </div>
+    <!-- Header -->
+    <div id="header-placeholder"></div>
 
-        <div class="header-level-2">
-            <div class="logo">NOMBRE</div>
-            <div class="header-right">
-                <i class="fas fa-bell nav-icon"></i>
-                <i class="fas fa-user nav-icon"></i>
-                <button class="btn-agendar">AGENDAR</button>
-            </div>
-        </div>
-
-         <div class="header-level-3">
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="#" <li><a href="#inicio">INICIO</a></li>
-                    <li class="dropdown">
-                        <a href="#" id="categorias-link">CATEGORÍAS <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu" id="categorias-menu">
-                            <li><a href="#">SERVICIO 1</a></li>
-                            <li><a href="#">SERVICIO 2</a></li>
-                            <li><a href="#">SERVICIO 3</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">PROMOCIONES</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-    <main>  
-        <main class="template-main-content">
-
-    <section class="location-tag">
-        <h1>CITA</h1>
-    </section>
-
-    <section class="appointment-container">
-        <div class="appointment-grid">
-            
-            <div class="calendar-module">
+    <!-- Main Content -->
+    <main>
+        <!-- Calendar Section -->
+        <section class="calendar-section">
+            <div class="calendar-container">
                 <div class="calendar-header">
-                    <i class="fas fa-chevron-left calendar-nav-arrow" id="prev-month"></i>
-                    <h2 id="current-month-year">SEPTIEMBRE</h2>
-                    <i class="fas fa-chevron-right calendar-nav-arrow" id="next-month"></i>
+                    <button class="calendar-nav-btn" id="prevMonth">‹</button>
+                    <h2 id="currentMonth"></h2>
+                    <button class="calendar-nav-btn" id="nextMonth">›</button>
                 </div>
-                <div class="calendar-weekdays">
-                    <span>Dom</span>
-                    <span>Lun</span>
-                    <span>Mar</span>
-                    <span>Mie</span>
-                    <span>Jue</span>
-                    <span>Vie</span>
-                    <span>Sab</span>
-                </div>
-                <div class="calendar-dates" id="calendar-dates">
-                    </div>
-            </div>
-
-            <div class="time-slots-container">
-                <h3>Horarios disponibles:</h3>
-                <div class="time-slots-grid" id="time-slots-grid">
-                    <button class="time-slot-btn" data-time="09:00">09:00</button>
-                    <button class="time-slot-btn" data-time="10:00">10:00</button>
-                    <button class="time-slot-btn" data-time="11:00">11:00</button>
-                    <button class="time-slot-btn" data-time="12:00">12:00</button>
-                    <button class="time-slot-btn" data-time="13:00">13:00</button>
-                    <button class="time-slot-btn" data-time="14:00">14:00</button>
-                    <button class="time-slot-btn" data-time="15:00">15:00</button>
-                    <button class="time-slot-btn" data-time="16:00">16:00</button>
-                </div>
-            </div>
-            
-            <div class="stylists-container">
-                <h3>Estilistas:</h3>
-                <div class="stylists-grid">
-                    <div class="stylist-card active" data-stylist-id="1">
-                        <img src="https://i.ibb.co/v40rW5r/stylist-1.jpg" alt="Estilista 1">
-                        <p>Nombre</p>
-                    </div>
-                    <div class="stylist-card" data-stylist-id="2">
-                        <img src="https://i.ibb.co/v40rW5r/stylist-1.jpg" alt="Estilista 2">
-                        <p>Nombre</p>
-                    </div>
-                    <div class="stylist-card" data-stylist-id="3">
-                        <img src="https://i.ibb.co/v40rW5r/stylist-1.jpg" alt="Estilista 3">
-                        <p>Nombre</p>
-                    </div>
+                
+                <div class="calendar-grid">
+                   
                 </div>
             </div>
 
-            <div class="appointment-actions">
-                <button class="btn-cancel">Cancelar</button>
-                <button class="btn-confirm">Confirmar</button>
+            <!-- Time Slots -->
+            <div class="time-slots">
+                <button class="time-slot">9:00 AM</button>
+                <button class="time-slot selected">10:00 AM</button>
+                <button class="time-slot">11:00 AM</button>
+                <button class="time-slot">2:00 PM</button>
             </div>
+        </section>
 
-        </div>
-    </section>
+        <!-- Stylists Section -->
+        <section class="stylists-section">
+            <h3>Estilistas</h3>
+            <div class="stylists-grid">
+                <div class="stylist-card selected">
+                    <div class="stylist-image">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" alt="Estilista">
+                    </div>
+                    <p class="stylist-name">Nombre</p>
+                </div>
+                <div class="stylist-card">
+                    <div class="stylist-image">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200" alt="Estilista">
+                    </div>
+                    <p class="stylist-name">Nombre</p>
+                </div>
+                <div class="stylist-card">
+                    <div class="stylist-image">
+                        <img src="https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200" alt="Estilista">
+                    </div>
+                    <p class="stylist-name">Nombre</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="action-buttons">
+            <button class="btn-cancel">Cancelar</button>
+            <button class="btn-confirm">Confirmar</button>
+        </section>
     </main>
-        <footer class="main-footer">
-        <div class="footer-grid">
-            <div class="contact-info">
-                <h3>Contacto</h3>
-                <p>Dirección: 123 Calle Principal, Ciudad</p>
-                <p>Teléfono: +1 234 567 890</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                </div>
-            </div>
-            <div class="schedule-info">
-                <h3>Horario de atención</h3>
-                <p>Lunes a Viernes: 8:00 am - 6:00 pm</p>
-                <p>Sábados: 9:00 am - 1:00 pm</p>
-            </div>
-        </div>
-    </footer>
+    <div id="modal-placeholder"></div>
 
+
+
+     <div id="footer-placeholder"></div>
+
+   <script src="../js/header_footer.js"></script>
     <script src="../js/agendar.js"></script>
 </body>
 </html>
-        <!-- TÍTULO DE SECCIÓN -->

@@ -1,0 +1,71 @@
+/* --- PARTE 1: ESTRUCTURA BASE (CRÍTICA, ASEGÚRATE DE TENER ESTO) --- */
+.modal {
+    display: none; /* ¡IMPORTANTE! Oculto por defecto */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+background-color: rgba(0,0,0,0.4);
+backdrop-filter: blur(8px);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    margin: auto; /* Centrado automático si usamos flex en el padre */
+    padding: 40px;
+    border: 1px solid #d4af37;
+    width: 90%;
+    max-width: 450px;
+    color: white;
+    position: relative;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.close-btn-auth {
+    color: white;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-btn:hover { color: #d4af37; }
+.modal-content h2 { margin-bottom: 30px; font-weight: 400; letter-spacing: 1px; color: white; }
+.input-group { margin-bottom: 25px; text-align: left; }
+.input-group label { display: block; margin-bottom: 10px; font-size: 14px; color: #ccc; letter-spacing: 0.5px; }
+
+/* --- PARTE 2: TUS ESTILOS (YA LOS TIENES, PERO REVISA) --- */
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background-color: white;
+    color: #333;
+    font-family: 'Montserrat', sans-serif;
+    border-radius: 4px;
+    box-sizing: border-box; /* Agregado para evitar desbordes */
+}
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: #555;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+}
+.btn-submit:hover { background-color: #777; }
+.switch-auth { margin-top: 25px; font-size: 14px; color: #ccc; }
+.switch-auth a { color: #4a90e2; text-decoration: none; }
+.switch-auth a:hover { text-decoration: underline; }

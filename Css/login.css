@@ -1,0 +1,112 @@
+/* Reseteo básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Times New Roman', serif; /* Fuente similar a la de la imagen */
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+}
+
+/* Contenedor del fondo */
+.background-container {
+    background-image: url('tu-imagen-de-fondo.jpg'); /* REEMPLAZA CON LA RUTA DE TU IMAGEN */
+    background-size: cover;
+    background-position: center;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Capa oscura sobre el fondo para que se parezca más a la imagen original */
+.background-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7); /* Ajusta la opacidad (0.7) según necesites */
+    z-index: 1;
+}
+
+/* Caja de Login */
+.login-box {
+    background-color: black;
+    padding: 50px 40px;
+    border-radius: 10px; /* Bordes ligeramente redondeados */
+    text-align: center;
+    width: 350px;
+    position: relative;
+    z-index: 2; /* Para que esté por encima de la capa oscura */
+    border: 1px solid #333; /* Borde sutil */
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.login-box h2 {
+    color: white;
+    margin-bottom: 30px;
+    font-weight: normal;
+    font-size: 24px;
+    letter-spacing: 1px;
+}
+
+/* Campos de entrada */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 25px; /* Bordes muy redondeados */
+    outline: none;
+    font-size: 16px;
+    background-color: white;
+    color: #333;
+    text-align: center; /* Texto centrado como en la imagen */
+}
+
+.input-group input::placeholder {
+    color: #999;
+    text-align: center;
+}
+
+/* Botón Entrar */
+.login-btn {
+    background-color: transparent;
+    color: white;
+    padding: 10px 40px;
+    border: 1px solid white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: white;
+    color: black;
+}
+
+/* Mensaje de éxito/error */
+.message {
+    margin-top: 20px;
+    color: white;
+    height: 20px; /* Espacio reservado */
+}
+
+.success {
+    color: #4CAF50; /* Verde */
+}
+
+.error {
+    color: #f44336; /* Rojo */
+}

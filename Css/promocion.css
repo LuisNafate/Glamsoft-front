@@ -1,0 +1,222 @@
+/* =========================================
+   RESET Y ESTILOS BASE
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Lato', sans-serif;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* =========================================
+   HEADER (Reutilizado)
+   ========================================= */
+.main-header {
+    background: #000;
+    padding: 20px 40px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #333;
+}
+
+.header-level-2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.logo {
+    font-family: 'GFS Didot', serif;
+    font-size: 28px;
+    letter-spacing: 8px;
+    color: #fff;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-icon { font-size: 1.1rem; color: #fff; }
+
+.btn-agendar {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 10px 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+}
+.btn-agendar:hover { background: #fff; color: #000; }
+
+.header-level-3 {
+    display: flex;
+    justify-content: center;
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+}
+
+.main-nav a {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #aaa;
+    transition: color 0.3s ease;
+}
+.main-nav a:hover, .main-nav a.active { color: #fff; }
+
+/* =========================================
+   CONTENIDO DE PROMOCIONES (NUEVO)
+   ========================================= */
+.promo-main {
+    /* Espacio para el header fijo + un poco más */
+    padding-top: 160px;
+    padding-bottom: 100px;
+    min-height: 100vh; /* Asegura que ocupe al menos toda la pantalla */
+    padding-top: 160px;
+}
+
+.promo-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 60px; /* Espacio grande entre promociones */
+}
+
+.promo-card {
+    height: 450px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #333;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    /* Flexbox para centrar el contenido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.promo-card:hover {
+    transform: translateY(-5px); /* Efecto sutil al pasar el mouse */
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+    border-color: #b8860b; /* Color dorado al hover */
+}
+
+.promo-content {
+    padding: 40px;
+    max-width: 80%;
+    /* Fondo semitransparente opcional para mejorar lectura */
+    /* background: rgba(0,0,0,0.4); */
+    /* backdrop-filter: blur(5px); */
+    border-radius: 10px;
+}
+
+.promo-title {
+    font-family: 'GFS Didot', serif;
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.promo-desc {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #eee;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.btn-promo {
+    display: inline-block;
+    padding: 15px 40px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    transition: all 0.3s ease;
+}
+
+.btn-promo:hover {
+    background: #fff;
+    color: #000;
+    transform: scale(1.05);
+}
+
+/* =========================================
+   FOOTER (Reutilizado)
+   ========================================= */
+.main-footer {
+    background: #000;
+    padding: 50px 10%;
+    border-top: 1px solid #333;
+}
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+}
+.contact-info h3, .schedule-info h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    color: #fff;
+}
+.contact-info p, .schedule-info p {
+    color: #aaa;
+    line-height: 1.8;
+    margin-bottom: 5px;
+}
+.social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+.social-links a {
+    width: 40px; height: 40px;
+    border: 1px solid #555;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #aaa;
+    transition: all 0.3s ease;
+}
+.social-links a:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+@media (max-width: 768px) {
+    .promo-title { font-size: 2.5rem; }
+    .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+    .main-header { padding: 15px 20px; }
+    .logo { font-size: 22px; }
+}

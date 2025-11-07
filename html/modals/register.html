@@ -1,0 +1,40 @@
+<!-- modals/register.html -->
+
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn-auth">&times;</span>
+
+        <div id="registerView">
+            <h2>Crear una cuenta</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="reg-email">Correo electrónico</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="input-group">
+                    <label for="reg-password">Contraseña</label>
+                    <input type="password" id="reg-password" required>
+                </div>
+                <button type="submit" class="btn-submit">CREAR CUENTA</button>
+            </form>
+            <p class="switch-auth">¿Ya tienes una cuenta? <a href="#" id="showLogin">Iniciar sesión</a></p>
+        </div>
+
+        <div id="loginView" style="display: none;">
+            <h2>Iniciar Sesión</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="login-email">Correo electrónico</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn-submit">ENTRAR</button>
+            </form>
+            <p class="switch-auth">¿No tienes cuenta? <a href="#" id="showRegister">Crear una cuenta</a></p>
+        </div>
+
+    </div>
+</div>

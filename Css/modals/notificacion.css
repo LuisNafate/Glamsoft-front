@@ -1,0 +1,76 @@
+/* --- PARTE 1: BASE MODAL (CORREGIDA PARA POSICIÓN DEBAJO DEL ICONO) --- */
+.modal-notificaciones {
+    display: none; /* Oculto por defecto */
+    position: absolute; /* Cambiado de fixed a absolute */
+    z-index: 1000;
+    top: 80px; /* Ajusta según altura del icono */
+    right: 60px; /* Ajusta para alinearlo al icono */
+    background: transparent; /* Sin fondo oscuro */
+}
+
+/* --- PARTE 2: CAJA DE CONTENIDO --- */
+.modal-content-notificaciones {
+    background-color: #1a1a1a;
+    padding: 40px;
+    border: 1px solid #d4af37;
+    width: 320px; /* Más realista para notificaciones */
+    color: white;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    border-radius: 8px;
+    position: relative;
+}
+
+/* --- BOTÓN DE CIERRE --- */
+.close-btn-notif {
+    color: white;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-btn:hover { color: #d4af37; }
+
+/* --- TÍTULO Y CAMPOS --- */
+.modal-content-notificaciones h2 {
+    margin-bottom: 25px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: white;
+    text-align: left;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background-color: #e6e6e6;
+    color: #333;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+/* --- BOTÓN --- */
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: #d4af37;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #b9962e;
+}

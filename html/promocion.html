@@ -1,13 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROMOCIONES</title>
+    <title>NOMBRE - Promociones</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link rel="stylesheet" href="../Css/modals/notificacion.css">
+    <link rel="stylesheet" href="../Css/promocion.css">
+    <link rel="stylesheet" href="../Css/header_footer.css">
+    <link rel="stylesheet" href="../Css/modals/register.css">
+
+
 </head>
 <body>
-    <header>
-        
-    </header>
+
+    <div id="header-placeholder"></div>
+
+    <main class="promo-main">
+        <div class="promo-container">
+            
+            <section class="promo-card" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('../img/promo1.jpg');">
+                <div class="promo-content">
+                    <h2 class="promo-title">Promoción de Verano</h2>
+                    <p class="promo-desc">Aprovecha un 20% de descuento en todas las sesiones de exteriores durante este mes.</p>
+                    <a href="#" data-target="agendar.html" class="btn-promo auth-trigger">AGENDAR AHORA</a>
+                </div>
+            </section>
+    
+            <section class="promo-card" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('../img/promo2.jpg');">
+                <div class="promo-content">
+                    <h2 class="promo-title">Pack Boda Completo</h2>
+                    <p class="promo-desc">Reserva tu fecha con 6 meses de anticipación y recibe el álbum de lujo gratis.</p>
+                    <a href="#" data-target="agendar.html" class="btn-promo auth-trigger">MÁS INFORMACIÓN</a>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <div id="modal-placeholder"></div>
+
+
+
+
+    <script src="../js/header_footer.js"></script>
+    <script src="../js/promocion.js"></script> 
+
 </body>
 </html>

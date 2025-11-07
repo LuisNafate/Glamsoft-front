@@ -3,153 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOMBRE - Servicioso</title>
-    
+    <title>Servicios - NOMBRE</title>
+    <link rel="stylesheet" href="../Css/header_footer.css">
+     <link rel="stylesheet" href="../Css/servicios.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <link rel="stylesheet" href="../Css/servicios.css">
+            <link rel="stylesheet" href="../Css/modals/notificacion.css">
+                    <link rel="stylesheet" href="../Css/modals/register.css">
 </head>
 <body>
-    <header class="main-header three-level-nav">
-        <div class="header-level-1">
-            <div class="header-left">
-                <a href="#" id="undo-button"><i class="fas fa-arrow-left nav-icon"></i></a>
-                <a href="#" id="reload-button"><i class="fas fa-redo nav-icon"></i></a>
-            </div>
-        </div>
+    <div id="header-placeholder"></div>
 
-        <div class="header-level-2">
-            <div class="logo">NOMBRE</div>
-            <div class="header-right">
-                <i class="fas fa-bell nav-icon"></i>
-                <i class="fas fa-user nav-icon"></i>
-                <button class="btn-agendar">AGENDAR</button>
-            </div>
+   <main class="services-container">
+        <div class="services-list">
+            <!-- Lista de servicios generada dinámicamente -->
         </div>
+        <div class="services-details">
+            <!-- Detalles de servicios generados dinámicamente -->
+        </div>
+    </main>
 
-         <div class="header-level-3">
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="#" <li><a href="#inicio">INICIO</a></li>
-                    <li class="dropdown">
-                        <a href="#" id="categorias-link">CATEGORÍAS <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu" id="categorias-menu">
-                            <li><a href="#">SERVICIO 1</a></li>
-                            <li><a href="#">SERVICIO 2</a></li>
-                            <li><a href="#">SERVICIO 3</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">PROMOCIONES</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-<main>  
-        <!-- TÍTULO DE SECCIÓN -->
-<header class="page-header">
-  <h1>SERVICIOS</h1>
-</header>
+    <div id="footer-placeholder"></div>
+    <div id="modal-placeholder"></div>
 
-<section class="servicios-section">
-    <h2 class="titulo-seccion">SERVICIO</h2>
-    <div class="servicios-grid">
-        <!-- Panel izquierdo -->
-        <div class="servicios-lista">
-            <h3>SERVICIO</h3>
-            <ul>
-                <li>Servicio <span>01</span></li>
-                <li>Servicio <span>02</span></li>
-                <li>Servicio <span>03</span></li>
-            </ul>
-        </div>
 
-        <!-- Imagen principal -->
-        <div class="servicio-imagen">
-            <img src="https://i.ibb.co/J2djk6n/modelo-rojo.jpg" alt="Modelo en rojo">
-        </div>
-    </div>
 
-    <!-- Bloques de servicios con descripción -->
-    <div class="servicios-detalles">
-        <div class="servicio-item">
-            <img src="https://i.ibb.co/J2djk6n/modelo-rojo.jpg" alt="Servicio 1">
-            <div class="servicio-info">
-                <h3>SERVICIO</h3>
-                <p><strong>Tiempo Aprox.</strong></p>
-                <p>Descripción</p>
-                <p><strong>Lo que incluye</strong></p>
-                <ul>
-                    <li>••••</li>
-                    <li>••••</li>
-                    <li>••••</li>
-                </ul>
-                <p><strong>Precio $</strong></p>
-                <div class="rating">
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star-half-stroke"></i>
-                    <i class="fa-regular fa-star"></i>
-                    <i class="fa-regular fa-star"></i>
-                </div>
-                <button class="btn-agendar">Agendar</button>
-            </div>
-        </div>
-
-        <div class="servicio-item">
-            <div class="servicio-info">
-                <h3>SERVICIO</h3>
-                <p><strong>Tiempo Aprox.</strong></p>
-                <p>Descripción</p>
-                <p><strong>Lo que incluye</strong></p>
-                <ul>
-                    <li>••••</li>
-                    <li>••••</li>
-                    <li>••••</li>
-                </ul>
-                <p><strong>Precio $</strong></p>
-                <div class="rating">
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star-half-stroke"></i>
-                    <i class="fa-regular fa-star"></i>
-                    <i class="fa-regular fa-star"></i>
-                </div>
-                <button class="btn-agendar">Agendar</button>
-            </div>
-            <img src="https://i.ibb.co/J2djk6n/modelo-rojo.jpg" alt="Servicio 2">
-        </div>
-    </div>
-</section>
-
-</main>
-<footer class="main-footer">
-        <div class="footer-grid">
-            <div class="contact-info">
-                <h3>Contacto</h3>
-                <p>Dirección: 123 Calle Principal, Ciudad</p>
-                <p>Teléfono: +1 234 567 890</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                </div>
-            </div>
-            <div class="schedule-info">
-                <h3>Horario de atención</h3>
-                <p>Lunes a Viernes: 8:00 am - 6:00 pm</p>
-                <p>Sábados: 9:00 am - 1:00 pm</p>
-            </div>
-        </div>
-</footer>
+    <script src="../js/header_footer.js"></script>
     <script src="../js/servicios.js"></script>
 </body>
 </html>
-<label for="abrirDialogo" class="btn">Abrir diálogo</label>
-
-<dialog>
-  <p>Este es un diálogo sin nada de JavaScript 🎉</p>
-  <label for="abrirDialogo" class="btn">Cerrar</label>
-</dialog>
