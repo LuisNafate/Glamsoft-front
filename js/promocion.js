@@ -9,14 +9,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('http://localhost:7000/api/promociones');
         const data = await response.json();
         
-        if (data.success && data.data && data.data.length > 0) {
+        console.log('Respuesta de promociones:', data);
+        
+        if (data.data && data.data.length > 0) {
             const promociones = data.data;
             
             // Filtrar solo promociones activas
             const hoy = new Date();
             const promocionesActivas = promociones.filter(promo => {
-                const inicio = new Date(promo.fechaInicio);
-                const fin = new Date(promo.fechaFin);
+                // Las fechas vienen como [año, mes, día]
+                let inicio, fin;
+                if (Array.isArray(promo.fechaInicio)) {
+                    const [year, month, day] = promo.fechaInicio;
+                    inicio = new Date(year, month - 1, day);
+                } else {
+                    inicio = new Date(promo.fechaInicio);
+                }
+                
+                if (Array.isArray(promo.fechaFin)) {
+                    const [year, month, day] = promo.fechaFin;
+                    fin = new Date(year, month - 1, day);
+                } else {
+                    fin = new Date(promo.fechaFin);
+                }
+                
                 return hoy >= inicio && hoy <= fin;
             });
             
@@ -25,17 +41,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 promoContainer.innerHTML = '';
                 
                 promocionesActivas.forEach(promo => {
-                    const descuentoTexto = promo.tipoDescuento === 'PORCENTAJE' 
-                        ? `${promo.descuento}%` 
-                        : `$${promo.descuento}`;
+                    const descuento = promo.porcentajeDescuento || promo.descuento || 0;
+                    const descuentoTexto = `${descuento}%`;
                     
                     const card = document.createElement('section');
                     card.className = 'promo-card';
                     card.style.backgroundImage = 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(\'../img/promo1.jpg\')';
                     card.innerHTML = `
                         <div class="promo-content">
-                            <h2 class="promo-title">${promo.nombrePromocion}</h2>
-                            <p class="promo-desc">Aprovecha un descuento de ${descuentoTexto}</p>
+                            <h2 class="promo-title">${promo.nombre}</h2>
+                            <p class="promo-desc">${promo.descripcion || 'Aprovecha un descuento de ' + descuentoTexto}</p>
                             <a href="#" data-target="agendar.html" class="btn-promo">AGENDAR AHORA</a>
                         </div>
                     `;

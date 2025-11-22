@@ -48,7 +48,9 @@ class PromocionesAdmin {
         
         try {
             const response = await PromocionesService.getAll();
-            this.promociones = response.data || [];
+            console.log('Respuesta de promociones:', response);
+            // La API devuelve {data: [...], message: "...", status: "success"}
+            this.promociones = response.data?.data || response.data || [];
             this.filteredPromociones = [...this.promociones];
             this.renderTable();
         } catch (error) {
@@ -67,7 +69,7 @@ class PromocionesAdmin {
         const estadoFilter = document.getElementById('filterEstado').value;
         
         this.filteredPromociones = this.promociones.filter(promo => {
-            const matchesSearch = promo.titulo.toLowerCase().includes(searchTerm) ||
+            const matchesSearch = (promo.nombre || '').toLowerCase().includes(searchTerm) ||
                                 (promo.descripcion || '').toLowerCase().includes(searchTerm);
             
             const estado = this.getEstadoPromocion(promo);
@@ -81,8 +83,22 @@ class PromocionesAdmin {
 
     getEstadoPromocion(promo) {
         const hoy = new Date();
-        const inicio = new Date(promo.fechaInicio);
-        const fin = new Date(promo.fechaFin);
+        
+        // La API devuelve fechas como [año, mes, día]
+        let inicio, fin;
+        if (Array.isArray(promo.fechaInicio)) {
+            const [year, month, day] = promo.fechaInicio;
+            inicio = new Date(year, month - 1, day);
+        } else {
+            inicio = new Date(promo.fechaInicio);
+        }
+        
+        if (Array.isArray(promo.fechaFin)) {
+            const [year, month, day] = promo.fechaFin;
+            fin = new Date(year, month - 1, day);
+        } else {
+            fin = new Date(promo.fechaFin);
+        }
         
         if (hoy < inicio) return 'proxima';
         if (hoy > fin) return 'expirada';
@@ -111,11 +127,13 @@ class PromocionesAdmin {
                 'expirada': 'Expirada'
             };
             
+            const descuento = promo.porcentajeDescuento || promo.descuento || 0;
+            
             return `
                 <tr>
-                    <td><strong>${promo.nombrePromocion || 'Sin título'}</strong></td>
-                    <td style="max-width: 300px;">Descuento del ${promo.descuento}${promo.tipoDescuento === 'PORCENTAJE' ? '%' : ''}</td>
-                    <td><span class="discount-tag">${promo.descuento}${promo.tipoDescuento === 'PORCENTAJE' ? '%' : ''}</span></td>
+                    <td><strong>${promo.nombre || 'Sin título'}</strong></td>
+                    <td style="max-width: 300px;">${promo.descripcion || 'Descuento del ' + descuento + '%'}</td>
+                    <td><span class="discount-tag">${descuento}%</span></td>
                     <td>${this.formatFecha(promo.fechaInicio)}</td>
                     <td>${this.formatFecha(promo.fechaFin)}</td>
                     <td>
@@ -139,6 +157,12 @@ class PromocionesAdmin {
     }
 
     formatFecha(fecha) {
+        // La API devuelve fechas como [año, mes, día]
+        if (Array.isArray(fecha)) {
+            const [year, month, day] = fecha;
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+        }
+        // Si viene como string o Date
         const date = new Date(fecha);
         return date.toLocaleDateString('es-ES', { 
             day: '2-digit', 
@@ -155,11 +179,24 @@ class PromocionesAdmin {
         if (promo) {
             modalTitle.textContent = 'Editar Promoción';
             document.getElementById('promocionId').value = promo.idPromocion;
-            document.getElementById('tituloPromocion').value = promo.nombrePromocion;
-            document.getElementById('tipoDescuento').value = promo.tipoDescuento || 'PORCENTAJE';
-            document.getElementById('descuentoPromocion').value = promo.descuento;
-            document.getElementById('fechaInicio').value = promo.fechaInicio;
-            document.getElementById('fechaFin').value = promo.fechaFin;
+            document.getElementById('tituloPromocion').value = promo.nombre;
+            document.getElementById('tipoDescuento').value = 'PORCENTAJE';
+            document.getElementById('descuentoPromocion').value = promo.porcentajeDescuento || promo.descuento || '';
+            
+            // Convertir fecha de array a string YYYY-MM-DD
+            if (Array.isArray(promo.fechaInicio)) {
+                const [year, month, day] = promo.fechaInicio;
+                document.getElementById('fechaInicio').value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } else {
+                document.getElementById('fechaInicio').value = promo.fechaInicio;
+            }
+            
+            if (Array.isArray(promo.fechaFin)) {
+                const [year, month, day] = promo.fechaFin;
+                document.getElementById('fechaFin').value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } else {
+                document.getElementById('fechaFin').value = promo.fechaFin;
+            }
         } else {
             modalTitle.textContent = 'Nueva Promoción';
             form.reset();
