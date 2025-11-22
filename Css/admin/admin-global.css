@@ -9,7 +9,7 @@
     /* CONFIGURACIÓN DE COLORES (Sidebar Negro Puro) */
     --sidebar-bg: #000000;         
     --sidebar-text: #ffffff;       
-    --sidebar-text-muted: #a0a0a0; /* Gris suave para texto inactivo */
+    --sidebar-text-muted: #f9f7f7; /* Gris suave para texto inactivo */
     --sidebar-hover: #1a1a1a;      /* Gris muy oscuro para hover */
     --sidebar-accent: #536dfe;     /* Color de acento (puedes cambiarlo por tu color principal) */
     --sidebar-width: 260px;
@@ -125,13 +125,22 @@ body.admin-page {
     font-weight: 400; /* Letra más fina estilo moderno */
 }
 
+/* Ajuste para iconos Phosphor (más grandes y finos) */
 .menu-item i.sidebar-icon {
     width: 24px;
-    font-size: 18px;
+    font-size: 22px; /* Aumentamos un poco porque son finos */
     margin-right: 12px;
     text-align: center;
     transition: transform 0.2s;
-    opacity: 0.8;
+    opacity: 0.9;
+    display: flex; /* Ayuda a centrar verticalmente */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Icono de la marca principal */
+.brand-icon i {
+    font-size: 28px; /* Icono grande del logo */
 }
 
 .menu-item span {
