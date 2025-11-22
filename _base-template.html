@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Salón de Belleza</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="Css/header_footer.css">
+    <link rel="stylesheet" href="Css/servicios.css">
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Global Loading Indicator -->
+    <div id="global-loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+            <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Header Placeholder -->
+    <div id="header-placeholder"></div>
+    
+    <!-- Modal Placeholder -->
+    <div id="modal-placeholder"></div>
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- El contenido específico de cada página irá aquí -->
+    </main>
+    
+    <!-- Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- ==================== SCRIPTS DE CONFIGURACIÓN Y SERVICIOS ==================== -->
+    <!-- Cargar en orden: Configuración → HTTP Service → Servicios específicos → Utils → Scripts de página -->
+    
+    <!-- 1. Configuración de la API -->
+    <script src="config/api.config.js"></script>
+    
+    <!-- 2. Servicio HTTP genérico -->
+    <script src="services/http.service.js"></script>
+    
+    <!-- 3. Servicios específicos -->
+    <script src="services/auth.service.js"></script>
+    <script src="services/servicios.service.js"></script>
+    <script src="services/citas.service.js"></script>
+    <script src="services/usuarios.service.js"></script>
+    <script src="services/promociones.service.js"></script>
+    <script src="services/valoraciones.service.js"></script>
+    <script src="services/notificaciones.service.js"></script>
+    
+    <!-- 4. Utilidades -->
+    <script src="utils/error-handler.js"></script>
+    <script src="utils/state-manager.js"></script>
+    
+    <!-- 5. Scripts de la aplicación -->
+    <script src="js/header_footer.js"></script>
+    
+    <!-- Scripts específicos de cada página (cargar según sea necesario) -->
+    <!-- <script src="js/servicios.js"></script> -->
+    <!-- <script src="js/agendar.js"></script> -->
+    <!-- <script src="js/perfil.js"></script> -->
+    
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .input-error {
+            border-color: red !important;
+        }
+        
+        .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    </style>
+</body>
+</html>

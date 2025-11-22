@@ -1,4 +1,245 @@
 // ===================================
+// CARGA DE DATOS DESDE LA API
+// ===================================
+
+/**
+ * Mostrar/ocultar indicador de carga
+ */
+function toggleLoader(show) {
+    const loader = document.getElementById('global-loader');
+    if (loader) {
+        loader.style.display = show ? 'flex' : 'none';
+    }
+}
+
+/**
+ * Cargar trabajos del portafolio desde la API
+ */
+async function loadPortafolio() {
+    try {
+        // Obtener trabajos destacados (máximo 4 para la página de inicio)
+        const trabajos = await PortafolioService.getDestacados(4);
+        
+        const portfolioGrid = document.querySelector('.portfolio-grid');
+        if (!portfolioGrid) return;
+        
+        // Limpiar el contenido actual
+        portfolioGrid.innerHTML = '';
+        
+        // Renderizar trabajos
+        if (trabajos && trabajos.length > 0) {
+            trabajos.forEach(trabajo => {
+                const item = createPortfolioItem(trabajo);
+                portfolioGrid.appendChild(item);
+            });
+        } else {
+            // Fallback a imágenes de ejemplo si no hay datos
+            loadPortafolioFallback(portfolioGrid);
+        }
+        
+    } catch (error) {
+        console.error('Error al cargar portafolio:', error);
+        // Cargar imágenes de ejemplo en caso de error
+        const portfolioGrid = document.querySelector('.portfolio-grid');
+        if (portfolioGrid) {
+            loadPortafolioFallback(portfolioGrid);
+        }
+    }
+}
+
+/**
+ * Crear elemento de portafolio
+ */
+function createPortfolioItem(trabajo) {
+    const item = document.createElement('a');
+    item.href = 'portafolio.html';
+    item.className = 'portfolio-item';
+    
+    const img = document.createElement('img');
+    img.src = trabajo.imagen || trabajo.url || 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop';
+    img.alt = trabajo.titulo || 'Trabajo';
+    img.loading = 'lazy';
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'portfolio-overlay';
+    
+    const label = document.createElement('p');
+    label.className = 'portfolio-label';
+    label.textContent = trabajo.titulo || 'Trabajo';
+    
+    overlay.appendChild(label);
+    item.appendChild(img);
+    item.appendChild(overlay);
+    
+    return item;
+}
+
+/**
+ * Cargar portafolio con imágenes de ejemplo (fallback)
+ */
+function loadPortafolioFallback(container) {
+    const imagenes = [
+        'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+        'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+        'https://images.pexels.com/photos/3373734/pexels-photo-3373734.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+        'https://images.pexels.com/photos/3373739/pexels-photo-3373739.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop'
+    ];
+    
+    container.innerHTML = '';
+    
+    imagenes.forEach((src, index) => {
+        const item = document.createElement('a');
+        item.href = 'portafolio.html';
+        item.className = 'portfolio-item';
+        
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = `Trabajo ${index + 1}`;
+        img.loading = 'lazy';
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'portfolio-overlay';
+        
+        const label = document.createElement('p');
+        label.className = 'portfolio-label';
+        label.textContent = 'Trabajo';
+        
+        overlay.appendChild(label);
+        item.appendChild(img);
+        item.appendChild(overlay);
+        container.appendChild(item);
+    });
+}
+
+/**
+ * Cargar comentarios/valoraciones desde la API
+ */
+async function loadComentarios() {
+    try {
+        // Obtener valoraciones destacadas
+        const valoraciones = await ValoracionesService.getAll({ destacadas: true, limit: 6 });
+        
+        const comentariosGrid = document.querySelector('.comentarios-grid');
+        if (!comentariosGrid) return;
+        
+        // Limpiar el contenido actual
+        comentariosGrid.innerHTML = '';
+        
+        // Renderizar comentarios
+        if (valoraciones && valoraciones.length > 0) {
+            valoraciones.forEach(valoracion => {
+                const item = createComentarioItem(valoracion);
+                comentariosGrid.appendChild(item);
+            });
+        } else {
+            // Fallback a comentarios de ejemplo
+            loadComentariosFallback(comentariosGrid);
+        }
+        
+    } catch (error) {
+        console.error('Error al cargar comentarios:', error);
+        // Cargar comentarios de ejemplo en caso de error
+        const comentariosGrid = document.querySelector('.comentarios-grid');
+        if (comentariosGrid) {
+            loadComentariosFallback(comentariosGrid);
+        }
+    }
+}
+
+/**
+ * Crear elemento de comentario
+ */
+function createComentarioItem(valoracion) {
+    const item = document.createElement('div');
+    item.className = 'comentario-item';
+    item.style.cssText = 'padding: 20px; display: flex; flex-direction: column; justify-content: center;';
+    
+    const texto = document.createElement('p');
+    texto.style.cssText = 'font-size: 14px; color: #ccc; line-height: 1.6;';
+    texto.textContent = `"${valoracion.comentario || valoracion.texto}"`;
+    
+    const autor = document.createElement('p');
+    autor.style.cssText = 'font-size: 12px; color: #B8860B; margin-top: 10px;';
+    
+    // Renderizar estrellas si existe calificación
+    let estrellas = '';
+    if (valoracion.calificacion) {
+        estrellas = '⭐'.repeat(valoracion.calificacion) + ' ';
+    }
+    
+    autor.textContent = `${estrellas}- ${valoracion.usuario || valoracion.nombre || 'Usuario'}`;
+    
+    item.appendChild(texto);
+    item.appendChild(autor);
+    
+    return item;
+}
+
+/**
+ * Cargar comentarios de ejemplo (fallback)
+ */
+function loadComentariosFallback(container) {
+    const comentarios = [
+        { texto: 'Excelente trabajo, quedé muy satisfecha con el resultado. Totalmente recomendado.', autor: 'María González' },
+        { texto: 'Profesionalismo de primer nivel. El maquillaje duró perfecto toda la noche.', autor: 'Ana Martínez' },
+        { texto: 'Me encantó el resultado, superó mis expectativas. Definitivamente volveré.', autor: 'Laura Pérez' },
+        { texto: 'Increíble atención al detalle. Me sentí como una princesa en mi boda.', autor: 'Carmen Ruiz' },
+        { texto: 'Trabajo impecable y muy profesional. Los productos son de excelente calidad.', autor: 'Sofía Torres' },
+        { texto: 'La mejor experiencia de maquillaje que he tenido. ¡Altamente recomendado!', autor: 'Patricia Morales' }
+    ];
+    
+    container.innerHTML = '';
+    
+    comentarios.forEach(comentario => {
+        const item = document.createElement('div');
+        item.className = 'comentario-item';
+        item.style.cssText = 'padding: 20px; display: flex; flex-direction: column; justify-content: center;';
+        
+        const texto = document.createElement('p');
+        texto.style.cssText = 'font-size: 14px; color: #ccc; line-height: 1.6;';
+        texto.textContent = `"${comentario.texto}"`;
+        
+        const autor = document.createElement('p');
+        autor.style.cssText = 'font-size: 12px; color: #B8860B; margin-top: 10px;';
+        autor.textContent = `- ${comentario.autor}`;
+        
+        item.appendChild(texto);
+        item.appendChild(autor);
+        container.appendChild(item);
+    });
+}
+
+// ===================================
+// INICIALIZACIÓN
+// ===================================
+document.addEventListener('DOMContentLoaded', async function() {
+    // Mostrar indicador de carga
+    toggleLoader(true);
+    
+    // Aplicar animaciones de entrada
+    const sections = document.querySelectorAll('.portfolio-section, .destacado-section, .comentarios-section');
+    sections.forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(30px)';
+        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(section);
+    });
+    
+    try {
+        // Cargar datos desde la API
+        await Promise.all([
+            loadPortafolio(),
+            loadComentarios()
+        ]);
+    } catch (error) {
+        console.error('Error al cargar datos de la página:', error);
+    } finally {
+        // Ocultar indicador de carga
+        toggleLoader(false);
+    }
+});
+
+// ===================================
 // NAVEGACIÓN: Botones de control
 // ===================================
 const undoButton = document.getElementById('undo-button');

@@ -17,11 +17,54 @@
     <link rel="stylesheet" href="../Css/inicio.css">
     <link rel="stylesheet" href="../Css/header_footer.css">
     <link rel="stylesheet" href="../Css/modals/notificacion.css">
+    
+    <style>
+        /* Indicador de carga global */
+        .global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loader-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #B8860B;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .global-loader p {
+            color: white;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+    </style>
   
 
 
 </head>
 <body>
+    <!-- Indicador de carga global -->
+    <div id="global-loader" class="global-loader" style="display: none;">
+        <div class="loader-spinner"></div>
+        <p>Cargando...</p>
+    </div>
+
     <div id="header-placeholder"></div>
 
     <main>
@@ -113,9 +156,25 @@
    <div id="modal-placeholder-agendar"></div>
 
 
-    <!-- Scripts - SOLO estos dos archivos -->
+    <!-- Scripts - Orden de carga importante -->
+    <!-- 1. Configuración -->
+    <script src="../config/api.config.js"></script>
+    
+    <!-- 2. Servicios HTTP base -->
+    <script src="../services/http.service.js"></script>
+    
+    <!-- 3. Servicios específicos -->
+    <script src="../services/auth.service.js"></script>
+    <script src="../services/valoraciones.service.js"></script>
+    <script src="../services/servicios.service.js"></script>
+    <script src="../services/portafolio.service.js"></script>
+    
+    <!-- 4. Utilidades -->
+    <script src="../utils/error-handler.js"></script>
+    <script src="../utils/state-manager.js"></script>
+    
+    <!-- 5. Scripts de página -->
     <script src="../js/header_footer.js"></script>
-   
     <script src="../js/inicio.js"></script>
 </body>
 </html>
