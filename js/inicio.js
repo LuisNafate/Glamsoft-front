@@ -33,16 +33,14 @@ async function loadPortafolio() {
                 portfolioGrid.appendChild(item);
             });
         } else {
-            // Fallback a imágenes de ejemplo si no hay datos
-            loadPortafolioFallback(portfolioGrid);
+            portfolioGrid.innerHTML = '<p style="text-align: center; color: #ccc; padding: 40px;">No hay trabajos disponibles en el portafolio</p>';
         }
         
     } catch (error) {
         console.error('Error al cargar portafolio:', error);
-        // Cargar imágenes de ejemplo en caso de error
         const portfolioGrid = document.querySelector('.portfolio-grid');
         if (portfolioGrid) {
-            loadPortafolioFallback(portfolioGrid);
+            portfolioGrid.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px;">Error al cargar el portafolio</p>';
         }
     }
 }
@@ -75,43 +73,6 @@ function createPortfolioItem(trabajo) {
 }
 
 /**
- * Cargar portafolio con imágenes de ejemplo (fallback)
- */
-function loadPortafolioFallback(container) {
-    const imagenes = [
-        'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
-        'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
-        'https://images.pexels.com/photos/3373734/pexels-photo-3373734.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
-        'https://images.pexels.com/photos/3373739/pexels-photo-3373739.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop'
-    ];
-    
-    container.innerHTML = '';
-    
-    imagenes.forEach((src, index) => {
-        const item = document.createElement('a');
-        item.href = 'portafolio.html';
-        item.className = 'portfolio-item';
-        
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = `Trabajo ${index + 1}`;
-        img.loading = 'lazy';
-        
-        const overlay = document.createElement('div');
-        overlay.className = 'portfolio-overlay';
-        
-        const label = document.createElement('p');
-        label.className = 'portfolio-label';
-        label.textContent = 'Trabajo';
-        
-        overlay.appendChild(label);
-        item.appendChild(img);
-        item.appendChild(overlay);
-        container.appendChild(item);
-    });
-}
-
-/**
  * Cargar comentarios/valoraciones desde la API
  */
 async function loadComentarios() {
@@ -132,16 +93,14 @@ async function loadComentarios() {
                 comentariosGrid.appendChild(item);
             });
         } else {
-            // Fallback a comentarios de ejemplo
-            loadComentariosFallback(comentariosGrid);
+            comentariosGrid.innerHTML = '<p style="text-align: center; color: #ccc; padding: 40px; grid-column: 1/-1;">No hay comentarios disponibles</p>';
         }
         
     } catch (error) {
         console.error('Error al cargar comentarios:', error);
-        // Cargar comentarios de ejemplo en caso de error
         const comentariosGrid = document.querySelector('.comentarios-grid');
         if (comentariosGrid) {
-            loadComentariosFallback(comentariosGrid);
+            comentariosGrid.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px; grid-column: 1/-1;">Error al cargar comentarios</p>';
         }
     }
 }
@@ -173,40 +132,6 @@ function createComentarioItem(valoracion) {
     item.appendChild(autor);
     
     return item;
-}
-
-/**
- * Cargar comentarios de ejemplo (fallback)
- */
-function loadComentariosFallback(container) {
-    const comentarios = [
-        { texto: 'Excelente trabajo, quedé muy satisfecha con el resultado. Totalmente recomendado.', autor: 'María González' },
-        { texto: 'Profesionalismo de primer nivel. El maquillaje duró perfecto toda la noche.', autor: 'Ana Martínez' },
-        { texto: 'Me encantó el resultado, superó mis expectativas. Definitivamente volveré.', autor: 'Laura Pérez' },
-        { texto: 'Increíble atención al detalle. Me sentí como una princesa en mi boda.', autor: 'Carmen Ruiz' },
-        { texto: 'Trabajo impecable y muy profesional. Los productos son de excelente calidad.', autor: 'Sofía Torres' },
-        { texto: 'La mejor experiencia de maquillaje que he tenido. ¡Altamente recomendado!', autor: 'Patricia Morales' }
-    ];
-    
-    container.innerHTML = '';
-    
-    comentarios.forEach(comentario => {
-        const item = document.createElement('div');
-        item.className = 'comentario-item';
-        item.style.cssText = 'padding: 20px; display: flex; flex-direction: column; justify-content: center;';
-        
-        const texto = document.createElement('p');
-        texto.style.cssText = 'font-size: 14px; color: #ccc; line-height: 1.6;';
-        texto.textContent = `"${comentario.texto}"`;
-        
-        const autor = document.createElement('p');
-        autor.style.cssText = 'font-size: 12px; color: #B8860B; margin-top: 10px;';
-        autor.textContent = `- ${comentario.autor}`;
-        
-        item.appendChild(texto);
-        item.appendChild(autor);
-        container.appendChild(item);
-    });
 }
 
 // ===================================

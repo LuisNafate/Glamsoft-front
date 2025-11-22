@@ -17,8 +17,11 @@ async function loadServicios() {
         console.log('📦 Servicios cargados:', serviciosData.length);
         
         if (serviciosData.length === 0) {
-            console.warn('⚠️ No hay servicios disponibles, usando datos de respaldo');
-            loadMockData();
+            console.warn('⚠️ No hay servicios disponibles en la API');
+            const detailsContainer = document.querySelector('.services-details');
+            if (detailsContainer) {
+                detailsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #ccc;"><h2>No hay servicios disponibles</h2><p>Por favor, agregue servicios desde el panel de administración</p></div>';
+            }
             return;
         }
         
@@ -28,47 +31,11 @@ async function loadServicios() {
         
     } catch (error) {
         console.error('❌ Error al cargar servicios:', error);
-        
-        // Cargar datos de respaldo (mock)
-        loadMockData();
-    }
-}
-
-// Datos de respaldo si la API falla
-function loadMockData() {
-    console.log('📋 Cargando datos de respaldo (mock)');
-    serviciosData = [
-        {
-            idServicio: 1,
-            nombreServicio: "Corte Clásico",
-            duracionMinutos: 30,
-            descripcion: "Corte de cabello tradicional con lavado incluido. Perfecto para mantener tu estilo clásico.",
-            precio: 200.00,
-            imagen: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800",
-            idCategoria: 1
-        },
-        {
-            idServicio: 2,
-            nombreServicio: "Corte y Barba",
-            duracionMinutos: 45,
-            descripcion: "Corte de cabello y arreglo de barba profesional. Servicio completo para el caballero moderno.",
-            precio: 350.00,
-            imagen: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800",
-            idCategoria: 1
-        },
-        {
-            idServicio: 3,
-            nombreServicio: "Tinte Completo",
-            duracionMinutos: 120,
-            descripcion: "Tinte de cabello completo con decoloración. Cambia tu look con colores vibrantes.",
-            precio: 800.00,
-            imagen: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=800",
-            idCategoria: 2
+        const detailsContainer = document.querySelector('.services-details');
+        if (detailsContainer) {
+            detailsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff6b6b;"><h2>Error al cargar servicios</h2><p>Por favor, verifique que la API esté funcionando correctamente</p></div>';
         }
-    ];
-    
-    renderServicesList();
-    renderServiceDetails();
+    }
 }
 
 // Verificar si el usuario está autenticado
