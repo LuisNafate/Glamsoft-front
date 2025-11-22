@@ -48,6 +48,14 @@ const NotificacionesService = {
     },
 
     /**
+     * Alias para marcarLeida (usado en admin)
+     * @param {number|string} id 
+     */
+    async marcarLeida(id) {
+        return this.markAsRead(id);
+    },
+
+    /**
      * Eliminar notificación
      * @param {number|string} id 
      */

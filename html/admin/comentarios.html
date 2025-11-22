@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Comentarios - Panel Administrativo</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../../Css/admin/admin-global.css">
+    
+    <style>
+        .comment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .comment-user {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--admin-accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .user-info h4 {
+            margin: 0;
+            color: var(--admin-primary);
+            font-size: 16px;
+        }
+        
+        .user-info .comment-date {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+        
+        .rating-stars {
+            color: #f39c12;
+            font-size: 18px;
+        }
+        
+        .comment-text {
+            color: #2c3e50;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .comment-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .comment-status.aprobado {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .comment-status.pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .comment-status.rechazado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body class="admin-page">
+    
+    <!-- Sidebar -->
+    <div id="sidebarContainer"></div>
+    
+    <!-- Contenido Principal -->
+    <div class="admin-content">
+        
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-title">
+                <h1>Gestión de Comentarios</h1>
+            </div>
+        </header>
+        
+        <!-- Contenido -->
+        <main class="main-content">
+            
+            <!-- Filtros -->
+            <div class="content-card">
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar comentarios...">
+                    <select class="filter-select" id="filterEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="aprobado">Aprobados</option>
+                        <option value="rechazado">Rechazados</option>
+                    </select>
+                    <select class="filter-select" id="filterCalificacion">
+                        <option value="">Todas las calificaciones</option>
+                        <option value="5">5 estrellas</option>
+                        <option value="4">4 estrellas</option>
+                        <option value="3">3 estrellas</option>
+                        <option value="2">2 estrellas</option>
+                        <option value="1">1 estrella</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Lista de Comentarios -->
+            <div id="comentariosContainer">
+                <!-- Se llena dinámicamente -->
+            </div>
+            
+            <div id="emptyState" style="display: none; text-align: center; padding: 60px; background: white; border-radius: 12px;">
+                <i class="fas fa-comments" style="font-size: 64px; color: #bdc3c7; margin-bottom: 20px;"></i>
+                <p style="color: #7f8c8d; font-size: 18px;">No se encontraron comentarios</p>
+            </div>
+            
+        </main>
+        
+    </div>
+    
+    <!-- Loader -->
+    <div class="admin-loader" id="loader" style="display: none;">
+        <div class="loader-spinner"></div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="../../config/api.config.js"></script>
+    <script src="../../services/http.service.js"></script>
+    <script src="../../services/auth.service.js"></script>
+    <script src="../../services/valoraciones.service.js"></script>
+    <script src="../../utils/error-handler.js"></script>
+    <script src="../../utils/state-manager.js"></script>
+    <script src="../../js/admin/comentarios.js"></script>
+    
+    <script>
+        fetch('_sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebarContainer').innerHTML = html;
+            });
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes y Analytics - Panel Administrativo</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../../Css/admin/admin-global.css">
+    
+    <style>
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--admin-primary);
+            margin-bottom: 20px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--admin-accent);
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .metric-change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .metric-change.positive {
+            color: var(--admin-success);
+        }
+        
+        .metric-change.negative {
+            color: var(--admin-danger);
+        }
+        
+        .filter-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="admin-page">
+    
+    <!-- Sidebar -->
+    <div id="sidebarContainer"></div>
+    
+    <!-- Contenido Principal -->
+    <div class="admin-content">
+        
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-title">
+                <h1>Reportes y Analytics</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn btn-secondary" id="btnExportar">
+                    <i class="fas fa-download"></i> Exportar
+                </button>
+            </div>
+        </header>
+        
+        <!-- Contenido -->
+        <main class="main-content">
+            
+            <!-- Filtros -->
+            <div class="filter-bar">
+                <label style="font-weight: 600; color: var(--admin-primary);">Período:</label>
+                <select class="filter-select" id="filterPeriodo">
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30" selected>Últimos 30 días</option>
+                    <option value="90">Últimos 3 meses</option>
+                    <option value="365">Último año</option>
+                </select>
+            </div>
+            
+            <!-- Métricas Principales -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="totalIngresos">$0</div>
+                    <div class="metric-label">Ingresos Totales</div>
+                    <div class="metric-change positive" id="changeIngresos">
+                        <i class="fas fa-arrow-up"></i> 0%
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="totalCitas">0</div>
+                    <div class="metric-label">Total de Citas</div>
+                    <div class="metric-change positive" id="changeCitas">
+                        <i class="fas fa-arrow-up"></i> 0%
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="tasaOcupacion">0%</div>
+                    <div class="metric-label">Tasa de Ocupación</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="promValoracion">0.0</div>
+                    <div class="metric-label">Valoración Promedio</div>
+                </div>
+            </div>
+            
+            <!-- Gráfico de Ingresos -->
+            <div class="chart-container">
+                <h3 class="chart-title">Ingresos por Período</h3>
+                <canvas id="ingresosChart"></canvas>
+            </div>
+            
+            <!-- Servicios Más Solicitados -->
+            <div class="chart-container">
+                <h3 class="chart-title">Servicios Más Solicitados</h3>
+                <canvas id="serviciosChart"></canvas>
+            </div>
+            
+            <!-- Rendimiento de Estilistas -->
+            <div class="chart-container">
+                <h3 class="chart-title">Rendimiento de Estilistas</h3>
+                <canvas id="estilistasChart"></canvas>
+            </div>
+            
+            <!-- Tabla Top Servicios -->
+            <div class="content-card">
+                <h3 class="card-title">Top 10 Servicios</h3>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Servicio</th>
+                            <th>Cantidad</th>
+                            <th>Ingresos</th>
+                            <th>Promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topServiciosTable">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+        </main>
+        
+    </div>
+    
+    <!-- Loader -->
+    <div class="admin-loader" id="loader" style="display: none;">
+        <div class="loader-spinner"></div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="../../config/api.config.js"></script>
+    <script src="../../services/http.service.js"></script>
+    <script src="../../services/auth.service.js"></script>
+    <script src="../../services/citas.service.js"></script>
+    <script src="../../services/servicios.service.js"></script>
+    <script src="../../services/estilistas.service.js"></script>
+    <script src="../../utils/error-handler.js"></script>
+    <script src="../../utils/state-manager.js"></script>
+    <script src="../../js/admin/reportes.js"></script>
+    
+    <script>
+        fetch('_sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebarContainer').innerHTML = html;
+            });
+    </script>
+    
+</body>
+</html>
