@@ -5,23 +5,29 @@ let serviciosData = [];
 // Cargar servicios desde la API
 async function loadServicios() {
     try {
-        StateManager.setLoading(true);
+        console.log('🔄 Cargando servicios desde API...');
         
         // Obtener servicios de la API
-        const response = await ServiciosService.getAll({ activo: true });
-        serviciosData = response.servicios || response;
+        const response = await ServiciosService.getAll();
+        console.log('✅ Respuesta de API:', response);
+        
+        // La API puede retornar directamente un array o un objeto con propiedad servicios
+        serviciosData = Array.isArray(response) ? response : (response.servicios || response.data || []);
+        
+        console.log('📦 Servicios cargados:', serviciosData.length);
+        
+        if (serviciosData.length === 0) {
+            console.warn('⚠️ No hay servicios disponibles, usando datos de respaldo');
+            loadMockData();
+            return;
+        }
         
         // Renderizar servicios
         renderServicesList();
         renderServiceDetails();
         
-        StateManager.setLoading(false);
     } catch (error) {
-        StateManager.setLoading(false);
-        ErrorHandler.handle(error, {
-            customMessage: 'No se pudieron cargar los servicios. Intenta recargar la página.',
-            showToUser: true
-        });
+        console.error('❌ Error al cargar servicios:', error);
         
         // Cargar datos de respaldo (mock)
         loadMockData();
@@ -30,33 +36,34 @@ async function loadServicios() {
 
 // Datos de respaldo si la API falla
 function loadMockData() {
+    console.log('📋 Cargando datos de respaldo (mock)');
     serviciosData = [
         {
-            id: 1,
-            nombre: "Servicio 001",
-            tiempo: "1 hora 30 minutos",
-            descripcion: "Una experiencia completa de belleza y cuidado personal diseñada para realzar tu elegancia natural.",
-            incluye: ["Consulta personalizada", "Tratamiento especializado", "Productos premium incluidos"],
-            precio: 120,
-            imagen: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800"
+            idServicio: 1,
+            nombreServicio: "Corte Clásico",
+            duracionMinutos: 30,
+            descripcion: "Corte de cabello tradicional con lavado incluido. Perfecto para mantener tu estilo clásico.",
+            precio: 200.00,
+            imagen: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800",
+            idCategoria: 1
         },
         {
-            id: 2,
-            nombre: "Servicio 002",
-            tiempo: "2 horas",
-            descripcion: "Tratamiento completo de lujo con técnicas avanzadas para resultados excepcionales.",
-            incluye: ["Análisis profesional detallado", "Procedimiento premium", "Seguimiento post-tratamiento"],
-            precio: 200,
-            imagen: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800"
+            idServicio: 2,
+            nombreServicio: "Corte y Barba",
+            duracionMinutos: 45,
+            descripcion: "Corte de cabello y arreglo de barba profesional. Servicio completo para el caballero moderno.",
+            precio: 350.00,
+            imagen: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800",
+            idCategoria: 1
         },
         {
-            id: 3,
-            nombre: "Servicio 003",
-            tiempo: "45 minutos",
-            descripcion: "Servicio express para quienes buscan resultados rápidos sin comprometer la calidad.",
-            incluye: ["Servicio rápido y eficiente", "Productos de alta gama", "Resultados inmediatos"],
-            precio: 80,
-            imagen: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800"
+            idServicio: 3,
+            nombreServicio: "Tinte Completo",
+            duracionMinutos: 120,
+            descripcion: "Tinte de cabello completo con decoloración. Cambia tu look con colores vibrantes.",
+            precio: 800.00,
+            imagen: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=800",
+            idCategoria: 2
         }
     ];
     
@@ -66,21 +73,31 @@ function loadMockData() {
 
 // Verificar si el usuario está autenticado
 function isUserAuthenticated() {
-    return StateManager.isAuthenticated();
+    // Verificar si existe token en localStorage
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    return !!token;
 }
 
 // Renderizar lista de servicios
 function renderServicesList() {
     const listContainer = document.querySelector('.services-list');
-    if (!listContainer) return;
+    if (!listContainer) {
+        console.error('❌ No se encontró el contenedor .services-list');
+        return;
+    }
     
     listContainer.innerHTML = ''; // Limpiar contenido previo
     
+    console.log('📝 Renderizando lista de servicios:', serviciosData.length);
+    
     serviciosData.forEach(servicio => {
+        const serviceId = servicio.idServicio || servicio.id;
+        const serviceName = servicio.nombreServicio || servicio.nombre;
+        
         const div = document.createElement('div');
         div.className = 'service-item';
-        div.onclick = () => scrollToService(`service${servicio.id}`);
-        div.innerHTML = `<span>${servicio.nombre}</span><span>${servicio.id.toString().padStart(3,'0')}</span>`;
+        div.onclick = () => scrollToService(`service${serviceId}`);
+        div.innerHTML = `<span>${serviceName}</span><span>${serviceId.toString().padStart(3,'0')}</span>`;
         listContainer.appendChild(div);
     });
 }
@@ -88,43 +105,54 @@ function renderServicesList() {
 // Renderizar detalles de servicios
 function renderServiceDetails() {
     const detailsContainer = document.querySelector('.services-details');
-    if (!detailsContainer) return;
+    if (!detailsContainer) {
+        console.error('❌ No se encontró el contenedor .services-details');
+        return;
+    }
     
     detailsContainer.innerHTML = ''; // Limpiar contenido previo
     
+    console.log('🎨 Renderizando detalles de servicios');
+    
     serviciosData.forEach(servicio => {
+        const serviceId = servicio.idServicio || servicio.id;
+        const serviceName = servicio.nombreServicio || servicio.nombre;
+        const serviceDesc = servicio.descripcion || 'Sin descripción disponible';
+        const servicePrice = servicio.precio || 0;
+        const serviceDuration = servicio.duracionMinutos || servicio.duracion || 60;
+        const serviceImage = servicio.imagen || servicio.imagenURL || 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800';
+        
+        // Convertir minutos a formato legible
+        const hours = Math.floor(serviceDuration / 60);
+        const mins = serviceDuration % 60;
+        let timeStr = '';
+        if (hours > 0) timeStr += `${hours} hora${hours > 1 ? 's' : ''}`;
+        if (mins > 0) timeStr += ` ${mins} minutos`;
+        if (!timeStr) timeStr = 'A consultar';
+        
         const section = document.createElement('section');
         section.className = 'service-detail';
-        section.id = `service${servicio.id}`;
-        
-        // Manejar incluye como array o string
-        const incluyeHTML = Array.isArray(servicio.incluye) 
-            ? servicio.incluye.map(i => `<li>${i}</li>`).join('')
-            : `<li>${servicio.incluye}</li>`;
+        section.id = `service${serviceId}`;
         
         section.innerHTML = `
             <div class="service-image">
-                <img src="${servicio.imagen || 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800'}" 
-                     alt="${servicio.nombre}"
-                     onerror="this.src='https://via.placeholder.com/800x600?text=${encodeURIComponent(servicio.nombre)}'">
+                <img src="${serviceImage}" 
+                     alt="${serviceName}"
+                     onerror="this.src='https://via.placeholder.com/800x600?text=${encodeURIComponent(serviceName)}'">
             </div>
             <div class="service-info">
-                <h2>${servicio.nombre}</h2>
+                <h2>${serviceName}</h2>
                 <div class="info-item">
                     <h3>Tiempo Aprox.</h3>
-                    <p>${servicio.tiempo || servicio.duracion || 'A consultar'}</p>
+                    <p>${timeStr}</p>
                 </div>
                 <div class="info-item">
                     <h3>Descripción</h3>
-                    <p>${servicio.descripcion}</p>
-                </div>
-                <div class="info-item">
-                    <h3>Lo que incluye</h3>
-                    <ul>${incluyeHTML}</ul>
+                    <p>${serviceDesc}</p>
                 </div>
                 <div class="price-section">
-                    <h3>Precio $${servicio.precio}</h3>
-                    <button class="agendar-btn" data-service-id="${servicio.id}">Agendar +</button>
+                    <h3>Precio $${servicePrice.toFixed(2)}</h3>
+                    <button class="agendar-btn" data-service-id="${serviceId}">Agendar +</button>
                 </div>
             </div>
         `;
@@ -137,23 +165,10 @@ function scrollToService(serviceId) {
     document.getElementById(serviceId).scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// Función para abrir el modal de autenticación
-function openAuthModal() {
-    // Esperar a que el modal esté cargado
-    setTimeout(() => {
-        const authModal = document.getElementById('authModal');
-        if (authModal) {
-            authModal.style.display = 'flex';
-            // Guardar la URL de redirección después del login
-            sessionStorage.setItem('redirectAfterAuth', 'agendar.html');
-        } else {
-            console.error('Modal de autenticación no encontrado');
-        }
-    }, 100);
-}
-
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Inicializando página de servicios...');
+    
     // Cargar servicios desde la API
     await loadServicios();
 
@@ -163,20 +178,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault();
             
             const servicioId = e.target.getAttribute('data-service-id');
-            const servicio = serviciosData.find(s => s.id == servicioId);
+            const servicio = serviciosData.find(s => (s.idServicio || s.id) == servicioId);
+            
+            console.log('🎯 Servicio seleccionado:', servicio);
             
             // Verificar si el usuario está autenticado
             if (isUserAuthenticated()) {
-                // Guardar servicio seleccionado en el estado
-                StateManager.setAppointmentData({ service: servicio });
+                // Guardar servicio seleccionado
+                sessionStorage.setItem('selectedService', JSON.stringify(servicio));
                 
                 // Usuario autenticado: redirigir a la página de agendar
+                console.log('✅ Usuario autenticado, redirigiendo a agendar.html');
                 window.location.href = "agendar.html";
             } else {
                 // Usuario NO autenticado: mostrar modal de login
-                sessionStorage.setItem('redirectAfterAuth', 'agendar.html');
+                console.log('⚠️ Usuario no autenticado, mostrando modal de login');
+                sessionStorage.setItem('redirectAfterAuth', window.location.href);
                 sessionStorage.setItem('selectedService', JSON.stringify(servicio));
-                openAuthModal();
+                alert('Debes iniciar sesión para agendar un servicio');
+                window.location.href = 'login.html';
             }
         }
     });
@@ -187,11 +207,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         entries.forEach(entry => {
             if(entry.isIntersecting){
                 serviceItems.forEach(i => i.style.backgroundColor = '');
-                const index = serviciosData.findIndex(s => `service${s.id}` === entry.target.id);
+                const serviceId = entry.target.id.replace('service', '');
+                const index = serviciosData.findIndex(s => (s.idServicio || s.id) == serviceId);
                 if(index >=0) serviceItems[index].style.backgroundColor = 'rgba(255,255,255,0.1)';
             }
         });
     }, { root: null, rootMargin: '-50% 0px -50% 0px', threshold: 0 });
 
     document.querySelectorAll('.service-detail').forEach(detail => observer.observe(detail));
+    
+    console.log('✅ Página de servicios inicializada');
 });
