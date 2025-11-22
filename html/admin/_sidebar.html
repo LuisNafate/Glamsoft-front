@@ -1,94 +1,125 @@
-<!-- Sidebar de Navegación Administrativa -->
 <aside class="admin-sidebar" id="adminSidebar">
     <div class="sidebar-header">
-        <h2>GlamSoft</h2>
-        <p>Panel Administrativo</p>
+        <div class="brand-wrapper">
+           
+            <div class="brand-text">
+                <h2>GlamSoft</h2>
+            </div>
+        </div>
     </div>
     
     <nav class="sidebar-menu">
-        <a href="dashboard.html" class="menu-item" data-page="dashboard">
-            <i class="fas fa-home"></i>
-            <span>Inicio</span>
-        </a>
-        
-        <a href="portafolio.html" class="menu-item" data-page="portafolio">
-            <i class="fas fa-images"></i>
-            <span>Portafolio</span>
-        </a>
-        
-        <a href="promociones.html" class="menu-item" data-page="promociones">
-            <i class="fas fa-tags"></i>
-            <span>Promociones</span>
-        </a>
-        
-        <a href="servicios.html" class="menu-item" data-page="servicios">
-            <i class="fas fa-concierge-bell"></i>
-            <span>Servicios</span>
-        </a>
-        
-        <a href="estilistas.html" class="menu-item" data-page="estilistas">
-            <i class="fas fa-users"></i>
-            <span>Estilistas</span>
-        </a>
-        
-        <a href="calendario.html" class="menu-item" data-page="calendario">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Calendario de Citas</span>
-        </a>
-        
-        <div class="menu-divider"></div>
-        
-        <a href="reportes.html" class="menu-item" data-page="reportes">
-            <i class="fas fa-chart-bar"></i>
-            <span>Reportes</span>
-        </a>
-        
-        <a href="formularios.html" class="menu-item" data-page="formularios">
-            <i class="fas fa-file-alt"></i>
-            <span>Formularios</span>
-        </a>
-        
-        <a href="comentarios.html" class="menu-item" data-page="comentarios">
-            <i class="fas fa-comments"></i>
-            <span>Comentarios</span>
-        </a>
-        
-        <a href="notificaciones.html" class="menu-item" data-page="notificaciones">
-            <i class="fas fa-bell"></i>
-            <span>Notificaciones</span>
-        </a>
+        <ul>
+            <li>
+                <a href="dashboard.html" class="menu-item" data-page="dashboard">
+                    <i class="fa-light fa-house"></i>
+                    <span>Inicio</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="portafolio.html" class="menu-item" data-page="portafolio">
+                    <i class="fas fa-images sidebar-icon"></i>
+                    <span>Portafolio</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="promociones.html" class="menu-item" data-page="promociones">
+                    <i class="fas fa-tags sidebar-icon"></i>
+                    <span>Promociones</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="servicios.html" class="menu-item" data-page="servicios">
+                    <i class="fas fa-concierge-bell sidebar-icon"></i>
+                    <span>Servicios</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="estilistas.html" class="menu-item" data-page="estilistas">
+                    <i class="fas fa-users sidebar-icon"></i>
+                    <span>Estilistas</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="calendario.html" class="menu-item" data-page="calendario">
+                    <i class="fas fa-calendar-alt sidebar-icon"></i>
+                    <span>Calendario</span>
+                </a>
+            </li>
+            
+            <li class="menu-section-label">Gestión</li>
+
+            <li>
+                <a href="reportes.html" class="menu-item" data-page="reportes">
+                    <i class="fas fa-chart-bar sidebar-icon"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="formularios.html" class="menu-item" data-page="formularios">
+                    <i class="fas fa-file-alt sidebar-icon"></i>
+                    <span>Formularios</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="comentarios.html" class="menu-item" data-page="comentarios">
+                    <i class="fas fa-comments sidebar-icon"></i>
+                    <span>Comentarios</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="notificaciones.html" class="menu-item" data-page="notificaciones">
+                    <i class="fas fa-bell sidebar-icon"></i>
+                    <span>Notificaciones</span>
+                </a>
+            </li>
+        </ul>
     </nav>
     
-    <div class="menu-logout">
-        <a href="#" class="menu-item" id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i>
+    <div class="sidebar-footer">
+        <a href="#" class="menu-item logout-link" id="logoutBtn">
+            <i class="fas fa-sign-out-alt sidebar-icon"></i>
             <span>Cerrar Sesión</span>
         </a>
     </div>
 </aside>
 
 <script>
-// Resaltar página activa
+// Script para resaltar la página activa (Manteniendo tu lógica original pero adaptada)
 document.addEventListener('DOMContentLoaded', function() {
-    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
+    // Obtenemos el nombre del archivo actual (ej: dashboard.html -> dashboard)
+    const path = window.location.pathname;
+    const page = path.split('/').pop().replace('.html', '') || 'dashboard';
+    
     const menuItems = document.querySelectorAll('.menu-item');
     
     menuItems.forEach(item => {
-        const page = item.getAttribute('data-page');
-        if (page === currentPage) {
+        if (item.getAttribute('data-page') === page) {
             item.classList.add('active');
         }
     });
     
-    // Cerrar sesión
+    // Lógica de Logout (sin cambios)
     document.getElementById('logoutBtn')?.addEventListener('click', async function(e) {
         e.preventDefault();
         if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
             try {
-                await AuthService.logout();
-                window.location.href = '../login.html';
+                if(typeof AuthService !== 'undefined') {
+                    await AuthService.logout();
+                    window.location.href = '../login.html';
+                } else {
+                    window.location.href = '../login.html';
+                }
             } catch (error) {
-                console.error('Error al cerrar sesión:', error);
+                console.error('Error:', error);
                 alert('Error al cerrar sesión');
             }
         }
