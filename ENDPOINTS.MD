@@ -57,11 +57,11 @@ public class Valoracion {
 public class Servicio {
     private int idServicio;
     private String imagenURL;
-    private String nombreServicio;
+    private String nombre;
     private int duracionMinutos;
     private double precio;
     private String descripcion;
-    private int idCategoria;
+    private int categoria;
     private Integer idFormulario;
     private boolean activo;
     // ... getters y setters
