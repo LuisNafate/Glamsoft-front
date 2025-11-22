@@ -2,105 +2,111 @@
 
 const API_CONFIG = {
     // URL base de tu API (cambiar según el entorno)
-    BASE_URL: 'https://api.tu-dominio.com/api/v1',
+    BASE_URL: 'http://localhost:7000',
     
     // Endpoints de la API
     ENDPOINTS: {
         // Autenticación
         AUTH: {
-            LOGIN: '/auth/login',
-            REGISTER: '/auth/register',
-            LOGOUT: '/auth/logout',
-            REFRESH_TOKEN: '/auth/refresh',
-            VERIFY_TOKEN: '/auth/verify'
+            LOGIN: '/api/login',
+            REGISTER: '/api/registrar',
+            REGISTER_EMPLEADO: '/api/registrarEmpleados',
+            GET_USER_BY_EMAIL: '/api/usuarios/:email'
         },
         
         // Servicios
         SERVICIOS: {
-            GET_ALL: '/servicios',
-            GET_BY_ID: '/servicios/:id',
-            CREATE: '/servicios',
-            UPDATE: '/servicios/:id',
-            DELETE: '/servicios/:id',
-            GET_BY_CATEGORY: '/servicios/categoria/:categoria'
+            GET_ALL: '/api/servicios',
+            CREATE: '/api/servicios',
+            UPDATE: '/api/servicios/:id',
+            DELETE: '/api/servicios/:id'
         },
         
         // Citas
         CITAS: {
-            GET_ALL: '/citas',
-            GET_BY_USER: '/citas/usuario/:userId',
-            GET_BY_ID: '/citas/:id',
-            CREATE: '/citas',
-            UPDATE: '/citas/:id',
-            DELETE: '/citas/:id',
-            CONFIRM: '/citas/:id/confirmar',
-            CANCEL: '/citas/:id/cancelar',
-            GET_DISPONIBILIDAD: '/citas/disponibilidad'
+            GET_ALL: '/api/citas',
+            CREATE: '/api/citas',
+            GET_BY_ID: '/api/citas/:id',
+            UPDATE: '/api/citas',
+            UPDATE_ESTADO: '/api/actualizarEstado',
+            GET_BY_CLIENT: '/api/citasClientes/:id',
+            GET_BY_ESTILISTA: '/api/citasEstilista/:id'
         },
         
         // Usuarios/Perfil
         USUARIOS: {
-            GET_PROFILE: '/usuarios/perfil',
-            UPDATE_PROFILE: '/usuarios/perfil',
-            GET_BY_ID: '/usuarios/:id',
-            UPDATE_PASSWORD: '/usuarios/password'
+            GET_BY_EMAIL: '/usuarios/:email',
+            UPDATE: '/usuarios',
+            DELETE: '/usuarios/:id',
+            CREATE_EMPLEADO: '/empleados',
+            UPDATE_EMPLEADO: '/empleados'
         },
         
         // Estilistas
         ESTILISTAS: {
-            GET_ALL: '/estilistas',
-            GET_BY_ID: '/estilistas/:id',
-            GET_DISPONIBILIDAD: '/estilistas/:id/disponibilidad',
-            CREATE: '/estilistas',
-            UPDATE: '/estilistas/:id',
-            DELETE: '/estilistas/:id'
+            GET_ALL: '/api/estilistas',
+            GET_BY_ID: '/api/estilistas/:id',
+            GET_DISPONIBILIDAD: '/api/estilistaDisponible',
+            GET_HORARIOS: '/api/horarios',
+            CREATE_HORARIO: '/api/horarios'
         },
         
         // Promociones
         PROMOCIONES: {
             GET_ALL: '/promociones',
-            GET_ACTIVE: '/promociones/activas',
             GET_BY_ID: '/promociones/:id',
+            GET_SERVICIOS: '/promociones/:id/servicios',
             CREATE: '/promociones',
-            UPDATE: '/promociones/:id',
+            CREATE_SERVICIO: '/promociones/:id/servicios',
+            UPDATE: '/promociones',
             DELETE: '/promociones/:id'
         },
         
         // Portafolio
         PORTAFOLIO: {
-            GET_ALL: '/portafolio',
-            GET_BY_ID: '/portafolio/:id',
-            GET_DESTACADOS: '/portafolio/destacados',
-            GET_CATEGORIAS: '/portafolio/categorias',
-            CREATE: '/portafolio',
-            UPDATE: '/portafolio/:id',
-            DELETE: '/portafolio/:id',
-            UPLOAD_IMAGE: '/portafolio/upload'
+            GET_ALL: '/imagenes',
+            GET_DESTACADOS: '/imagenes/inicio',
+            CREATE: '/imagenes',
+            UPDATE: '/imagenes',
+            DELETE: '/imagenes/:id'
         },
         
         // Valoraciones
         VALORACIONES: {
             GET_ALL: '/valoraciones',
-            GET_BY_SERVICIO: '/valoraciones/servicio/:servicioId',
-            GET_BY_USER: '/valoraciones/usuario/:userId',
             CREATE: '/valoraciones',
-            UPDATE: '/valoraciones/:id',
             DELETE: '/valoraciones/:id'
         },
         
-        // Notificaciones
-        NOTIFICACIONES: {
-            GET_ALL: '/notificaciones',
-            GET_UNREAD: '/notificaciones/no-leidas',
-            MARK_AS_READ: '/notificaciones/:id/leido',
-            DELETE: '/notificaciones/:id'
+        // Categorías (NO tienen prefijo /api/)
+        CATEGORIAS: {
+            GET_ALL: '/categorias',
+            CREATE: '/categorias'
         },
         
-        // Formularios
-        FORMULARIOS: {
-            GET_ALL: '/formularios',
-            GET_BY_ID: '/formularios/:id',
-            SUBMIT: '/formularios/enviar'
+        // Promociones (NO tienen prefijo /api/)
+        PROMOCIONES: {
+            GET_ALL: '/promociones',
+            CREATE: '/promociones',
+            GET_SERVICIOS: '/promociones/:id/servicios'
+        },
+        
+        // Portafolio (NO tienen prefijo /api/)
+        PORTAFOLIO: {
+            GET_ALL: '/imagenes',
+            GET_DESTACADOS: '/imagenes/inicio'
+        },
+        
+        // Roles (NO tienen prefijo /api/)
+        ROLES: {
+            GET_ALL: '/roles',
+            CREATE: '/roles'
+        },
+        
+        // Comentarios (ERROR 500 según doc)
+        COMENTARIOS: {
+            GET_ALL: '/api/comentarios',
+            CREATE: '/api/comentarios'
         }
     },
     

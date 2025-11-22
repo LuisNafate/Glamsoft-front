@@ -10,17 +10,13 @@ const AuthService = {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.AUTH.LOGIN);
             const response = await httpService.post(url, credentials);
             
-            // Guardar token y datos del usuario
+            // Guardar token y datos del usuario según respuesta de la API
             if (response.data.token) {
                 localStorage.setItem(API_CONFIG.AUTH.TOKEN_KEY, response.data.token);
             }
             
-            if (response.data.refreshToken) {
-                localStorage.setItem(API_CONFIG.AUTH.REFRESH_TOKEN_KEY, response.data.refreshToken);
-            }
-            
-            if (response.data.user) {
-                localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(response.data.user));
+            if (response.data.usuario) {
+                localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(response.data.usuario));
             }
             
             localStorage.setItem('isLoggedIn', 'true');
@@ -34,7 +30,7 @@ const AuthService = {
 
     /**
      * Registrar nuevo usuario
-     * @param {Object} userData - { nombre, email, password, telefono }
+     * @param {Object} userData - { email, password, nombreCompleto, telefono }
      */
     async register(userData) {
         try {

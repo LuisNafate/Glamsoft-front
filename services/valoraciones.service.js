@@ -3,7 +3,7 @@
 const ValoracionesService = {
     /**
      * Obtener todas las valoraciones
-     * @param {Object} params - Filtros { limite, pagina }
+     * @param {Object} params - Filtros opcionales
      */
     async getAll(params = {}) {
         try {
@@ -17,44 +17,8 @@ const ValoracionesService = {
     },
 
     /**
-     * Obtener valoraciones por servicio
-     * @param {number|string} servicioId 
-     */
-    async getByServicio(servicioId) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.VALORACIONES.GET_BY_SERVICIO,
-                { servicioId }
-            );
-            const response = await httpService.get(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener valoraciones del servicio:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Obtener valoraciones del usuario
-     * @param {number|string} userId 
-     */
-    async getByUser(userId) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.VALORACIONES.GET_BY_USER,
-                { userId }
-            );
-            const response = await httpService.get(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener valoraciones del usuario:', error);
-            throw error;
-        }
-    },
-
-    /**
      * Crear nueva valoración
-     * @param {Object} valoracionData - { servicioId, calificacion, comentario }
+     * @param {Object} valoracionData - { idCliente, idServicio, calificacion, comentario }
      */
     async create(valoracionData) {
         try {
@@ -63,25 +27,6 @@ const ValoracionesService = {
             return response.data;
         } catch (error) {
             console.error('Error al crear valoración:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Actualizar valoración
-     * @param {number|string} id 
-     * @param {Object} valoracionData 
-     */
-    async update(id, valoracionData) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.VALORACIONES.UPDATE,
-                { id }
-            );
-            const response = await httpService.put(url, valoracionData);
-            return response.data;
-        } catch (error) {
-            console.error('Error al actualizar valoración:', error);
             throw error;
         }
     },

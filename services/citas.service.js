@@ -3,7 +3,7 @@
 const CitasService = {
     /**
      * Obtener todas las citas
-     * @param {Object} params - Filtros { fecha, estado, estilistaId }
+     * @param {Object} params - Query params opcionales: estadoCita, fechaCita
      */
     async getAll(params = {}) {
         try {
@@ -17,19 +17,37 @@ const CitasService = {
     },
 
     /**
-     * Obtener citas del usuario autenticado
-     * @param {number|string} userId 
+     * Obtener citas del cliente por ID
+     * @param {number|string} clienteId 
      */
-    async getByUser(userId) {
+    async getByClient(clienteId) {
         try {
             const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.CITAS.GET_BY_USER,
-                { userId }
+                API_CONFIG.ENDPOINTS.CITAS.GET_BY_CLIENT,
+                { id: clienteId }
             );
             const response = await httpService.get(url);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener citas del usuario:', error);
+            console.error('Error al obtener citas del cliente:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener citas por estilista
+     * @param {number|string} estilistaId 
+     */
+    async getByEstilista(estilistaId) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.GET_BY_ESTILISTA,
+                { id: estilistaId }
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener citas del estilista:', error);
             throw error;
         }
     },
@@ -54,7 +72,7 @@ const CitasService = {
 
     /**
      * Crear nueva cita
-     * @param {Object} citaData - { servicioId, estilistaId, fecha, hora, notas }
+     * @param {Object} citaData - Ver JSON ejemplo en documentación
      */
     async create(citaData) {
         try {
@@ -68,16 +86,12 @@ const CitasService = {
     },
 
     /**
-     * Actualizar cita
-     * @param {number|string} id 
-     * @param {Object} citaData 
+     * Actualizar cita existente
+     * @param {Object} citaData - Debe incluir idCita
      */
-    async update(id, citaData) {
+    async update(citaData) {
         try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.CITAS.UPDATE,
-                { id }
-            );
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.UPDATE);
             const response = await httpService.put(url, citaData);
             return response.data;
         } catch (error) {
@@ -87,71 +101,16 @@ const CitasService = {
     },
 
     /**
-     * Cancelar cita
-     * @param {number|string} id 
-     * @param {string} motivo 
+     * Cambiar estado de cita (CONFIRMADA, CANCELADA)
+     * @param {Object} data - { estadoCita: "CONFIRMADA" o "CANCELADA" }
      */
-    async cancel(id, motivo = '') {
+    async updateEstado(data) {
         try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.CITAS.CANCEL,
-                { id }
-            );
-            const response = await httpService.post(url, { motivo });
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.UPDATE_ESTADO);
+            const response = await httpService.put(url, data);
             return response.data;
         } catch (error) {
-            console.error('Error al cancelar cita:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Confirmar cita
-     * @param {number|string} id 
-     */
-    async confirm(id) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.CITAS.CONFIRM,
-                { id }
-            );
-            const response = await httpService.post(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al confirmar cita:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Obtener disponibilidad de horarios
-     * @param {Object} params - { fecha, estilistaId, servicioId }
-     */
-    async getDisponibilidad(params) {
-        try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.GET_DISPONIBILIDAD);
-            const response = await httpService.get(url, params);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener disponibilidad:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Eliminar cita
-     * @param {number|string} id 
-     */
-    async delete(id) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.CITAS.DELETE,
-                { id }
-            );
-            const response = await httpService.delete(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al eliminar cita:', error);
+            console.error('Error al actualizar estado de cita:', error);
             throw error;
         }
     }

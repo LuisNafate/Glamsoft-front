@@ -2,51 +2,14 @@
 
 const UsuariosService = {
     /**
-     * Obtener perfil del usuario autenticado
+     * Obtener usuario por email
+     * @param {string} email - Email del usuario
      */
-    async getProfile() {
-        try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.GET_PROFILE);
-            const response = await httpService.get(url);
-            
-            // Actualizar datos locales
-            localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(response.data));
-            
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener perfil:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Actualizar perfil del usuario
-     * @param {Object} userData - { nombre, email, telefono, ocupacion, foto }
-     */
-    async updateProfile(userData) {
-        try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE_PROFILE);
-            const response = await httpService.put(url, userData);
-            
-            // Actualizar datos locales
-            localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(response.data));
-            
-            return response.data;
-        } catch (error) {
-            console.error('Error al actualizar perfil:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Obtener usuario por ID
-     * @param {number|string} id 
-     */
-    async getById(id) {
+    async getByEmail(email) {
         try {
             const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.USUARIOS.GET_BY_ID,
-                { id }
+                API_CONFIG.ENDPOINTS.USUARIOS.GET_BY_EMAIL,
+                { email }
             );
             const response = await httpService.get(url);
             return response.data;
@@ -57,16 +20,74 @@ const UsuariosService = {
     },
 
     /**
-     * Actualizar contraseña
-     * @param {Object} passwordData - { currentPassword, newPassword }
+     * Actualizar usuario
+     * @param {Object} userData - Datos del usuario a actualizar
      */
-    async updatePassword(passwordData) {
+    async update(userData) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE_PASSWORD);
-            const response = await httpService.post(url, passwordData);
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE);
+            const response = await httpService.patch(url, userData);
+            
+            // Actualizar datos locales si es el usuario autenticado
+            const currentUser = localStorage.getItem(API_CONFIG.AUTH.USER_KEY);
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                if (user.email === userData.email) {
+                    localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(response.data));
+                }
+            }
+            
             return response.data;
         } catch (error) {
-            console.error('Error al actualizar contraseña:', error);
+            console.error('Error al actualizar usuario:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Eliminar usuario
+     * @param {number|string} id - ID del usuario
+     */
+    async delete(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.USUARIOS.DELETE,
+                { id }
+            );
+            const response = await httpService.delete(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al eliminar usuario:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Crear empleado completo (Admin)
+     * @param {Object} empleadoData - Datos del empleado
+     */
+    async createEmpleado(empleadoData) {
+        try {
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.CREATE_EMPLEADO);
+            const response = await httpService.post(url, empleadoData);
+            return response.data;
+        } catch (error) {
+            console.error('Error al crear empleado:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Actualizar empleado completo (Admin)
+     * @param {Object} empleadoData - Datos del empleado a actualizar
+     */
+    async updateEmpleado(empleadoData) {
+        try {
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE_EMPLEADO);
+            const response = await httpService.patch(url, empleadoData);
+            return response.data;
+        } catch (error) {
+            console.error('Error al actualizar empleado:', error);
             throw error;
         }
     }

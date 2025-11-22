@@ -3,7 +3,7 @@
 const PromocionesService = {
     /**
      * Obtener todas las promociones
-     * @param {Object} params - Filtros { activa, categoria }
+     * @param {Object} params - Filtros opcionales
      */
     async getAll(params = {}) {
         try {
@@ -12,20 +12,6 @@ const PromocionesService = {
             return response.data;
         } catch (error) {
             console.error('Error al obtener promociones:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Obtener solo promociones activas
-     */
-    async getActive() {
-        try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PROMOCIONES.GET_ACTIVE);
-            const response = await httpService.get(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener promociones activas:', error);
             throw error;
         }
     },
@@ -49,6 +35,24 @@ const PromocionesService = {
     },
 
     /**
+     * Obtener servicios de una promoción
+     * @param {number|string} id 
+     */
+    async getServicios(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.PROMOCIONES.GET_SERVICIOS,
+                { id }
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener servicios de promoción:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Crear nueva promoción
      * @param {Object} promocionData 
      */
@@ -64,17 +68,32 @@ const PromocionesService = {
     },
 
     /**
-     * Actualizar promoción
-     * @param {number|string} id 
-     * @param {Object} promocionData 
+     * Agregar servicio a promoción
+     * @param {number|string} id - ID de la promoción
+     * @param {Object} servicioData - Datos del servicio a agregar
      */
-    async update(id, promocionData) {
+    async addServicio(id, servicioData) {
         try {
             const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.PROMOCIONES.UPDATE,
+                API_CONFIG.ENDPOINTS.PROMOCIONES.CREATE_SERVICIO,
                 { id }
             );
-            const response = await httpService.put(url, promocionData);
+            const response = await httpService.post(url, servicioData);
+            return response.data;
+        } catch (error) {
+            console.error('Error al agregar servicio a promoción:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Actualizar promoción
+     * @param {Object} promocionData - Debe incluir el ID
+     */
+    async update(promocionData) {
+        try {
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PROMOCIONES.UPDATE);
+            const response = await httpService.patch(url, promocionData);
             return response.data;
         } catch (error) {
             console.error('Error al actualizar promoción:', error);

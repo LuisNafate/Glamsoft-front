@@ -3,12 +3,11 @@
 const ServiciosService = {
     /**
      * Obtener todos los servicios
-     * @param {Object} params - Parámetros de filtrado { categoria, activo, buscar }
      */
-    async getAll(params = {}) {
+    async getAll() {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.GET_ALL);
-            const response = await httpService.get(url, params);
+            const response = await httpService.get(url);
             return response.data;
         } catch (error) {
             console.error('Error al obtener servicios:', error);
@@ -17,44 +16,8 @@ const ServiciosService = {
     },
 
     /**
-     * Obtener servicio por ID
-     * @param {number|string} id 
-     */
-    async getById(id) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.SERVICIOS.GET_BY_ID,
-                { id }
-            );
-            const response = await httpService.get(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener servicio:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Obtener servicios por categoría
-     * @param {string} categoria 
-     */
-    async getByCategory(categoria) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.SERVICIOS.GET_BY_CATEGORY,
-                { categoria }
-            );
-            const response = await httpService.get(url);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener servicios por categoría:', error);
-            throw error;
-        }
-    },
-
-    /**
      * Crear nuevo servicio
-     * @param {Object} servicioData 
+     * @param {Object} servicioData - Ver JSON ejemplo en documentación
      */
     async create(servicioData) {
         try {
@@ -70,7 +33,7 @@ const ServiciosService = {
     /**
      * Actualizar servicio
      * @param {number|string} id 
-     * @param {Object} servicioData 
+     * @param {Object} servicioData - Ver JSON ejemplo en documentación
      */
     async update(id, servicioData) {
         try {
