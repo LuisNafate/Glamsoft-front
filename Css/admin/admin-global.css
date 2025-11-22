@@ -34,30 +34,7 @@ body.admin-page {
     font-size: 14px; 
 }
 
-/* =====================================
-   SIDEBAR DE NAVEGACIÓN negro
-   ===================================== */
 
-.admin-sidebar {
-    position: fixed;
-    left: 20px;  /* Separación de la izquierda */
-    top: 20px;   /* Separación de arriba */
-    
-    /* Ancho fijo */
-    width: var(--sidebar-width);
-    
-    /* Altura calculada: 100% de la pantalla menos 40px (20 arriba + 20 abajo) */
-    height: calc(100vh - 40px);
-    
-    /* Estilos visuales */
-    background-color: #000000; /* Negro puro */
-    color: white;
-    border-radius: 20px; /* Bordes redondeados como en la imagen */
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Sombra fuerte para dar profundidad */
-    display: flex;
-    flex-direction: column;
-}
 
 .sidebar-header {
     padding: 30px 25px; 
@@ -215,43 +192,8 @@ body.admin-page {
     }
 }
 
-/* =====================================
-   CONTENIDO PRINCIPAL
-   ===================================== */
-.admin-content {
-    /* Cálculo: Ancho Sidebar (260) + Espacio Izq (20) + Espacio entre ambos (20) = 300px */
-    margin-left: 300px; 
-    
-    /* Fondo blanco detrás de los módulos */
-    background-color: #ffffff; 
-    min-height: 100vh;
-    
-    /* Un pequeño padding a la derecha para que el header no toque el borde derecho */
-    padding-right: 20px; 
-}
-/* =====================================
-   HEADER ESTILO NEGRO (Bienvenida)
-   ===================================== */
 
-.admin-header {
-    /* --- POSICIONAMIENTO FIJO --- */
-    position: fixed; 
-    top: 20px;       /* Margen superior */
-    right: 20px;     /* Margen derecho */
-    left: 300px;     /* Margen izquierdo (260px sidebar + 20px gap + 20px margen) */
-    z-index: 900;    /* Para que el contenido pase por DEBAJO del header */
 
-    /* --- ESTILOS VISUALES (Igual que antes) --- */
-    background-color: #000000;
-    border-radius: 15px;
-    padding: 15px 30px;
-    color: white;
-    
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
 
 /* Aseguramos que el texto del header sea blanco */
 .header-title h1 {
@@ -329,14 +271,7 @@ body.admin-page {
     color: var(--admin-text);
 }
 
-.main-content {
-    padding-top: 110px; 
-    
-    /* Mantén el resto de paddings si los tenías */
-    padding-bottom: 40px;
-    padding-left: 0;  /* Ya controlado por el contenedor padre */
-    padding-right: 0;
-}
+
 
 /* =====================================
    CARDS Y COMPONENTES
@@ -625,4 +560,86 @@ body.admin-page {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+
+/* =====================================
+   LAYOUT FLOTANTE "BENTO" - CORRECCIÓN DEFINITIVA
+   ===================================== */
+
+/* 1. SIDEBAR (Flotando a la izquierda) */
+.admin-sidebar {
+    position: fixed !important; /* Fijo a la pantalla */
+    top: 20px;
+    left: 20px;
+    width: 260px;
+    height: calc(100vh - 40px); /* Altura completa menos márgenes */
+    background-color: #000000;
+    color: white;
+    border-radius: 20px;
+    z-index: 2000; /* Siempre encima de todo */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 2. HEADER (Flotando arriba a la derecha) */
+.admin-header {
+    position: fixed !important;
+    top: 20px;
+    /* Izquierda: 20px (borde) + 260px (sidebar) + 20px (espacio) = 300px */
+    left: 300px !important; 
+    right: 20px !important; /* Pegado a la derecha con margen */
+    height: 80px; /* Altura fija */
+    background-color: #000000;
+    color: white;
+    border-radius: 15px;
+    z-index: 1500; /* Debajo del sidebar si chocan, encima del contenido */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    width: auto !important; /* Deja que left/right definan el ancho */
+}
+
+/* 3. CONTENEDOR PRINCIPAL (El fondo blanco detrás) */
+.admin-content {
+    /* Esto empuja TODO el bloque blanco a la derecha */
+    margin-left: 300px !important; 
+    
+    /* Esto asegura que no se desborde a la derecha */
+    width: calc(100% - 320px) !important; /* 100% - 300px (izq) - 20px (der) */
+    
+    margin-right: 20px !important;
+    min-height: 100vh;
+    background-color: #ffffff; /* Color de fondo de la sección derecha */
+    position: relative;
+    z-index: 1;
+}
+
+/* 4. CONTENIDO INTERNO (Para no quedar oculto tras el header) */
+.main-content {
+    /* Bajamos el contenido: 80px (header) + 20px (top) + 30px (aire) */
+    padding-top: 130px !important; 
+    padding-bottom: 40px;
+}
+
+/* Ajuste para pantallas pequeñas (Móvil/Tablet) */
+@media (max-width: 992px) {
+    .admin-sidebar {
+        left: -280px; /* Ocultar sidebar */
+        transition: left 0.3s ease;
+    }
+    .admin-sidebar.active {
+        left: 20px; /* Mostrar al activar */
+    }
+    .admin-header {
+        left: 20px !important; /* Header ocupa todo el ancho */
+    }
+    .admin-content {
+        margin-left: 20px !important; /* Contenido ocupa todo el ancho */
+        width: calc(100% - 40px) !important;
+    }
 }
