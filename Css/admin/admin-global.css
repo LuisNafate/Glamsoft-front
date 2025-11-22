@@ -1,20 +1,20 @@
 /* =====================================
-   ESTILOS GLOBALES ADMIN (Tipo GlamSoft)
+   ESTILOS GLOBALES ADMIN 
    ===================================== */
 
-/* 1. Importamos la fuente del sitio principal (Poppins) */
+/*fuetne Poppins */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* CONFIGURACIÓN DE COLORES (Sidebar Negro Puro) */
+    
     --sidebar-bg: #000000;         
     --sidebar-text: #ffffff;       
-    --sidebar-text-muted: #f9f7f7; /* Gris suave para texto inactivo */
-    --sidebar-hover: #1a1a1a;      /* Gris muy oscuro para hover */
-    --sidebar-accent: #536dfe;     /* Color de acento (puedes cambiarlo por tu color principal) */
+    --sidebar-text-muted: #f9f7f7; /* Gris suave para el texto cuando anda inactivo */
+    --sidebar-hover: #1a1a1a;      /* Gris  oscuro pa hover */
+    --sidebar-accent: #536dfe;     /* Caver que tal */
     --sidebar-width: 260px;
 
-    /* Colores generales del admin */
+    /* Colores  del admin */
     --admin-bg: #f4f6f9;          /* Fondo general gris muy claro */
     --admin-text: #333333;        /* Texto general */
     --admin-primary: #000000;     /* Títulos principales en negro */
@@ -26,36 +26,41 @@
     box-sizing: border-box;
 }
 
-/* 2. Aplicamos la tipografía Poppins a todo el cuerpo */
 body.admin-page {
-    font-family: 'Poppins', sans-serif; /* <--- CAMBIO CLAVE AQUÍ */
+    font-family: 'Poppins', sans-serif;
     background-color: var(--admin-bg);
     color: var(--admin-text);
     line-height: 1.6;
-    font-size: 14px; /* Tamaño base más elegante */
+    font-size: 14px; 
 }
 
 /* =====================================
-   SIDEBAR DE NAVEGACIÓN (Estilo Black & Poppins)
+   SIDEBAR DE NAVEGACIÓN negro
    ===================================== */
 
 .admin-sidebar {
     position: fixed;
-    left: 0;
-    top: 0;
+    left: 20px;  /* Separación de la izquierda */
+    top: 20px;   /* Separación de arriba */
+    
+    /* Ancho fijo */
     width: var(--sidebar-width);
-    height: 100vh;
-    background-color: var(--sidebar-bg);
-    color: var(--sidebar-text);
+    
+    /* Altura calculada: 100% de la pantalla menos 40px (20 arriba + 20 abajo) */
+    height: calc(100vh - 40px);
+    
+    /* Estilos visuales */
+    background-color: #000000; /* Negro puro */
+    color: white;
+    border-radius: 20px; /* Bordes redondeados como en la imagen */
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Sombra fuerte para dar profundidad */
     display: flex;
     flex-direction: column;
-    z-index: 1000;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1); /* Sombra suave */
-    transition: transform 0.3s ease;
 }
 
 .sidebar-header {
-    padding: 30px 25px; /* Más espacio para elegancia */
+    padding: 30px 25px; 
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -71,7 +76,7 @@ body.admin-page {
     background: rgba(255,255,255,0.1);
     width: 42px;
     height: 42px;
-    border-radius: 10px; /* Bordes más suaves */
+    border-radius: 10px; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -80,7 +85,7 @@ body.admin-page {
 .brand-text h2 {
     font-family: 'Poppins', sans-serif;
     font-size: 18px;
-    font-weight: 600; /* Peso medio para elegancia */
+    font-weight: 600; 
     letter-spacing: 0.5px;
     margin: 0;
     color: white;
@@ -100,7 +105,7 @@ body.admin-page {
 }
 
 .sidebar-menu li {
-    margin-bottom: 8px; /* Más separación entre items */
+    margin-bottom: 8px; 
 }
 
 .menu-section-label {
@@ -122,25 +127,25 @@ body.admin-page {
     transition: all 0.3s ease;
     border-radius: 0 30px 30px 0;
     margin-right: 20px;
-    font-weight: 400; /* Letra más fina estilo moderno */
+    font-weight: 400; 
 }
 
-/* Ajuste para iconos Phosphor (más grandes y finos) */
+
 .menu-item i.sidebar-icon {
     width: 24px;
-    font-size: 22px; /* Aumentamos un poco porque son finos */
+    font-size: 22px; 
     margin-right: 12px;
     text-align: center;
     transition: transform 0.2s;
     opacity: 0.9;
-    display: flex; /* Ayuda a centrar verticalmente */
+    display: flex; 
     align-items: center;
     justify-content: center;
 }
 
-/* Icono de la marca principal */
+
 .brand-icon i {
-    font-size: 28px; /* Icono grande del logo */
+    font-size: 28px; /* Iya lo eliminamos */
 }
 
 .menu-item span {
@@ -180,17 +185,17 @@ body.admin-page {
 }
 
 .logout-link {
-    color: #ff8a80 !important; /* Rojo suave */
-    border-radius: 8px; /* El botón de salir lo hacemos redondeado completo */
+    color: #ff8a80 !important; 
+    border-radius: 8px; 
     margin-right: 0;
 }
 
 .logout-link:hover {
     background-color: rgba(255, 82, 82, 0.1);
-    padding-left: 25px; /* Mismo efecto de desplazamiento */
+    padding-left: 25px; 
 }
 
-/* Scrollbar personalizado para el menú */
+
 .sidebar-menu::-webkit-scrollbar {
     width: 4px;
 }
@@ -198,6 +203,7 @@ body.admin-page {
     background: rgba(255,255,255,0.2);
     border-radius: 2px;
 }
+
 
 /* Ajuste Responsive */
 @media (max-width: 768px) {
@@ -213,56 +219,89 @@ body.admin-page {
    CONTENIDO PRINCIPAL
    ===================================== */
 .admin-content {
-    /* Asegúrate de que use la variable, así si cambias el ancho del menú, 
-       el contenido se ajusta solo */
-    margin-left: var(--sidebar-width); 
+    /* Cálculo: Ancho Sidebar (260) + Espacio Izq (20) + Espacio entre ambos (20) = 300px */
+    margin-left: 300px; 
+    
+    /* Fondo blanco detrás de los módulos */
+    background-color: #ffffff; 
     min-height: 100vh;
-    background: var(--admin-bg);
-    transition: margin-left 0.3s ease;
+    
+    /* Un pequeño padding a la derecha para que el header no toque el borde derecho */
+    padding-right: 20px; 
 }
+/* =====================================
+   HEADER ESTILO NEGRO (Bienvenida)
+   ===================================== */
 
 .admin-header {
-    background: white;
-    padding: 20px 40px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    /* Separación superior igual a la del sidebar */
+    margin-top: 20px; 
+    
+    /* Estilos de caja */
+    background-color: #000000;
+    border-radius: 15px; /* Bordes redondeados */
+    padding: 15px 30px;
+    color: white;
+    
+    /* Flex para alinear texto e iconos */
     display: flex;
     justify-content: space-between;
     align-items: center;
+    
+    /* Sombra suave */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
+/* Aseguramos que el texto del header sea blanco */
 .header-title h1 {
-    font-size: 28px;
-    color: var(--admin-primary);
-    font-weight: 700;
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300; /* Letra fina */
+    font-size: 20px;
+    margin: 0;
 }
 
+/* Contenedor de iconos a la derecha */
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 25px; /* Separación entre la campana y el usuario */
 }
 
+/* Estilo de los Iconos (Campana y Usuario) */
+.header-actions i {
+    font-size: 24px;
+    color: #ffffff; /* Iconos Blancos */
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.header-actions i:hover {
+    opacity: 0.7; /* Efecto sutil al pasar el mouse */
+}
+
+/* Ajuste para la burbuja de notificaciones (Badge) */
 .notification-icon {
     position: relative;
-    cursor: pointer;
-    font-size: 24px;
-    color: var(--admin-text);
+    display: flex;
+    align-items: center;
 }
 
 .notification-badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background: var(--admin-danger);
+    top: -5px;
+    right: -5px;
+    background: #ff4444; /* Rojo para la alerta */
     color: white;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: bold;
+    border: 1px solid #000; /* Borde negro para que se separe del icono */
 }
 
 .user-profile {
@@ -290,7 +329,7 @@ body.admin-page {
 }
 
 .main-content {
-    padding: 40px;
+    padding: 30px 0;
 }
 
 /* =====================================
