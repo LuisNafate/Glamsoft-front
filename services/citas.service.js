@@ -35,19 +35,55 @@ const CitasService = {
     },
 
     /**
-     * Obtener citas por estilista
-     * @param {number|string} estilistaId 
+     * Obtener citas por mes
+     * @param {Object} params - { anio: 2025, mes: 10 }
      */
-    async getByEstilista(estilistaId) {
+    async getByMes(params) {
         try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.CITAS.GET_BY_ESTILISTA,
-                { id: estilistaId }
+            const url = API_CONFIG.addQueryParams(
+                API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.GET_BY_MES),
+                params
             );
             const response = await httpService.get(url);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener citas del estilista:', error);
+            console.error('Error al obtener citas del mes:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener citas por semana
+     * @param {Object} params - { anio: 2025, semana: 42 }
+     */
+    async getBySemana(params) {
+        try {
+            const url = API_CONFIG.addQueryParams(
+                API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.GET_BY_SEMANA),
+                params
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener citas de la semana:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener citas por día
+     * @param {Object} params - { fecha: "2025-10-20" }
+     */
+    async getByDia(params) {
+        try {
+            const url = API_CONFIG.addQueryParams(
+                API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.GET_BY_DIA),
+                params
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener citas del día:', error);
             throw error;
         }
     },
@@ -107,10 +143,43 @@ const CitasService = {
     async updateEstado(data) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.UPDATE_ESTADO);
-            const response = await httpService.put(url, data);
+            const response = await httpService.patch(url, data);
             return response.data;
         } catch (error) {
             console.error('Error al actualizar estado de cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Actualizar fecha de cita
+     * @param {Object} data - { idCita, fechaCita }
+     */
+    async updateFecha(data) {
+        try {
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.UPDATE_FECHA);
+            const response = await httpService.patch(url, data);
+            return response.data;
+        } catch (error) {
+            console.error('Error al actualizar fecha de cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Eliminar cita
+     * @param {number|string} id 
+     */
+    async delete(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.DELETE,
+                { id }
+            );
+            const response = await httpService.delete(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al eliminar cita:', error);
             throw error;
         }
     }

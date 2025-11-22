@@ -4,54 +4,69 @@ const API_CONFIG = {
     // URL base de tu API (cambiar según el entorno)
     BASE_URL: 'http://localhost:7000',
     
-    // Endpoints de la API
+    // Endpoints de la API (según routers reales del backend)
     ENDPOINTS: {
-        // Autenticación
+        // Autenticación - UsuarioRouter
         AUTH: {
-            LOGIN: '/api/login',
-            REGISTER: '/api/registrar',
-            REGISTER_EMPLEADO: '/api/registrarEmpleados',
-            GET_USER_BY_EMAIL: '/api/usuarios/:email'
+            LOGIN: '/login',
+            REGISTER: '/registrar',
+            REGISTER_EMPLEADO: '/empleados',
+            GET_USER_BY_EMAIL: '/usuarios/:email'
         },
         
-        // Servicios
+        // Servicios - ServicioRouter
         SERVICIOS: {
-            GET_ALL: '/api/servicios',
-            CREATE: '/api/servicios',
-            UPDATE: '/api/servicios/:id',
-            DELETE: '/api/servicios/:id'
+            GET_ALL: '/servicios',
+            GET_BY_ID: '/servicios/:id',
+            GET_BY_CATEGORIA: '/servicios/categorias/:id',
+            GET_NOMBRES: '/servicios/nombres',
+            CREATE: '/servicios',
+            UPDATE: '/servicios',
+            DELETE: '/servicios/:id'
         },
         
-        // Citas
+        // Citas - CitaRouter
         CITAS: {
-            GET_ALL: '/api/citas',
-            CREATE: '/api/citas',
-            GET_BY_ID: '/api/citas/:id',
-            UPDATE: '/api/citas',
-            UPDATE_ESTADO: '/api/actualizarEstado',
-            GET_BY_CLIENT: '/api/citasClientes/:id',
-            GET_BY_ESTILISTA: '/api/citasEstilista/:id'
+            GET_ALL: '/citas',
+            GET_BY_ID: '/citas/:id',
+            GET_BY_CLIENT: '/citas/clientes/:id',
+            GET_BY_MES: '/citas/mes',
+            GET_BY_SEMANA: '/citas/semanas',
+            GET_BY_DIA: '/citas/dias',
+            CREATE: '/citas',
+            UPDATE_ESTADO: '/citas/estado',
+            UPDATE_FECHA: '/citas/fecha',
+            DELETE: '/citas/:id'
         },
         
-        // Usuarios/Perfil
+        // Usuarios - UsuarioRouter
         USUARIOS: {
             GET_BY_EMAIL: '/usuarios/:email',
             UPDATE: '/usuarios',
             DELETE: '/usuarios/:id',
-            CREATE_EMPLEADO: '/empleados',
             UPDATE_EMPLEADO: '/empleados'
         },
         
-        // Estilistas
+        // Estilistas - EstilistaRouter
         ESTILISTAS: {
-            GET_ALL: '/api/estilistas',
-            GET_BY_ID: '/api/estilistas/:id',
-            GET_DISPONIBILIDAD: '/api/estilistaDisponible',
-            GET_HORARIOS: '/api/horarios',
-            CREATE_HORARIO: '/api/horarios'
+            GET_ALL: '/estilistas',
+            GET_BY_ID: '/estilistas/:id',
+            GET_HORARIOS: '/estilistas/:id/horarios',
+            GET_SERVICIOS: '/estilistas/:id/servicios',
+            GET_BY_SERVICIO: '/estilistas/servicios/:id',
+            CREATE_HORARIO: '/estilistas/horarios',
+            CREATE_SERVICIO: '/estilistas/servicios'
         },
         
-        // Promociones
+        // Horarios - HorarioRouter
+        HORARIOS: {
+            GET_ALL: '/horarios',
+            CREATE: '/horarios',
+            UPDATE: '/horarios',
+            DELETE: '/horarios/:id'
+        },
+        
+        // Promociones - PromocionRouter
         PROMOCIONES: {
             GET_ALL: '/promociones',
             GET_BY_ID: '/promociones/:id',
@@ -62,7 +77,7 @@ const API_CONFIG = {
             DELETE: '/promociones/:id'
         },
         
-        // Portafolio
+        // Portafolio - PortafolioRouter
         PORTAFOLIO: {
             GET_ALL: '/imagenes',
             GET_DESTACADOS: '/imagenes/inicio',
@@ -71,42 +86,61 @@ const API_CONFIG = {
             DELETE: '/imagenes/:id'
         },
         
-        // Valoraciones
+        // Valoraciones - ValoracionRouter
         VALORACIONES: {
             GET_ALL: '/valoraciones',
             CREATE: '/valoraciones',
             DELETE: '/valoraciones/:id'
         },
         
-        // Categorías (NO tienen prefijo /api/)
+        // Categorías - CategoriaRouter
         CATEGORIAS: {
             GET_ALL: '/categorias',
-            CREATE: '/categorias'
+            GET_BY_ID: '/categorias/:id',
+            CREATE: '/categorias',
+            DELETE: '/categorias/:id'
         },
         
-        // Promociones (NO tienen prefijo /api/)
-        PROMOCIONES: {
-            GET_ALL: '/promociones',
-            CREATE: '/promociones',
-            GET_SERVICIOS: '/promociones/:id/servicios'
-        },
-        
-        // Portafolio (NO tienen prefijo /api/)
-        PORTAFOLIO: {
-            GET_ALL: '/imagenes',
-            GET_DESTACADOS: '/imagenes/inicio'
-        },
-        
-        // Roles (NO tienen prefijo /api/)
+        // Roles - RolRouter
         ROLES: {
             GET_ALL: '/roles',
+            GET_BY_ID: '/roles/:id',
             CREATE: '/roles'
         },
         
-        // Comentarios (ERROR 500 según doc)
+        // Comentarios - ComentarioRouter
         COMENTARIOS: {
-            GET_ALL: '/api/comentarios',
-            CREATE: '/api/comentarios'
+            GET_ALL: '/comentarios',
+            GET_BY_CLIENT: '/comentarios/clientes/:id',
+            GET_RECIENTES: '/comentarios/fecha',
+            CREATE: '/comentarios',
+            DELETE: '/comentarios/:id'
+        },
+        
+        // Formularios - FormularioRouter
+        FORMULARIOS: {
+            GET_ALL: '/formularios',
+            GET_BY_ID: '/formularios/:id',
+            CREATE: '/formularios',
+            UPDATE: '/formularios/:id',
+            DELETE: '/formularios/:id'
+        },
+        
+        // Preguntas - PreguntaRouter
+        PREGUNTAS: {
+            GET_ALL: '/preguntas',
+            GET_BY_ID: '/preguntas/:id',
+            GET_BY_SERVICIO: '/preguntas/servicios/:id',
+            GET_BY_FORMULARIO: '/preguntas/formularios/:id',
+            CREATE: '/preguntas',
+            UPDATE: '/preguntas/:id',
+            DELETE: '/preguntas/:id'
+        },
+        
+        // Empleados - EmpleadoRouter
+        EMPLEADOS: {
+            GET_BY_ROL: '/empleados/rol/:id',
+            GET_BY_ID: '/empleados/:id'
         }
     },
     

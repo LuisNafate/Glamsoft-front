@@ -16,6 +16,56 @@ const ServiciosService = {
     },
 
     /**
+     * Obtener servicio por ID
+     * @param {number|string} id 
+     */
+    async getById(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.SERVICIOS.GET_BY_ID,
+                { id }
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener servicio:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener servicios por categoría
+     * @param {number|string} categoriaId 
+     */
+    async getByCategoria(categoriaId) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.SERVICIOS.GET_BY_CATEGORIA,
+                { id: categoriaId }
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener servicios por categoría:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener solo nombres de servicios
+     */
+    async getNombres() {
+        try {
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.GET_NOMBRES);
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener nombres de servicios:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Crear nuevo servicio
      * @param {Object} servicioData - Ver JSON ejemplo en documentación
      */
@@ -32,16 +82,12 @@ const ServiciosService = {
 
     /**
      * Actualizar servicio
-     * @param {number|string} id 
-     * @param {Object} servicioData - Ver JSON ejemplo en documentación
+     * @param {Object} servicioData - Debe incluir todos los campos del servicio
      */
-    async update(id, servicioData) {
+    async update(servicioData) {
         try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE,
-                { id }
-            );
-            const response = await httpService.put(url, servicioData);
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE);
+            const response = await httpService.patch(url, servicioData);
             return response.data;
         } catch (error) {
             console.error('Error al actualizar servicio:', error);

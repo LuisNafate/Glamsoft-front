@@ -37,39 +37,65 @@ const EstilistasService = {
     },
 
     /**
-     * Buscar estilistas disponibles por fecha
-     * @param {Object} params - { fechaCita: "2025-10-20T15:00:00" }
-     * @returns {Promise<Array>} Estilistas disponibles
+     * Obtener horarios de un estilista específico
+     * @param {string|number} id - ID del estilista
+     * @returns {Promise<Array>} Horarios del estilista
      */
-    async getDisponibilidad(params) {
+    async getHorarios(id) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.ESTILISTAS.GET_DISPONIBILIDAD);
-            const response = await httpService.post(url, params);
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.ESTILISTAS.GET_HORARIOS,
+                { id }
+            );
+            const response = await httpService.get(url);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener disponibilidad:', error);
+            console.error(`Error al obtener horarios del estilista ${id}:`, error);
             throw error;
         }
     },
 
     /**
-     * Obtener todos los horarios
-     * @returns {Promise<Array>} Lista de horarios configurados
+     * Obtener servicios que ofrece un estilista
+     * @param {string|number} id - ID del estilista
+     * @returns {Promise<Array>} Servicios del estilista
      */
-    async getHorarios() {
+    async getServicios(id) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.ESTILISTAS.GET_HORARIOS);
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.ESTILISTAS.GET_SERVICIOS,
+                { id }
+            );
             const response = await httpService.get(url);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener horarios:', error);
+            console.error(`Error al obtener servicios del estilista ${id}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener estilistas que ofrecen un servicio específico
+     * @param {string|number} servicioId - ID del servicio
+     * @returns {Promise<Array>} Estilistas que ofrecen el servicio
+     */
+    async getByServicio(servicioId) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.ESTILISTAS.GET_BY_SERVICIO,
+                { id: servicioId }
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error(`Error al obtener estilistas por servicio ${servicioId}:`, error);
             throw error;
         }
     },
 
     /**
      * Crear bloque de horario
-     * @param {Object} horarioData - Ver JSON ejemplo en documentación
+     * @param {Object} horarioData - { idEstilista, diaSemana, horaInicio, horaFin }
      * @returns {Promise<Object>} Horario creado
      */
     async createHorario(horarioData) {
@@ -79,6 +105,22 @@ const EstilistasService = {
             return response.data;
         } catch (error) {
             console.error('Error al crear horario:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Asignar servicio a estilista
+     * @param {Object} data - { idEstilista, idServicio }
+     * @returns {Promise<Object>} Relación creada
+     */
+    async createServicio(data) {
+        try {
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.ESTILISTAS.CREATE_SERVICIO);
+            const response = await httpService.post(url, data);
+            return response.data;
+        } catch (error) {
+            console.error('Error al asignar servicio a estilista:', error);
             throw error;
         }
     }
