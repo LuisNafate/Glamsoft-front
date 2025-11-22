@@ -73,7 +73,7 @@ const API_CONFIG = {
             GET_SERVICIOS: '/promociones/:id/servicios',
             CREATE: '/promociones',
             CREATE_SERVICIO: '/promociones/:id/servicios',
-            UPDATE: '/promociones',
+            UPDATE: '/promociones/:id',
             DELETE: '/promociones/:id'
         },
         

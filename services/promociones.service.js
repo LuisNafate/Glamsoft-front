@@ -88,12 +88,16 @@ const PromocionesService = {
 
     /**
      * Actualizar promoción
-     * @param {Object} promocionData - Debe incluir el ID
+     * @param {number|string} id - ID de la promoción
+     * @param {Object} promocionData - Datos a actualizar
      */
-    async update(promocionData) {
+    async update(id, promocionData) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PROMOCIONES.UPDATE);
-            const response = await httpService.patch(url, promocionData);
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.PROMOCIONES.UPDATE,
+                { id }
+            );
+            const response = await httpService.put(url, promocionData);
             return response.data;
         } catch (error) {
             console.error('Error al actualizar promoción:', error);

@@ -1,40 +1,77 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     
     console.log('Página de Promociones cargada correctamente.');
 
     const promoContainer = document.querySelector('.promo-container');
-    // Buscamos las tarjetas de promoción QUE ESTÉN DENTRO del contenedor
-    const cards = promoContainer.querySelectorAll('.promo-card');
-
-    if (cards.length > 0) {
-        // --- SÍ HAY PROMOCIONES: Aplicar animación ---
-        console.log(`Se encontraron ${cards.length} promociones.`);
+    
+    try {
+        // Cargar promociones desde la API
+        const response = await fetch('http://localhost:7000/api/promociones');
+        const data = await response.json();
         
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // Cuando la tarjeta entra en pantalla, se vuelve visible
-                    entry.target.style.opacity = 1;
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.2 }); // Se activa cuando el 20% de la tarjeta es visible
-
-        cards.forEach(card => {
-            // Estado inicial: invisible y un poco más abajo
-            card.style.opacity = 0;
-            card.style.transform = 'translateY(50px)';
-            card.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+        if (data.success && data.data && data.data.length > 0) {
+            const promociones = data.data;
             
-            // Empezar a observar
-            observer.observe(card);
-        });
-
-    } else {
-        // --- NO HAY PROMOCIONES: Mostrar mensaje ---
-        console.log('No se encontraron promociones. Mostrando mensaje.');
-        
-        // Crear el HTML del mensaje (basado en tu imagen)
+            // Filtrar solo promociones activas
+            const hoy = new Date();
+            const promocionesActivas = promociones.filter(promo => {
+                const inicio = new Date(promo.fechaInicio);
+                const fin = new Date(promo.fechaFin);
+                return hoy >= inicio && hoy <= fin;
+            });
+            
+            if (promocionesActivas.length > 0) {
+                // Limpiar contenedor y agregar promociones
+                promoContainer.innerHTML = '';
+                
+                promocionesActivas.forEach(promo => {
+                    const descuentoTexto = promo.tipoDescuento === 'PORCENTAJE' 
+                        ? `${promo.descuento}%` 
+                        : `$${promo.descuento}`;
+                    
+                    const card = document.createElement('section');
+                    card.className = 'promo-card';
+                    card.style.backgroundImage = 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(\'../img/promo1.jpg\')';
+                    card.innerHTML = `
+                        <div class="promo-content">
+                            <h2 class="promo-title">${promo.nombrePromocion}</h2>
+                            <p class="promo-desc">Aprovecha un descuento de ${descuentoTexto}</p>
+                            <a href="#" data-target="agendar.html" class="btn-promo">AGENDAR AHORA</a>
+                        </div>
+                    `;
+                    
+                    // Estilo inicial para animación
+                    card.style.opacity = 0;
+                    card.style.transform = 'translateY(50px)';
+                    card.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+                    
+                    promoContainer.appendChild(card);
+                });
+                
+                // Aplicar animación con IntersectionObserver
+                const cards = promoContainer.querySelectorAll('.promo-card');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = 1;
+                            entry.target.style.transform = 'translateY(0)';
+                        }
+                    });
+                }, { threshold: 0.2 });
+                
+                cards.forEach(card => observer.observe(card));
+            } else {
+                mostrarSinPromociones();
+            }
+        } else {
+            mostrarSinPromociones();
+        }
+    } catch (error) {
+        console.error('Error al cargar promociones:', error);
+        mostrarSinPromociones();
+    }
+    
+    function mostrarSinPromociones() {
         const noPromosHTML = `
             <div class="no-promos-container">
                 <span class="no-promos-text">No hay promociones disponibles</span>
@@ -45,8 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-        
-        // Insertar el HTML en el contenedor
         promoContainer.innerHTML = noPromosHTML;
     }
 });
