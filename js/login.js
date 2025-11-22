@@ -1,28 +1,38 @@
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Evita que el formulario recargue la página
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-    const usernameInput = document.getElementById('username').value;
-    const passwordInput = document.getElementById('password').value;
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
     const messageDiv = document.getElementById('message');
 
-    // Simulación de credenciales correctas
-    const validUser = 'admin';
-    const validPass = '1234';
+    try {
+        messageDiv.textContent = 'Iniciando sesión...';
+        messageDiv.className = 'message';
 
-    if (usernameInput === validUser && passwordInput === validPass) {
-        // Simulación de éxito
-        messageDiv.textContent = '¡Login exitoso! Redirigiendo...';
-        messageDiv.className = 'message success';
-        
-        // Aquí iría la lógica de redirección real o manejo de token
-        setTimeout(() => {
-            alert('Simulación: Redirección al dashboard');
-             window.location.href = 'inicio.html'; // Ejemplo de redirección real
-        }, 1500);
+        // Usar AuthService para login
+        const response = await AuthService.login({ email, password });
 
-    } else {
-        // Simulación de error
-        messageDiv.textContent = 'Usuario o contraseña incorrectos';
+        if (response.success) {
+            messageDiv.textContent = '¡Login exitoso! Redirigiendo...';
+            messageDiv.className = 'message success';
+
+            // Guardar token y datos de usuario
+            localStorage.setItem('auth_token', response.token);
+            localStorage.setItem('user_data', JSON.stringify({
+                userId: response.userID,
+                email: email
+            }));
+            localStorage.setItem('isLoggedIn', 'true');
+
+            setTimeout(() => {
+                window.location.href = 'inicio.html';
+            }, 1000);
+        } else {
+            throw new Error(response.message || 'Error al iniciar sesión');
+        }
+    } catch (error) {
+        console.error('Error en login:', error);
+        messageDiv.textContent = error.message || 'Correo o contraseña incorrectos';
         messageDiv.className = 'message error';
     }
 });

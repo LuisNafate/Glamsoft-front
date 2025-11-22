@@ -54,27 +54,66 @@ document.addEventListener('DOMContentLoaded', async () => {
             registerView.style.display = 'block';
         });
 
-        // Registro simulado
-        registerForm.addEventListener('submit', e => {
+        // Registro con API
+        registerForm.addEventListener('submit', async e => {
             e.preventDefault();
-            alert('¡Cuenta creada con éxito! Por favor, inicia sesión.');
-            registerView.style.display = 'none';
-            loginView.style.display = 'block';
-            registerForm.reset();
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const response = await AuthService.register({ 
+                    email, 
+                    password, 
+                    idRol: 3 // Rol de cliente por defecto
+                });
+
+                if (response.success) {
+                    alert('¡Cuenta creada con éxito! Por favor, inicia sesión.');
+                    registerView.style.display = 'none';
+                    loginView.style.display = 'block';
+                    registerForm.reset();
+                } else {
+                    alert('Error al crear cuenta: ' + (response.message || 'Intenta de nuevo'));
+                }
+            } catch (error) {
+                console.error('Error en registro:', error);
+                alert('Error al crear cuenta. Verifica tus datos.');
+            }
         });
 
-        // Login simulado
-        loginForm.addEventListener('submit', e => {
+        // Login con API
+        loginForm.addEventListener('submit', async e => {
             e.preventDefault();
-            isUserLoggedIn = true;
-            localStorage.setItem('isLoggedIn', 'true');
-            modal.style.display = 'none';
-            const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
-            if (redirectUrl) {
-                window.location.href = redirectUrl;
-                sessionStorage.removeItem('redirectAfterAuth');
-            } else {
-                alert('¡Autenticación exitosa!');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await AuthService.login({ email, password });
+
+                if (response.success) {
+                    isUserLoggedIn = true;
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('auth_token', response.token);
+                    localStorage.setItem('user_data', JSON.stringify({
+                        userId: response.userID,
+                        email: email
+                    }));
+
+                    modal.style.display = 'none';
+                    const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                        sessionStorage.removeItem('redirectAfterAuth');
+                    } else {
+                        alert('¡Autenticación exitosa!');
+                        location.reload();
+                    }
+                } else {
+                    alert('Error: ' + (response.message || 'Credenciales incorrectas'));
+                }
+            } catch (error) {
+                console.error('Error en login:', error);
+                alert('Error al iniciar sesión. Verifica tus credenciales.');
             }
         });
     }
