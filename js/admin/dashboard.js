@@ -4,7 +4,7 @@ class Dashboard {
         this.init();
     }
 
-    async init() {
+   /* async init() {
         try {
             // Verificar autenticación
             await this.checkAuth();
@@ -20,8 +20,8 @@ class Dashboard {
             ErrorHandler.handle(error);
         }
     }
-
-    async checkAuth() {
+*/
+  /*  async checkAuth() {
         try {
             const user = StateManager.getState('user');
             if (!user || user.rol !== 'admin') {
@@ -36,7 +36,7 @@ class Dashboard {
             window.location.href = '../login.html';
         }
     }
-
+*/
     async loadAllData() {
         this.showLoader();
         
