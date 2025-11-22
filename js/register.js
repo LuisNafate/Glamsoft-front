@@ -96,17 +96,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                     localStorage.setItem('auth_token', response.token);
                     localStorage.setItem('user_data', JSON.stringify({
                         userId: response.userID,
-                        email: email
+                        email: email,
+                        idRol: response.idRol || response.rol || 3
                     }));
 
                     modal.style.display = 'none';
+                    
+                    // Redirigir según el rol
+                    const userRole = response.idRol || response.rol;
                     const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
+                    
                     if (redirectUrl) {
                         window.location.href = redirectUrl;
                         sessionStorage.removeItem('redirectAfterAuth');
                     } else {
-                        alert('¡Autenticación exitosa!');
-                        location.reload();
+                        // Rol 1 o 2 (Admin/Empleado) → Panel admin
+                        if (userRole === 1 || userRole === '1' || userRole === 2 || userRole === '2') {
+                            window.location.href = 'admin/dashboard.html';
+                        } else {
+                            alert('¡Autenticación exitosa!');
+                            location.reload();
+                        }
                     }
                 } else {
                     alert('Error: ' + (response.message || 'Credenciales incorrectas'));

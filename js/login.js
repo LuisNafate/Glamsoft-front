@@ -20,12 +20,27 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             localStorage.setItem('auth_token', response.token);
             localStorage.setItem('user_data', JSON.stringify({
                 userId: response.userID,
-                email: email
+                email: email,
+                idRol: response.idRol || response.rol || 3
             }));
             localStorage.setItem('isLoggedIn', 'true');
 
+            // Redirigir según el rol del usuario
             setTimeout(() => {
-                window.location.href = 'inicio.html';
+                const userRole = response.idRol || response.rol;
+                
+                // Rol 1 = Admin → Panel de administración
+                if (userRole === 1 || userRole === '1') {
+                    window.location.href = 'admin/dashboard.html';
+                } 
+                // Rol 2 = Empleado → Panel de administración
+                else if (userRole === 2 || userRole === '2') {
+                    window.location.href = 'admin/dashboard.html';
+                } 
+                // Rol 3 = Cliente → Página de inicio
+                else {
+                    window.location.href = 'inicio.html';
+                }
             }, 1000);
         } else {
             throw new Error(response.message || 'Error al iniciar sesión');

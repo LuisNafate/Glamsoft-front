@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login - Glamsoft</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #B8860B;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #333;
+            border-radius: 5px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input {
+            background: #444;
+            color: #fff;
+        }
+        button {
+            background: #B8860B;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #D4AF37;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #2d5016;
+            border: 1px solid #4caf50;
+        }
+        .error {
+            background: #5d1616;
+            border: 1px solid #f44336;
+        }
+        .info {
+            background: #1a4d5d;
+            border: 1px solid #2196f3;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+        .status.online {
+            background: #4caf50;
+            color: #fff;
+        }
+        .status.offline {
+            background: #f44336;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de Endpoints - Glamsoft API</h1>
+        
+        <!-- Estado de la API -->
+        <div class="test-section">
+            <h2>1. Estado de la API</h2>
+            <button onclick="testAPIStatus()">Verificar API</button>
+            <div id="api-status"></div>
+        </div>
+
+        <!-- Test de Login -->
+        <div class="test-section">
+            <h2>2. Test de Login</h2>
+            <input type="email" id="email" placeholder="Email" value="admin@glamsoft.com">
+            <input type="password" id="password" placeholder="Password" value="admin123">
+            <button onclick="testLogin()">Test Login</button>
+            <div id="login-result"></div>
+        </div>
+
+        <!-- Test de Registro -->
+        <div class="test-section">
+            <h2>3. Test de Registro</h2>
+            <input type="email" id="reg-email" placeholder="Email" value="nuevo@test.com">
+            <input type="password" id="reg-password" placeholder="Password" value="123456">
+            <button onclick="testRegister()">Test Registro</button>
+            <div id="register-result"></div>
+        </div>
+
+        <!-- Test de Servicios -->
+        <div class="test-section">
+            <h2>4. Test de Servicios</h2>
+            <button onclick="testServicios()">Obtener Servicios</button>
+            <div id="servicios-result"></div>
+        </div>
+
+        <!-- Test de Categorías -->
+        <div class="test-section">
+            <h2>5. Test de Categorías</h2>
+            <button onclick="testCategorias()">Obtener Categorías</button>
+            <div id="categorias-result"></div>
+        </div>
+
+        <!-- Test de Portafolio -->
+        <div class="test-section">
+            <h2>6. Test de Portafolio</h2>
+            <button onclick="testPortafolio()">Obtener Imágenes Destacadas</button>
+            <div id="portafolio-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:7000/api';
+
+        // Test estado de la API
+        async function testAPIStatus() {
+            const resultDiv = document.getElementById('api-status');
+            try {
+                const response = await fetch('http://localhost:7000');
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">
+                    <span class="status online">✓ API ONLINE</span>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+                    <span class="status offline">✗ API OFFLINE</span>
+                    <p>${error.message}</p>
+                </div>`;
+            }
+        }
+
+        // Test login
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('login-result');
+            
+            resultDiv.innerHTML = '<div class="result info">⏳ Enviando solicitud...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<div class="result success">
+                        <h3>✓ Login Exitoso</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p><strong>Token:</strong> ${data.token ? 'Recibido ✓' : 'No recibido ✗'}</p>
+                        <p><strong>User ID:</strong> ${data.userID || 'N/A'}</p>
+                        <p><strong>Rol ID:</strong> ${data.idRol || 'N/A'}</p>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">
+                        <h3>✗ Login Fallido</h3>
+                        <p><strong>Mensaje:</strong> ${data.message || 'Sin mensaje'}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+                    <h3>✗ Error de Conexión</h3>
+                    <p>${error.message}</p>
+                </div>`;
+            }
+        }
+
+        // Test registro
+        async function testRegister() {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const resultDiv = document.getElementById('register-result');
+            
+            resultDiv.innerHTML = '<div class="result info">⏳ Enviando solicitud...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/registrar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password, idRol: 3 })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<div class="result success">
+                        <h3>✓ Registro Exitoso</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">
+                        <h3>✗ Registro Fallido</h3>
+                        <p><strong>Mensaje:</strong> ${data.message || 'Sin mensaje'}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+                    <h3>✗ Error de Conexión</h3>
+                    <p>${error.message}</p>
+                </div>`;
+            }
+        }
+
+        // Test servicios
+        async function testServicios() {
+            const resultDiv = document.getElementById('servicios-result');
+            resultDiv.innerHTML = '<div class="result info">⏳ Cargando servicios...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/servicios`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const servicios = Array.isArray(data) ? data : (data.servicios || data.data || []);
+                    resultDiv.innerHTML = `<div class="result success">
+                        <h3>✓ Servicios Obtenidos</h3>
+                        <p><strong>Total:</strong> ${servicios.length}</p>
+                        <pre>${JSON.stringify(servicios.slice(0, 3), null, 2)}</pre>
+                        <p><em>Mostrando los primeros 3 de ${servicios.length}</em></p>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">
+                        <h3>✗ Error al Obtener Servicios</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+                    <h3>✗ Error de Conexión</h3>
+                    <p>${error.message}</p>
+                </div>`;
+            }
+        }
+
+        // Test categorías
+        async function testCategorias() {
+            const resultDiv = document.getElementById('categorias-result');
+            resultDiv.innerHTML = '<div class="result info">⏳ Cargando categorías...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/categorias`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="result success">
+                        <h3>✓ Categorías Obtenidas</h3>
+                        <p><strong>Total:</strong> ${data.length || 0}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">
+                        <h3>✗ Error al Obtener Categorías</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+                    <h3>✗ Error de Conexión</h3>
+                    <p>${error.message}</p>
+                </div>`;
+            }
+        }
+
+        // Test portafolio
+        async function testPortafolio() {
+            const resultDiv = document.getElementById('portafolio-result');
+            resultDiv.innerHTML = '<div class="result info">⏳ Cargando imágenes...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/imagenes/inicio`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const imagenes = Array.isArray(data) ? data : (data.imagenes || data.data || []);
+                    resultDiv.innerHTML = `<div class="result success">
+                        <h3>✓ Imágenes Obtenidas</h3>
+                        <p><strong>Total destacadas:</strong> ${imagenes.length || 0}</p>
+                        <pre>${JSON.stringify(imagenes, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">
+                        <h3>✗ Error al Obtener Imágenes</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+                    <h3>✗ Error de Conexión</h3>
+                    <p>${error.message}</p>
+                </div>`;
+            }
+        }
+
+        // Auto-verificar API al cargar
+        window.addEventListener('load', testAPIStatus);
+    </script>
+</body>
+</html>
