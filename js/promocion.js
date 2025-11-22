@@ -14,18 +14,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.data && data.data.length > 0) {
             const promociones = data.data;
             
-            // Filtrar solo promociones activas
+            // Filtrar promociones activas y próximas (excluir solo las expiradas)
             const hoy = new Date();
-            const promocionesActivas = promociones.filter(promo => {
+            const promocionesDisponibles = promociones.filter(promo => {
                 // Las fechas vienen como [año, mes, día]
-                let inicio, fin;
-                if (Array.isArray(promo.fechaInicio)) {
-                    const [year, month, day] = promo.fechaInicio;
-                    inicio = new Date(year, month - 1, day);
-                } else {
-                    inicio = new Date(promo.fechaInicio);
-                }
-                
+                let fin;
                 if (Array.isArray(promo.fechaFin)) {
                     const [year, month, day] = promo.fechaFin;
                     fin = new Date(year, month - 1, day);
@@ -33,14 +26,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     fin = new Date(promo.fechaFin);
                 }
                 
-                return hoy >= inicio && hoy <= fin;
+                // Mostrar solo si no ha expirado
+                return hoy <= fin;
             });
             
-            if (promocionesActivas.length > 0) {
+            if (promocionesDisponibles.length > 0) {
                 // Limpiar contenedor y agregar promociones
                 promoContainer.innerHTML = '';
                 
-                promocionesActivas.forEach(promo => {
+                promocionesDisponibles.forEach(promo => {
                     const descuento = promo.porcentajeDescuento || promo.descuento || 0;
                     const descuentoTexto = `${descuento}%`;
                     
