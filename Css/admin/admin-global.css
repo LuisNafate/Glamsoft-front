@@ -234,21 +234,22 @@ body.admin-page {
    ===================================== */
 
 .admin-header {
-    /* Separación superior igual a la del sidebar */
-    margin-top: 20px; 
-    
-    /* Estilos de caja */
+    /* --- POSICIONAMIENTO FIJO --- */
+    position: fixed; 
+    top: 20px;       /* Margen superior */
+    right: 20px;     /* Margen derecho */
+    left: 300px;     /* Margen izquierdo (260px sidebar + 20px gap + 20px margen) */
+    z-index: 900;    /* Para que el contenido pase por DEBAJO del header */
+
+    /* --- ESTILOS VISUALES (Igual que antes) --- */
     background-color: #000000;
-    border-radius: 15px; /* Bordes redondeados */
+    border-radius: 15px;
     padding: 15px 30px;
     color: white;
     
-    /* Flex para alinear texto e iconos */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
-    /* Sombra suave */
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
@@ -329,7 +330,12 @@ body.admin-page {
 }
 
 .main-content {
-    padding: 30px 0;
+    padding-top: 110px; 
+    
+    /* Mantén el resto de paddings si los tenías */
+    padding-bottom: 40px;
+    padding-left: 0;  /* Ya controlado por el contenedor padre */
+    padding-right: 0;
 }
 
 /* =====================================
