@@ -1,7 +1,7 @@
 <aside class="admin-sidebar" id="adminSidebar">
     <div class="sidebar-header">
         <div class="brand-wrapper">
-           
+            </div>
             <div class="brand-text">
                 <h2>GlamSoft</h2>
             </div>
@@ -12,42 +12,42 @@
         <ul>
             <li>
                 <a href="dashboard.html" class="menu-item" data-page="dashboard">
-                    <i class="fa-light fa-house"></i>
+                    <i class="ph ph-house sidebar-icon"></i>
                     <span>Inicio</span>
                 </a>
             </li>
             
             <li>
                 <a href="portafolio.html" class="menu-item" data-page="portafolio">
-                    <i class="fas fa-images sidebar-icon"></i>
+                    <i class="ph ph-image sidebar-icon"></i>
                     <span>Portafolio</span>
                 </a>
             </li>
             
             <li>
                 <a href="promociones.html" class="menu-item" data-page="promociones">
-                    <i class="fas fa-tags sidebar-icon"></i>
+                    <i class="ph ph-tag sidebar-icon"></i>
                     <span>Promociones</span>
                 </a>
             </li>
             
             <li>
                 <a href="servicios.html" class="menu-item" data-page="servicios">
-                    <i class="fas fa-concierge-bell sidebar-icon"></i>
+                    <i class="ph ph-scissors sidebar-icon"></i>
                     <span>Servicios</span>
                 </a>
             </li>
             
             <li>
                 <a href="estilistas.html" class="menu-item" data-page="estilistas">
-                    <i class="fas fa-users sidebar-icon"></i>
+                    <i class="ph ph-users sidebar-icon"></i>
                     <span>Estilistas</span>
                 </a>
             </li>
             
             <li>
                 <a href="calendario.html" class="menu-item" data-page="calendario">
-                    <i class="fas fa-calendar-alt sidebar-icon"></i>
+                    <i class="ph ph-calendar-check sidebar-icon"></i>
                     <span>Calendario</span>
                 </a>
             </li>
@@ -56,28 +56,28 @@
 
             <li>
                 <a href="reportes.html" class="menu-item" data-page="reportes">
-                    <i class="fas fa-chart-bar sidebar-icon"></i>
+                    <i class="ph ph-chart-bar sidebar-icon"></i>
                     <span>Reportes</span>
                 </a>
             </li>
             
             <li>
                 <a href="formularios.html" class="menu-item" data-page="formularios">
-                    <i class="fas fa-file-alt sidebar-icon"></i>
+                    <i class="ph ph-clipboard-text sidebar-icon"></i>
                     <span>Formularios</span>
                 </a>
             </li>
             
             <li>
                 <a href="comentarios.html" class="menu-item" data-page="comentarios">
-                    <i class="fas fa-comments sidebar-icon"></i>
+                    <i class="ph ph-chat-teardrop-text sidebar-icon"></i>
                     <span>Comentarios</span>
                 </a>
             </li>
             
             <li>
                 <a href="notificaciones.html" class="menu-item" data-page="notificaciones">
-                    <i class="fas fa-bell sidebar-icon"></i>
+                    <i class="ph ph-bell sidebar-icon"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
@@ -86,19 +86,16 @@
     
     <div class="sidebar-footer">
         <a href="#" class="menu-item logout-link" id="logoutBtn">
-            <i class="fas fa-sign-out-alt sidebar-icon"></i>
+            <i class="ph ph-sign-out sidebar-icon"></i>
             <span>Cerrar Sesión</span>
         </a>
     </div>
 </aside>
 
 <script>
-// Script para resaltar la página activa (Manteniendo tu lógica original pero adaptada)
 document.addEventListener('DOMContentLoaded', function() {
-    // Obtenemos el nombre del archivo actual (ej: dashboard.html -> dashboard)
     const path = window.location.pathname;
     const page = path.split('/').pop().replace('.html', '') || 'dashboard';
-    
     const menuItems = document.querySelectorAll('.menu-item');
     
     menuItems.forEach(item => {
@@ -107,21 +104,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Lógica de Logout (sin cambios)
     document.getElementById('logoutBtn')?.addEventListener('click', async function(e) {
         e.preventDefault();
         if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-            try {
-                if(typeof AuthService !== 'undefined') {
-                    await AuthService.logout();
-                    window.location.href = '../login.html';
-                } else {
-                    window.location.href = '../login.html';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al cerrar sesión');
-            }
+            window.location.href = '../login.html';
         }
     });
 });
