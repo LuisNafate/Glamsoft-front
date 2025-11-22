@@ -1,4 +1,5 @@
 // Gestión de Servicios Admin
+// Gestión de Servicios Admin
 class ServiciosAdmin {
     constructor() {
         this.servicios = [];
@@ -9,13 +10,10 @@ class ServiciosAdmin {
 
     async init() {
         try {
-            // Verificar autenticación
-            await this.checkAuth();
+            // Verificar autenticación (descomenta si ya tienes el login listo)
+            // await this.checkAuth();
             
-            // Configurar event listeners
             this.setupEventListeners();
-            
-            // Cargar servicios
             await this.loadServicios();
             
         } catch (error) {
@@ -32,17 +30,14 @@ class ServiciosAdmin {
     }
 
     setupEventListeners() {
-        // Botón nuevo servicio
         document.getElementById('btnNuevoServicio')?.addEventListener('click', () => {
             this.openModal();
         });
         
-        // Búsqueda
         document.getElementById('searchInput')?.addEventListener('input', (e) => {
             this.filterServicios();
         });
         
-        // Filtros
         document.getElementById('filterCategoria')?.addEventListener('change', () => {
             this.filterServicios();
         });
@@ -51,7 +46,6 @@ class ServiciosAdmin {
             this.filterServicios();
         });
         
-        // Formulario
         document.getElementById('formServicio')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveServicio();
@@ -63,7 +57,8 @@ class ServiciosAdmin {
         
         try {
             const response = await ServiciosService.getAll();
-            this.servicios = response.data || [];
+            // CAMBIO: Aseguramos que sea un array, tu API parece devolver la lista directa
+            this.servicios = Array.isArray(response) ? response : (response.data || []);
             this.filteredServicios = [...this.servicios];
             this.renderTable();
             
@@ -84,14 +79,13 @@ class ServiciosAdmin {
         const estadoFilter = document.getElementById('filterEstado').value;
         
         this.filteredServicios = this.servicios.filter(servicio => {
-            // Filtro de búsqueda
-            const matchesSearch = servicio.nombre.toLowerCase().includes(searchTerm) ||
+            // CAMBIO: Usamos 'nombre_servicio' en lugar de 'nombre'
+            const nombre = servicio.nombre_servicio || '';
+            const matchesSearch = nombre.toLowerCase().includes(searchTerm) ||
                                 (servicio.descripcion || '').toLowerCase().includes(searchTerm);
             
-            // Filtro de categoría
             const matchesCategoria = !categoriaFilter || servicio.categoria === categoriaFilter;
             
-            // Filtro de estado
             const matchesEstado = !estadoFilter || 
                                 (estadoFilter === 'activo' && servicio.activo !== false) ||
                                 (estadoFilter === 'inactivo' && servicio.activo === false);
@@ -120,27 +114,27 @@ class ServiciosAdmin {
             <tr>
                 <td>
                     ${servicio.imagen ? 
-                        `<img src="${servicio.imagen}" alt="${servicio.nombre}" class="service-image">` :
+                        `<img src="${servicio.imagen}" alt="${servicio.nombre_servicio}" class="service-image">` :
                         `<div class="service-image" style="background: #ecf0f1; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-image" style="color: #95a5a6;"></i>
                         </div>`
                     }
                 </td>
-                <td><strong>${servicio.nombre}</strong></td>
+                <td><strong>${servicio.nombre_servicio}</strong></td>
                 <td>${this.formatCategoria(servicio.categoria)}</td>
-                <td><strong>$${servicio.precio.toFixed(2)}</strong></td>
-                <td>${servicio.duracion} min</td>
+                <td><strong>$${parseFloat(servicio.precio).toFixed(2)}</strong></td>
+                <td>${servicio.duracion}</td>
                 <td>
-                    <span class="badge ${servicio.activo !== false ? 'active' : 'inactive'}">
-                        ${servicio.activo !== false ? 'Activo' : 'Inactivo'}
+                    <span class="badge ${servicio.activo ? 'active' : 'inactive'}">
+                        ${servicio.activo ? 'Activo' : 'Inactivo'}
                     </span>
                 </td>
                 <td>
                     <div class="table-actions">
-                        <button class="btn-icon edit" onclick="serviciosAdmin.editServicio(${servicio.id})" title="Editar">
+                        <button class="btn-icon edit" onclick="serviciosAdmin.editServicio(${servicio.id_servicio})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon delete" onclick="serviciosAdmin.deleteServicio(${servicio.id})" title="Eliminar">
+                        <button class="btn-icon delete" onclick="serviciosAdmin.deleteServicio(${servicio.id_servicio})" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -150,6 +144,7 @@ class ServiciosAdmin {
     }
 
     formatCategoria(categoria) {
+        if (!categoria) return 'Sin categoría'; // Manejo de null
         const categorias = {
             'cabello': 'Cabello',
             'uñas': 'Uñas',
@@ -167,16 +162,22 @@ class ServiciosAdmin {
         const form = document.getElementById('formServicio');
         
         if (servicio) {
-            // Modo edición
+            // Modo edición - Llenar con datos de la API
             modalTitle.textContent = 'Editar Servicio';
-            document.getElementById('servicioId').value = servicio.id;
-            document.getElementById('nombreServicio').value = servicio.nombre;
-            document.getElementById('categoriaServicio').value = servicio.categoria;
+            // CAMBIO: Mapeo correcto de propiedades
+            document.getElementById('servicioId').value = servicio.id_servicio; 
+            document.getElementById('nombreServicio').value = servicio.nombre_servicio; 
+            document.getElementById('categoriaServicio').value = servicio.categoria || '';
             document.getElementById('descripcionServicio').value = servicio.descripcion || '';
             document.getElementById('precioServicio').value = servicio.precio;
-            document.getElementById('duracionServicio').value = servicio.duracion;
+            
+            // Duracion viene como "00:00:00". Si tu input es type="number", esto fallará. 
+            // Sugerencia: Cambia tu input a type="text" o extrae los minutos.
+            // Por ahora lo intentamos pasar tal cual o convertimos a int si es simple
+            document.getElementById('duracionServicio').value = servicio.duracion; 
+            
             document.getElementById('imagenServicio').value = servicio.imagen || '';
-            document.getElementById('activoServicio').checked = servicio.activo !== false;
+            document.getElementById('activoServicio').checked = servicio.activo;
         } else {
             // Modo creación
             modalTitle.textContent = 'Nuevo Servicio';
@@ -189,7 +190,8 @@ class ServiciosAdmin {
     }
 
     editServicio(id) {
-        const servicio = this.servicios.find(s => s.id === id);
+        // CAMBIO: Buscamos por 'id_servicio'
+        const servicio = this.servicios.find(s => s.id_servicio === id);
         if (servicio) {
             this.openModal(servicio);
         }
@@ -218,36 +220,35 @@ class ServiciosAdmin {
     async saveServicio() {
         const servicioId = document.getElementById('servicioId').value;
         
+        // CAMBIO: Creamos el objeto con las llaves que espera tu API Java (Snake Case probablemente)
+        // Si tu API usa DTOs, asegúrate de que estos nombres coincidan con la clase Java.
+        // Basado en tu respuesta JSON, parece que la API usa snake_case (nombre_servicio).
         const data = {
-            nombre: document.getElementById('nombreServicio').value,
+            nombre_servicio: document.getElementById('nombreServicio').value,
             categoria: document.getElementById('categoriaServicio').value,
             descripcion: document.getElementById('descripcionServicio').value,
             precio: parseFloat(document.getElementById('precioServicio').value),
-            duracion: parseInt(document.getElementById('duracionServicio').value),
+            duracion: document.getElementById('duracionServicio').value, // Ojo con el formato de tiempo
             imagen: document.getElementById('imagenServicio').value,
             activo: document.getElementById('activoServicio').checked
         };
         
-        // Validación básica
-        if (!data.nombre || !data.categoria || !data.precio || !data.duracion) {
-            this.showNotification('Por favor completa todos los campos requeridos', 'error');
-            return;
+        // Si es actualización, incluimos el ID
+        if (servicioId) {
+            data.id_servicio = parseInt(servicioId);
         }
         
         this.showLoader();
         
         try {
             if (servicioId) {
-                // Actualizar
                 await ServiciosService.update(servicioId, data);
                 this.showNotification('Servicio actualizado correctamente', 'success');
             } else {
-                // Crear
                 await ServiciosService.create(data);
                 this.showNotification('Servicio creado correctamente', 'success');
             }
             
-            // Cerrar modal y recargar
             closeModal();
             await this.loadServicios();
             
@@ -260,7 +261,6 @@ class ServiciosAdmin {
     }
 
     showNotification(message, type = 'info') {
-        // Crear notificación temporal
         const notification = document.createElement('div');
         notification.className = `admin-notification ${type}`;
         notification.style.cssText = `
@@ -298,7 +298,6 @@ class ServiciosAdmin {
 // Instancia global
 let serviciosAdmin;
 
-// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     serviciosAdmin = new ServiciosAdmin();
 });
