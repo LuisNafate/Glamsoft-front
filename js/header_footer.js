@@ -56,7 +56,11 @@ function loadModalProfileMenu() {
         .then(res => res.text())
         .then(html => {
             modalPlaceholder.insertAdjacentHTML('beforeend', html);
+            
             initProfileMenuEvents();
+            // ✅ NUEVO: Actualizar nombre del usuario
+            updateUserProfileName();
+
             return fetch('modals/logout_confirm.html');
         })
         .then(res => res.text())
@@ -67,6 +71,23 @@ function loadModalProfileMenu() {
                 initLogoutModalEvents();
             }
         });
+}
+
+// ✅ FUNCIÓN PARA MOSTRAR NOMBRE REAL EN MENÚ CLIENTE
+function updateUserProfileName() {
+    try {
+        const userData = localStorage.getItem('user_data');
+        if (userData) {
+            const user = JSON.parse(userData);
+            const nameElement = document.getElementById('userProfileName');
+            
+            if (nameElement && user.nombre) {
+                nameElement.textContent = user.nombre;
+            }
+        }
+    } catch (e) {
+        console.error("Error leyendo datos de usuario", e);
+    }
 }
 
 function loadModalAgendar() {
@@ -92,7 +113,6 @@ function initializeModalEvents() {
     const modalLoginForm = document.getElementById('modalLoginForm');
     const registerForm = document.getElementById('registerForm');
 
-    // --- 1. VALIDACIÓN VISUAL DE ERRORES ---
     function showInputError(inputId, message) {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -119,18 +139,15 @@ function initializeModalEvents() {
         if (el) el.addEventListener('input', () => clearInputError(id));
     });
 
-    // --- 2. VER/OCULTAR CONTRASEÑA ---
     function setupPasswordToggle(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
-        
         if (input && icon) {
             const newIcon = icon.cloneNode(true);
             icon.parentNode.replaceChild(newIcon, icon);
-            
             newIcon.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation(); // Importante para no cerrar modal
+                e.stopPropagation();
                 const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
                 input.setAttribute('type', type);
                 newIcon.classList.toggle('fa-eye');
@@ -143,7 +160,6 @@ function initializeModalEvents() {
     setupPasswordToggle('reg-password-confirm', 'toggleRegPassConfirm'); 
     setupPasswordToggle('modal-login-password', 'toggleModalLoginPass');
 
-    // --- 3. LÓGICA DE REGISTRO ---
     if (registerForm) {
         registerForm.addEventListener('submit', async e => {
             e.preventDefault(); 
@@ -156,7 +172,6 @@ function initializeModalEvents() {
                 showInputError('reg-password', 'La contraseña debe tener al menos 8 caracteres');
                 return;
             }
-
             if (passInput.value !== passConfirmInput.value) {
                 showInputError('reg-password-confirm', 'Las contraseñas no coinciden');
                 return;
@@ -186,20 +201,12 @@ function initializeModalEvents() {
                     throw new Error(response.message || 'No se pudo completar el registro');
                 }
             } catch (error) {
-                console.error('Error Registro:', error);
                 const errorMsg = error.response?.data?.message || error.message || 'Error desconocido';
-                
                 const msgDiv = document.getElementById('registerMessage');
                 let textoError = errorMsg;
-                
                 if (errorMsg.includes('Duplicate')) textoError = 'El correo o teléfono ya están registrados.';
-                
-                if(msgDiv) {
-                    msgDiv.textContent = textoError;
-                    msgDiv.style.display = 'block';
-                } else {
-                    alert(textoError);
-                }
+                if(msgDiv) { msgDiv.textContent = textoError; msgDiv.style.display = 'block'; }
+                else { alert(textoError); }
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "CREAR CUENTA";
@@ -207,7 +214,6 @@ function initializeModalEvents() {
         });
     }
 
-    // --- 4. LÓGICA DE LOGIN EN EL MODAL (ACTUALIZADA) ---
     if (modalLoginForm) {
         modalLoginForm.addEventListener('submit', async e => {
             e.preventDefault();
@@ -235,23 +241,18 @@ function initializeModalEvents() {
                 if (response.status === 'success' || response.success || (response.data && response.data.token)) {
                     const data = response.data || response;
                     const usuario = data.usuario || data.user;
-                    
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('auth_token', data.token);
                     localStorage.setItem('user_data', JSON.stringify(usuario));
 
                     modal.style.display = 'none';
                     
-                    // === VALIDACIÓN DE ROL ROBUSTA (IGUAL QUE EN LOGIN.JS) ===
-                    const rawRol = usuario.idRol || usuario.rol || usuario.id_rol || 3;
+                    const rawRol = usuario.idRol || usuario.rol;
                     const idRol = parseInt(rawRol, 10);
-
-                    console.log("Login Modal - Rol detectado:", idRol);
 
                     if (idRol === 1 || idRol === 2) { 
                         window.location.href = 'admin/dashboard.html';
                     } else {
-                        // Cliente: Redirigir o recargar
                         const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
                         if (redirectUrl) {
                             sessionStorage.removeItem('redirectAfterAuth');
@@ -264,24 +265,17 @@ function initializeModalEvents() {
                     throw new Error('Credenciales incorrectas');
                 }
             } catch (error) {
-                console.error('Error Login Modal:', error);
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalBtnText;
-                
                 let mensaje = "Error de conexión";
                 if (error.response && error.response.status === 404) mensaje = "Usuario no encontrado";
                 if (error.response && error.response.status === 401) mensaje = "Contraseña incorrecta";
-
-                if(msgDiv) {
-                    msgDiv.textContent = mensaje;
-                    msgDiv.style.display = 'block';
-                }
+                if(msgDiv) { msgDiv.textContent = mensaje; msgDiv.style.display = 'block'; }
                 inputPass.classList.add('input-error');
             }
         });
     }
 
-    // --- 5. EVENTOS DE NAVEGACIÓN DEL MODAL ---
     const closeBtn = modal.querySelector('.close-btn-auth');
     if (closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
     
@@ -302,7 +296,7 @@ function initializeModalEvents() {
     });
 }
 
-// ================== Otros Modales (Logout, Agendar, Notif) ==================
+// ================== Otros Modales ==================
 function initLogoutModalEvents() {
     const logoutModal = document.getElementById('logoutModal');
     if (!logoutModal) return;
@@ -312,7 +306,7 @@ function initLogoutModalEvents() {
 
     if (confirmBtn) confirmBtn.addEventListener('click', async () => {
         await AuthService.logout();
-        window.location.href = 'inicio.html'; 
+        window.location.href = 'index.html'; 
     });
     if (cancelBtn) cancelBtn.addEventListener('click', () => logoutModal.style.display = 'none');
     if (closeBtn) closeBtn.addEventListener('click', () => logoutModal.style.display = 'none');
@@ -375,8 +369,12 @@ function toggleProfileMenu() {
 document.addEventListener('click', e => {
     const target = e.target;
 
-    // Removido el listener del btn-agendar para permitir navegación normal
-    // El botón ahora navega directamente a servicios.html
+    if (target.closest('.btn-agendar')) {
+        e.preventDefault();
+        const modal = document.getElementById('agendarModal');
+        if (modal) modal.style.display = 'flex';
+        return;
+    }
 
     const authTrigger = target.closest('.auth-trigger');
     if (authTrigger) {
@@ -403,7 +401,7 @@ document.addEventListener('click', e => {
 document.addEventListener('DOMContentLoaded', () => {
     loadHeaderFooter();
     loadModalNotificaciones();
-    // loadModalAgendar(); // Solo se carga en inicio.html si es necesario
+    loadModalAgendar();
     loadModalAuth();
     loadModalProfileMenu();
 });
