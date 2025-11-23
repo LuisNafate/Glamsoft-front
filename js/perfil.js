@@ -1,14 +1,17 @@
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('=== PERFIL.JS INICIADO ===');
 
-    // Verificar sesión
+    // 1. Verificar sesión inicial (LocalStorage)
     const userStr = localStorage.getItem('user_data');
     if (!userStr) {
-        window.location.href = 'index.html'; // O login.html
+        window.location.href = 'index.html'; 
         return;
     }
     
+    // Cargar usuario base
     let currentUser = JSON.parse(userStr);
+    
+    // Asegurar ID (puede venir como idUsuario o id)
     const userId = currentUser.idUsuario || currentUser.id; 
 
     // ========================================
@@ -56,62 +59,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // ========================================
-    // INICIALIZACIÓN DE DATOS
+    // 1. CARGA DE DATOS DE USUARIO (FRESCOS)
     // ========================================
-    
     async function loadUserData() {
         try {
             if (userId) {
+                // Pedimos datos actualizados a la API
                 const response = await UsuariosService.getById(userId);
+                
+                // Extraemos el usuario (API devuelve { status:..., data: {usuario} })
+                // A veces el http service ya devuelve data, así que verificamos
                 const freshUser = response.data || response;
                 
                 if (freshUser) {
-                    currentUser = freshUser; 
+                    currentUser = freshUser;
+                    // Actualizamos el local storage para mantener consistencia
                     localStorage.setItem('user_data', JSON.stringify(freshUser));
                 }
             }
         } catch (error) {
-            console.warn("Usando datos locales (API no disponible):", error);
+            console.warn("No se pudo actualizar usuario desde API, usando caché local:", error);
         }
 
+        // Pintar datos en pantalla
         dom.display.name.textContent = currentUser.nombre || 'Usuario';
         dom.display.email.value = currentUser.email || '';
+        // ✅ CORRECCIÓN: Manejar undefined/null en teléfono
         dom.display.phone.value = currentUser.telefono || ''; 
 
-        if (userId) {
-            loadUserComments();
-        } else {
-            dom.display.commentsList.innerHTML = '<p style="color: #aaa; padding: 10px;">Aún no has realizado comentarios.</p>';
-        }
+        // Cargar comentarios
+        loadUserComments();
     }
 
+    // ========================================
+    // 2. CARGA DE COMENTARIOS (Lógica Recuperada)
+    // ========================================
     async function loadUserComments() {
+        if (!userId) {
+            dom.display.commentsList.innerHTML = '<p style="color: #aaa;">No se encontró ID de usuario.</p>';
+            return;
+        }
+
         try {
             const response = await ComentariosService.getByClient(userId);
-            
-            console.log("Respuesta cruda comentarios:", response); // Para depuración
+            console.log("Respuesta Comentarios:", response);
 
-            // ✅ CORRECCIÓN CRÍTICA: Extracción correcta de los datos
-            // La API devuelve { data: { status: 'success', data: [...] } }
-            // O a veces { status: 'success', data: [...] } dependiendo del interceptor.
+            // ✅ LÓGICA QUE TE FUNCIONABA: Abrir la "caja"
+            // response = Objeto HTTP
+            // response.data = JSON de la API ({ status: "success", data: [...] })
+            // response.data.data = El array de comentarios real
             
             let commentsArray = [];
 
             if (response.data && Array.isArray(response.data.data)) {
-                // Caso A: Respuesta anidada completa
                 commentsArray = response.data.data;
-            } else if (response.data && Array.isArray(response.data)) {
-                 // Caso B: Array directo en data
+            } else if (Array.isArray(response.data)) {
+                // Por si acaso la API cambia y devuelve el array directo
                 commentsArray = response.data;
             } else if (Array.isArray(response)) {
-                 // Caso C: Array directo
                 commentsArray = response;
-            } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                 // Caso D: Doble anidación (a veces pasa con axios/fetch wrappers)
-                 commentsArray = response.data.data;
             }
 
-            console.log("Array de comentarios extraído:", commentsArray);
             renderComments(commentsArray);
 
         } catch (error) {
@@ -129,20 +137,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         comments.forEach(comentario => {
-            // Mapeo de campos (DTO vs Respuesta)
+            // Extraer texto (puede venir como 'contenido' o 'comentario')
             const texto = comentario.contenido || comentario.comentario || "Sin contenido";
             
-            const fechaRaw = comentario.fecha || comentario.fechaComentario;
-            const fecha = fechaRaw ? new Date(fechaRaw).toLocaleDateString() : '';
+            // Formatear fecha
+            let fecha = 'Fecha desconocida';
+            const rawDate = comentario.fecha || comentario.fechaComentario;
             
-            // ✅ MEJORA: Obtener nombre del servicio correctamente
+            if (Array.isArray(rawDate)) {
+                // Si viene de Java como [2025, 11, 24, ...]
+                fecha = `${rawDate[2]}/${rawDate[1]}/${rawDate[0]}`;
+            } else if (rawDate) {
+                try {
+                    fecha = new Date(rawDate).toLocaleDateString();
+                } catch(e) {}
+            }
+
+            // Información del servicio
             let servicioInfo = 'Servicio general';
             if (comentario.cita && comentario.cita.servicio) {
                 servicioInfo = comentario.cita.servicio;
             } else if (comentario.nombre_servicio) {
                 servicioInfo = comentario.nombre_servicio;
-            } else if (comentario.cita && comentario.cita.idCita) {
-                servicioInfo = `Cita #${comentario.cita.idCita}`;
+            } else if (comentario.cita) {
+                const idCita = typeof comentario.cita === 'object' ? comentario.cita.idCita : comentario.cita;
+                servicioInfo = `Cita #${idCita}`;
             }
 
             const commentBox = document.createElement('div');
@@ -172,15 +191,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ========================================
-    // LÓGICA DE EDICIÓN Y EVENTOS (SIN CAMBIOS)
+    // 3. EDICIÓN Y GUARDADO (Manteniendo fixes)
     // ========================================
-
     function showEditView() {
         dom.inputs.name.value = currentUser.nombre || '';
         dom.inputs.email.value = currentUser.email || '';
         dom.inputs.phone.value = currentUser.telefono || '';
         dom.inputs.pass.value = '';
         dom.inputs.passConfirm.value = '';
+        
         clearAllErrors();
         dom.views.read.classList.add('hidden');
         dom.views.edit.classList.remove('hidden');
@@ -228,13 +247,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function clearAllErrors() {
-        Object.values(dom.errors).forEach(span => {
-            span.textContent = '';
-            span.style.display = 'none';
-        });
-        Object.values(dom.inputs).forEach(input => {
-            input.style.borderColor = '';
-        });
+        Object.values(dom.errors).forEach(span => { span.style.display = 'none'; });
+        Object.values(dom.inputs).forEach(input => { input.style.borderColor = ''; });
     }
 
     async function saveProfile() {
@@ -253,12 +267,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const response = await UsuariosService.update(updateData);
+            
+            // El servicio devuelve response.data, así que verificamos
             if (response) {
+                // Actualizar localmente
                 const updatedUser = { ...currentUser, ...updateData };
-                delete updatedUser.password; 
+                delete updatedUser.password;
                 currentUser = updatedUser;
                 localStorage.setItem('user_data', JSON.stringify(updatedUser));
                 
+                // Actualizar vista
                 dom.display.name.textContent = updatedUser.nombre;
                 dom.display.email.value = updatedUser.email;
                 dom.display.phone.value = updatedUser.telefono;
@@ -268,7 +286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Error al actualizar:', error);
-            alert('Error al actualizar perfil: ' + (error.message || 'Intente nuevamente.'));
+            alert('Error al actualizar perfil. Intente nuevamente.');
             closeModal(dom.modals.confirm);
         }
     }
@@ -291,6 +309,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     }
 
+    // Listeners
     dom.buttons.edit.addEventListener('click', showEditView);
     dom.buttons.cancel.addEventListener('click', hideEditView);
     dom.buttons.save.addEventListener('click', () => {
@@ -304,8 +323,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     dom.modals.successBtn.addEventListener('click', () => {
         closeModal(dom.modals.success);
         hideEditView();
-        window.location.reload();
+        window.location.reload(); // Recargar para asegurar datos frescos
     });
 
+    // INICIAR
     loadUserData();
 });

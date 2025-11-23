@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historial de Citas - NOMBRE</title>
+    <title>Historial de Citas - GLAMSOFT</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-     <link rel="stylesheet" href="../Css/modals/logout_confirm.css">
+    
+    <link rel="stylesheet" href="../Css/modals/logout_confirm.css">
     <link rel="stylesheet" href="../Css/header_footer.css">
     <link rel="stylesheet" href="../Css/modals/agendar_servicios.css">
     <link rel="stylesheet" href="../Css/modals/notificacion.css">
     <link rel="stylesheet" href="../Css/modals/register.css">
-       <link rel="stylesheet" href="../Css/modals/profile_menu.css">
+    <link rel="stylesheet" href="../Css/modals/profile_menu.css">
     <link rel="stylesheet" href="../Css/historial_citas.css">
 </head>
 <body>
@@ -26,7 +27,7 @@
             <div class="filtro-container">
                 <label for="filtro-fecha">Filtrar</label>
                 <div class="search-bar">
-                    <input type="text" id="filtro-fecha" placeholder="Fecha">
+                    <input type="text" id="filtro-fecha" placeholder="Fecha (DD/MM/YYYY)">
                     <i class="fas fa-search search-icon"></i>
                 </div>
             </div>
@@ -42,36 +43,11 @@
                             <th>Total</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="citas-table-body">
                         <tr>
-                            <td>Pendiente</td>
-                            <td>DD/MM/YY</td>
-                            <td>DD/MM/YY</td>
-                            <td>Servicio</td>
-                            <td>$$</td>
+                            <td colspan="5" style="text-align: center; padding: 20px;">Cargando historial...</td>
                         </tr>
-                        <tr>
-                            <td>Confirmada</td>
-                            <td>DD/MM/YY</td>
-                            <td>DD/MM/YY</td>
-                            <td>Servicio</td>
-                            <td>$$</td>
-                        </tr>
-                        <tr>
-                            <td>Rechazada</td>
-                            <td>DD/MM/YY</td>
-                            <td>DD/MM/YY</td>
-                            <td>Servicio</td>
-                            <td>$$</td>
-                        </tr>
-                        <tr>
-                            <td>Perdida</td>
-                            <td>DD/MM/YY</td>
-                            <td>DD/MM/YY</td>
-                            <td>Servicio</td>
-                            <td>$$</td>
-                        </tr>
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
 
@@ -79,11 +55,20 @@
     </main>
 
     <div id="footer-placeholder"></div>
- <div id="modal-placeholder"></div>
- 
-   <div id="modal-placeholder-agendar"></div>
-   <div id="modal-placeholder-logout"></div>
+    <div id="modal-placeholder"></div>
+    <div id="modal-placeholder-agendar"></div>
+    <div id="modal-placeholder-logout"></div>
 
+    <script src="../config/api.config.js"></script>
+    
+    <script src="../services/http.service.js"></script>
+    <script src="../services/auth.service.js"></script>
+    <script src="../services/citas.service.js"></script>
+    
+    <script src="../utils/state-manager.js"></script>
+    
     <script src="../js/header_footer.js"></script>
-    </body>
+    <script src="../js/historial_citas.js"></script>
+
+</body>
 </html>

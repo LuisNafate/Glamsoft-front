@@ -116,3 +116,39 @@ tbody tr:nth-child(even) td {
 tbody tr:hover td {
     background-color: var(--bg-input);
 }
+/* Estilos para los Badges de Estatus */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px; /* Bordes redondos tipo pastilla */
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    text-align: center;
+    min-width: 100px;
+}
+
+/* Colores según el estado */
+.status-confirmada, .status-aprobada {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: #2ecc71; /* Verde */
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.status-pendiente {
+    background-color: rgba(241, 196, 15, 0.15);
+    color: #f1c40f; /* Amarillo/Dorado */
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.status-cancelada, .status-rechazada {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #e74c3c; /* Rojo */
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.status-completada, .status-finalizada {
+    background-color: rgba(52, 152, 219, 0.15);
+    color: #3498db; /* Azul */
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
