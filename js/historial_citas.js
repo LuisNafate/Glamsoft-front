@@ -10,7 +10,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const currentUser = JSON.parse(userStr);
     const userId = currentUser.idUsuario || currentUser.id;
+    
+    // Referencias al DOM
     const tableBody = document.getElementById('citas-table-body');
+    const filtroInput = document.getElementById('filtro-fecha'); // El input del buscador
+
+    // Variable global para guardar las citas y poder filtrar
+    let todasLasCitas = [];
 
     if (!userId) {
         alert("Error de sesión. Por favor inicia sesión nuevamente.");
@@ -18,8 +24,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // 2. Cargar Citas
+    // 2. Iniciar Carga
     await loadCitas();
+
+    // 3. CONFIGURAR EL BUSCADOR (Filtro)
+    if (filtroInput) {
+        filtroInput.addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase().trim();
+            
+            // Filtramos las citas que coincidan con la fecha o estado
+            const citasFiltradas = todasLasCitas.filter(cita => {
+                // Formatear fecha para buscar (DD/MM/YYYY)
+                const fechaVisual = cita.fecha ? cita.fecha.split('-').reverse().join('/') : '';
+                const estado = (cita.estado || '').toLowerCase();
+                
+                return fechaVisual.includes(texto) || estado.includes(texto);
+            });
+
+            renderTable(citasFiltradas);
+        });
+    }
 
     async function loadCitas() {
         try {
@@ -28,16 +52,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Respuesta Citas:", response);
 
             // Extracción de datos robusta
-            let citas = [];
             if (response.data && Array.isArray(response.data)) {
-                citas = response.data;
+                todasLasCitas = response.data;
             } else if (Array.isArray(response)) {
-                citas = response;
+                todasLasCitas = response;
             } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                citas = response.data.data;
+                todasLasCitas = response.data.data;
             }
 
-            renderTable(citas);
+            // Renderizar tabla inicial con todo
+            renderTable(todasLasCitas);
 
         } catch (error) {
             console.error("Error al cargar historial:", error);
@@ -45,8 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 3. Renderizar Tabla
-   // Reemplaza TU función renderTable actual con esta:
+    // 4. Renderizar Tabla (Tu función corregida)
     function renderTable(citas) {
         tableBody.innerHTML = '';
 
@@ -54,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 30px; color: #aaa;">
-                        No tienes citas registradas aún.
+                        No se encontraron citas.
                     </td>
                 </tr>`;
             return;
@@ -65,11 +88,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const formatDate = (dateStr) => {
                 if (!dateStr) return '-';
                 const parts = dateStr.split('-');
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                // Asegurar que tenga formato YYYY-MM-DD
+                if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                return dateStr;
             };
 
             const fechaCita = formatDate(cita.fecha);
-            const fechaSolicitud = formatDate(cita.fechaSolicitud); // Ahora viene del backend
+            const fechaSolicitud = formatDate(cita.fechaSolicitud); 
             const hora = cita.hora ? cita.hora.substring(0, 5) : '';
 
             // 2. Formatear Servicios
@@ -81,9 +106,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const precio = parseFloat(cita.precioTotal || 0).toFixed(2);
 
             // 4. Estilo de Estatus (Badge)
-            // Normalizamos a minúsculas para que coincida con CSS
             const estadoRaw = (cita.estado || 'pendiente').toLowerCase();
-            let estadoClass = 'status-pendiente'; // Default
+            let estadoClass = 'status-pendiente'; 
             
             if (estadoRaw.includes('confirmada') || estadoRaw.includes('aprobada')) estadoClass = 'status-confirmada';
             else if (estadoRaw.includes('cancelada') || estadoRaw.includes('rechazada')) estadoClass = 'status-cancelada';
