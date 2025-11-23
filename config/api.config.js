@@ -9,7 +9,7 @@ const API_CONFIG = {
         // Autenticación - UsuarioRouter
         AUTH: {
             LOGIN: '/login',
-            REGISTER: '/registrar',
+            REGISTER: '/register',
             REGISTER_EMPLEADO: '/empleados',
             GET_USER_BY_EMAIL: '/usuarios/:email'
         },

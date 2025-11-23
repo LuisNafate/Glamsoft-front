@@ -110,3 +110,36 @@ body, html {
 .error {
     color: #f44336; /* Rojo */
 }
+/* --- Estilos para errores y ojito --- */
+.input-group {
+    position: relative; /* Para posicionar el ojito */
+}
+
+.input-group input.input-error {
+    border: 2px solid #ff4444 !important;
+    background-color: rgba(255, 68, 68, 0.1) !important;
+}
+
+.error-text {
+    color: #ff4444;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    text-align: left;
+    display: block;
+    font-weight: bold;
+    background: rgba(0,0,0,0.5); /* Fondo oscuro para que se lea sobre la imagen */
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #333;
+    cursor: pointer;
+    z-index: 10;
+    background: none;
+    border: none;
+}
