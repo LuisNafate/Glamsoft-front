@@ -13,7 +13,10 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
+    <!-- jsPDF para exportar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <!-- Estilos -->
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
     
@@ -21,15 +24,20 @@
         .chart-container {
             background: white;
             border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 350px;
         }
-        
+
+        .chart-container canvas {
+            max-height: 280px !important;
+        }
+
         .chart-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--admin-primary);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .metrics-grid {
@@ -96,11 +104,8 @@
                 <h1>Reportes y Analytics</h1>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" onclick="window.print()">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
-                <button class="btn btn-secondary" id="btnExportar">
-                    <i class="fas fa-download"></i> Exportar
+                <button class="btn btn-primary" id="btnExportar">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
                 </button>
             </div>
         </header>
@@ -159,13 +164,7 @@
                 <h3 class="chart-title">Servicios Más Solicitados</h3>
                 <canvas id="serviciosChart"></canvas>
             </div>
-            
-            <!-- Rendimiento de Estilistas -->
-            <div class="chart-container">
-                <h3 class="chart-title">Rendimiento de Estilistas</h3>
-                <canvas id="estilistasChart"></canvas>
-            </div>
-            
+
             <!-- Tabla Top Servicios -->
             <div class="content-card">
                 <h3 class="card-title">Top 10 Servicios</h3>
@@ -176,7 +175,6 @@
                             <th>Servicio</th>
                             <th>Cantidad</th>
                             <th>Ingresos</th>
-                            <th>Promedio</th>
                         </tr>
                     </thead>
                     <tbody id="topServiciosTable">

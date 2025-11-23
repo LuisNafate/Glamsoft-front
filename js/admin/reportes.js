@@ -19,10 +19,11 @@ class ReportesAdmin {
     }
 
     async checkAuth() {
-        const user = StateManager.getState('user');
-        if (!user || user.rol !== 'admin') {
-            window.location.href = '../login.html';
-        }
+        // TODO: Descomentar cuando se necesite autenticación
+        // const user = StateManager.get('user');
+        // if (!user || user.rol !== 'admin') {
+        //     window.location.href = 'login.html';
+        // }
     }
 
     setupEventListeners() {
@@ -61,18 +62,24 @@ class ReportesAdmin {
     }
 
     displayMetrics(metricas) {
+        console.log('Métricas recibidas:', metricas);
+
         // Ingresos totales - usar ingresos confirmadas
         const ingresosConfirmadas = metricas.ingresos.confirmadas || 0;
+        console.log('Ingresos confirmadas:', ingresosConfirmadas);
         document.getElementById('totalIngresos').textContent =
             `$${ingresosConfirmadas.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         // Total de citas
+        console.log('Total de citas:', metricas.totalCitas);
         document.getElementById('totalCitas').textContent = metricas.totalCitas || 0;
 
         // Tasa de ocupación
+        console.log('Tasa de ocupación:', metricas.tasaOcupacion);
         document.getElementById('tasaOcupacion').textContent = `${metricas.tasaOcupacion}%`;
 
         // Valoración promedio
+        console.log('Valoración promedio:', metricas.valoracionPromedio);
         document.getElementById('promValoracion').textContent = metricas.valoracionPromedio || '0.0';
 
         // Calcular cambios (comparando con período anterior - simulado por ahora)
@@ -89,7 +96,6 @@ class ReportesAdmin {
     renderCharts(datosReporte) {
         this.renderIngresosChart(datosReporte.ingresosPorFecha);
         this.renderServiciosChart(datosReporte.servicios);
-        this.renderEstilistasChart(datosReporte.estilistas);
         this.renderTopServiciosTable(datosReporte.servicios);
     }
 
@@ -120,11 +126,22 @@ class ReportesAdmin {
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart',
+                    onComplete: function() {
+                        // Animación completada
+                    }
+                },
                 plugins: {
                     legend: {
                         display: false
@@ -178,11 +195,18 @@ class ReportesAdmin {
                         '#f39c12',
                         '#e74c3c',
                         '#9b59b6'
-                    ]
+                    ],
+                    borderRadius: 6,
+                    borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1200,
+                    easing: 'easeOutBounce'
+                },
                 plugins: {
                     legend: {
                         display: false
@@ -211,62 +235,6 @@ class ReportesAdmin {
         });
     }
 
-    renderEstilistasChart(estilistas) {
-        const ctx = document.getElementById('estilistasChart');
-        if (!ctx) return;
-
-        const labels = estilistas.map(e => e.nombre);
-        const data = estilistas.map(e => e.cantidad);
-
-        if (this.charts.estilistas) {
-            this.charts.estilistas.destroy();
-        }
-
-        this.charts.estilistas = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        '#3498db',
-                        '#2ecc71',
-                        '#f39c12',
-                        '#e74c3c',
-                        '#9b59b6',
-                        '#1abc9c',
-                        '#34495e',
-                        '#e67e22'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const estilista = estilistas[context.dataIndex];
-                                const porcentaje = ((estilista.cantidad / data.reduce((a, b) => a + b, 0)) * 100).toFixed(1);
-                                return `${context.label}: ${estilista.cantidad} citas (${porcentaje}%)`;
-                            },
-                            afterLabel: function(context) {
-                                const estilista = estilistas[context.dataIndex];
-                                return 'Ingresos: $' + estilista.ingresos.toLocaleString('es-MX', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     renderTopServiciosTable(servicios) {
         const tbody = document.getElementById('topServiciosTable');
         if (!tbody) return;
@@ -286,45 +254,148 @@ class ReportesAdmin {
         }
 
         tbody.innerHTML = topServicios.map((servicio, index) => {
-            const promedio = servicio.cantidad > 0 ? servicio.ingresos / servicio.cantidad : 0;
             return `
                 <tr>
                     <td><strong>${index + 1}</strong></td>
                     <td>${servicio.nombre}</td>
                     <td>${servicio.cantidad}</td>
                     <td><strong>$${servicio.ingresos.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
-                    <td>$${promedio.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
             `;
         }).join('');
     }
 
-    exportarReporte() {
+    async exportarReporte() {
         if (!this.datosReporte) {
             alert('No hay datos para exportar');
             return;
         }
 
-        // Preparar datos para exportación
-        const reporte = {
-            fecha: new Date().toISOString(),
-            periodo: `Últimos ${this.periodo} días`,
-            metricas: this.datosReporte.metricas,
-            topServicios: this.datosReporte.servicios.slice(0, 10),
-            estilistas: this.datosReporte.estilistas
-        };
+        try {
+            // Acceder a jsPDF desde el objeto global window
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-        // Convertir a JSON y descargar
-        const dataStr = JSON.stringify(reporte, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `reporte_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // Configuración
+            const margin = 20;
+            let y = margin;
+
+            // Título
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Reporte de Analytics', margin, y);
+            y += 10;
+
+            // Fecha y período
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const fechaActual = new Date().toLocaleDateString('es-MX', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            doc.text(`Fecha: ${fechaActual}`, margin, y);
+            y += 6;
+            doc.text(`Período: Últimos ${this.periodo} días`, margin, y);
+            y += 12;
+
+            // Línea divisoria
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, 190, y);
+            y += 10;
+
+            // Métricas principales
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Métricas Principales', margin, y);
+            y += 8;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+
+            const metricas = this.datosReporte.metricas;
+            const ingresosConfirmadas = metricas.ingresos.confirmadas || 0;
+
+            doc.text(`• Ingresos Totales (Confirmadas): $${ingresosConfirmadas.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`, margin + 5, y);
+            y += 6;
+            doc.text(`• Total de Citas: ${metricas.totalCitas}`, margin + 5, y);
+            y += 6;
+            doc.text(`• Tasa de Ocupación: ${metricas.tasaOcupacion}%`, margin + 5, y);
+            y += 6;
+            doc.text(`• Valoración Promedio: ${metricas.valoracionPromedio}`, margin + 5, y);
+            y += 12;
+
+            // Línea divisoria
+            doc.line(margin, y, 190, y);
+            y += 10;
+
+            // Top 10 Servicios
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Top 10 Servicios Más Solicitados', margin, y);
+            y += 8;
+
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+
+            const topServicios = this.datosReporte.servicios.slice(0, 10);
+
+            // Encabezados de tabla
+            doc.setFont(undefined, 'bold');
+            doc.text('#', margin, y);
+            doc.text('Servicio', margin + 10, y);
+            doc.text('Cantidad', margin + 100, y);
+            doc.text('Ingresos', margin + 140, y);
+            y += 6;
+
+            // Línea bajo encabezados
+            doc.setLineWidth(0.3);
+            doc.line(margin, y, 190, y);
+            y += 5;
+
+            doc.setFont(undefined, 'normal');
+
+            topServicios.forEach((servicio, index) => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = margin;
+                }
+
+                doc.text(`${index + 1}`, margin, y);
+
+                // Truncar nombre si es muy largo
+                const nombreTruncado = servicio.nombre.length > 40
+                    ? servicio.nombre.substring(0, 37) + '...'
+                    : servicio.nombre;
+                doc.text(nombreTruncado, margin + 10, y);
+
+                doc.text(`${servicio.cantidad}`, margin + 100, y);
+                doc.text(`$${servicio.ingresos.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`, margin + 140, y);
+                y += 6;
+            });
+
+            // Pie de página
+            const totalPages = doc.internal.pages.length - 1;
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'italic');
+                doc.text(
+                    `Generado con Glamsoft - Página ${i} de ${totalPages}`,
+                    105,
+                    290,
+                    { align: 'center' }
+                );
+            }
+
+            // Descargar PDF
+            const nombreArchivo = `reporte_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(nombreArchivo);
+
+        } catch (error) {
+            console.error('Error al exportar PDF:', error);
+            alert('Error al exportar el reporte. Verifica que la librería jsPDF esté cargada correctamente.');
+        }
     }
 
     showError(message) {

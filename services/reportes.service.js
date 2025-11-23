@@ -121,7 +121,8 @@ const ReportesService = {
         }
 
         citas.forEach(cita => {
-            const precio = parseFloat(cita.precio) || 0;
+            // Leer el precio total de la cita
+            const precio = parseFloat(cita.precioTotal || cita.precio || 0);
             const estado = (cita.estadoCita || cita.estado || '').toLowerCase();
 
             ingresos.total += precio;
@@ -157,30 +158,28 @@ const ReportesService = {
             if (cita.servicios && Array.isArray(cita.servicios)) {
                 cita.servicios.forEach(servicio => {
                     const nombre = servicio.nombre || servicio.nombreServicio || 'Servicio Desconocido';
-                    const precio = parseFloat(servicio.precio) || 0;
+                    const precio = parseFloat(servicio.precio || 0);
 
                     if (!servicioMap[nombre]) {
                         servicioMap[nombre] = {
                             nombre,
                             cantidad: 0,
-                            ingresos: 0,
-                            precio: precio
+                            ingresos: 0
                         };
                     }
                     servicioMap[nombre].cantidad++;
                     servicioMap[nombre].ingresos += precio;
                 });
             } else {
-                // Servicio único
+                // Servicio único (fallback por si acaso)
                 const nombre = cita.servicio_nombre || cita.nombreServicio || 'Servicio Desconocido';
-                const precio = parseFloat(cita.precio) || 0;
+                const precio = parseFloat(cita.precioTotal || cita.precio || 0);
 
                 if (!servicioMap[nombre]) {
                     servicioMap[nombre] = {
                         nombre,
                         cantidad: 0,
-                        ingresos: 0,
-                        precio: precio
+                        ingresos: 0
                     };
                 }
                 servicioMap[nombre].cantidad++;
@@ -202,8 +201,8 @@ const ReportesService = {
         const estilistaMap = {};
 
         citas.forEach(cita => {
-            const nombre = cita.estilista_nombre || cita.nombreEstilista || 'Sin Asignar';
-            const precio = parseFloat(cita.precio) || 0;
+            const nombre = cita.estilista?.nombre || cita.estilista_nombre || cita.nombreEstilista || 'Sin Asignar';
+            const precio = parseFloat(cita.precioTotal || cita.precio || 0);
 
             if (!estilistaMap[nombre]) {
                 estilistaMap[nombre] = {
@@ -229,12 +228,12 @@ const ReportesService = {
         const ingresosPorDia = {};
 
         citas.forEach(cita => {
-            const fecha = cita.fechaHoraCita || cita.fecha || cita.fechaCita;
+            const fecha = cita.fecha || cita.fechaHoraCita || cita.fechaCita;
             if (!fecha) return;
 
             const fechaStr = fecha.split('T')[0]; // Obtener solo la fecha (YYYY-MM-DD)
-            const precio = parseFloat(cita.precio) || 0;
-            const estado = (cita.estadoCita || cita.estado || '').toLowerCase();
+            const precio = parseFloat(cita.precioTotal || cita.precio || 0);
+            const estado = (cita.estado || cita.estadoCita || '').toLowerCase();
 
             if (!ingresosPorDia[fechaStr]) {
                 ingresosPorDia[fechaStr] = 0;
@@ -265,7 +264,7 @@ const ReportesService = {
     calcularTasaOcupacion(citas, diasPeriodo, citasPorDia = 10) {
         const capacidadTotal = diasPeriodo * citasPorDia;
         const citasRealizadas = citas.filter(c => {
-            const estado = (c.estadoCita || c.estado || '').toLowerCase();
+            const estado = (c.estado || c.estadoCita || '').toLowerCase();
             return estado === 'confirmada';
         }).length;
 
@@ -279,15 +278,25 @@ const ReportesService = {
      * @returns {number} - Promedio de valoraciones
      */
     calcularValoracionPromedio(valoraciones) {
+        console.log('Calculando valoración promedio. Valoraciones recibidas:', valoraciones);
+
         if (!valoraciones || valoraciones.length === 0) {
+            console.log('No hay valoraciones');
             return 0;
         }
 
+        console.log('Primera valoración:', valoraciones[0]);
+
         const suma = valoraciones.reduce((acc, val) => {
-            return acc + (parseFloat(val.puntuacion) || 0);
+            // Intentar diferentes nombres de campos
+            const puntuacion = parseFloat(val.puntuacion || val.calificacion || val.rating || val.valoracion || 0);
+            console.log('Puntuación de valoración:', puntuacion, 'de objeto:', val);
+            return acc + puntuacion;
         }, 0);
 
-        return (suma / valoraciones.length).toFixed(1);
+        const promedio = (suma / valoraciones.length).toFixed(1);
+        console.log('Promedio calculado:', promedio);
+        return promedio;
     },
 
     /**
@@ -301,7 +310,7 @@ const ReportesService = {
         fechaLimite.setDate(fechaLimite.getDate() - dias);
 
         return citas.filter(cita => {
-            const fecha = new Date(cita.fechaHoraCita || cita.fecha || cita.fechaCita);
+            const fecha = new Date(cita.fecha || cita.fechaHoraCita || cita.fechaCita);
             return fecha >= fechaLimite;
         });
     },
