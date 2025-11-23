@@ -222,12 +222,14 @@ class PromocionesAdmin {
         this.showLoader();
         
         try {
-            await PromocionesService.delete(id);
+            const response = await PromocionesService.delete(id);
+            console.log('Respuesta delete:', response);
             this.showNotification('Promoción eliminada correctamente', 'success');
             await this.loadPromociones();
         } catch (error) {
             console.error('Error al eliminar promoción:', error);
-            this.showNotification('Error al eliminar promoción', 'error');
+            const errorMsg = error.response?.data?.message || error.message || 'Error al eliminar promoción';
+            this.showNotification(errorMsg, 'error');
         } finally {
             this.hideLoader();
         }
@@ -235,10 +237,11 @@ class PromocionesAdmin {
 
     async savePromocion() {
         const promocionId = document.getElementById('promocionId').value;
+        const tipoDescuento = document.getElementById('tipoDescuento').value;
         
         const data = {
             nombrePromocion: document.getElementById('tituloPromocion').value,
-            tipoDescuento: document.getElementById('tipoDescuento').value,
+            tipoDescuento: tipoDescuento,
             descuento: parseFloat(document.getElementById('descuentoPromocion').value),
             fechaInicio: document.getElementById('fechaInicio').value,
             fechaFin: document.getElementById('fechaFin').value,
@@ -255,10 +258,12 @@ class PromocionesAdmin {
         
         try {
             if (promocionId) {
-                await PromocionesService.update(promocionId, data);
+                const response = await PromocionesService.update(promocionId, data);
+                console.log('Respuesta update:', response);
                 this.showNotification('Promoción actualizada correctamente', 'success');
             } else {
-                await PromocionesService.create(data);
+                const response = await PromocionesService.create(data);
+                console.log('Respuesta create:', response);
                 this.showNotification('Promoción creada correctamente', 'success');
             }
             
@@ -266,7 +271,8 @@ class PromocionesAdmin {
             await this.loadPromociones();
         } catch (error) {
             console.error('Error al guardar promoción:', error);
-            this.showNotification('Error al guardar promoción', 'error');
+            const errorMsg = error.response?.data?.message || error.message || 'Error al guardar promoción';
+            this.showNotification(errorMsg, 'error');
         } finally {
             this.hideLoader();
         }
