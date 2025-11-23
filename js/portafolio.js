@@ -1,52 +1,28 @@
 // ===================================
-// PORTAFOLIO - PÁGINA COMPLETA
+// PORTAFOLIO - GALERÍA DE IMÁGENES
 // ===================================
 
 /**
- * Agrupar imágenes por título para crear álbumes
+ * Obtener parámetro de URL
  */
-function agruparPorTitulo(imagenes) {
-    const grupos = {};
-
-    imagenes.forEach(img => {
-        const titulo = img.titulo || 'Sin título';
-        if (!grupos[titulo]) {
-            grupos[titulo] = {
-                titulo: titulo,
-                descripcion: img.descripcion,
-                idCategoria: img.idCategoria,
-                destacado: false,
-                portada: null,
-                totalImagenes: 0
-            };
-        }
-
-        grupos[titulo].totalImagenes++;
-
-        // Si es destacada, usar como portada y marcar el álbum como destacado
-        if (img.destacado) {
-            grupos[titulo].destacado = true;
-            grupos[titulo].portada = img.urlImagen;
-        }
-
-        // Si no hay portada, usar la primera imagen
-        if (!grupos[titulo].portada) {
-            grupos[titulo].portada = img.urlImagen;
-        }
-    });
-
-    return Object.values(grupos);
+function getURLParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
 }
 
 /**
- * Cargar TODOS los álbumes del portafolio
+ * Cargar imágenes del álbum específico
  */
 async function loadPortafolio() {
     const grid = document.getElementById('portfolioGrid');
     const emptyState = document.getElementById('emptyState');
     const loader = document.getElementById('portfolioLoader');
+    const albumTitle = document.getElementById('albumTitle');
 
     if (!grid) return;
+
+    // Obtener nombre del álbum desde URL
+    const albumNombre = getURLParameter('album');
 
     // Mostrar loader
     if (loader) loader.style.display = 'block';
@@ -57,6 +33,7 @@ async function loadPortafolio() {
         // Obtener todos los trabajos
         const trabajos = await PortafolioService.getAll();
         console.log('📸 Total de imágenes recibidas:', trabajos.length);
+        console.log('📂 Álbum solicitado:', albumNombre);
 
         if (!trabajos || trabajos.length === 0) {
             grid.innerHTML = '';
@@ -64,18 +41,41 @@ async function loadPortafolio() {
             return;
         }
 
-        // Agrupar por título (álbumes)
-        const albumes = agruparPorTitulo(trabajos);
-        console.log('✅ Total de álbumes:', albumes.length);
+        let imagenesAMostrar;
 
-        // Renderizar todos los álbumes
-        albumes.forEach((album, index) => {
-            const albumElement = createAlbumElement(album, index);
-            grid.appendChild(albumElement);
+        if (albumNombre) {
+            // MODO: Mostrar imágenes de un álbum específico
+            imagenesAMostrar = trabajos.filter(img => img.titulo === albumNombre);
+            console.log(`✅ Imágenes del álbum "${albumNombre}":`, imagenesAMostrar.length);
+
+            // Actualizar título de la página
+            if (albumTitle) {
+                albumTitle.textContent = albumNombre;
+            }
+
+            if (imagenesAMostrar.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #ccc; padding: 60px;">No se encontraron imágenes para este álbum</p>';
+                return;
+            }
+        } else {
+            // MODO: Mostrar todas las imágenes
+            imagenesAMostrar = trabajos;
+            console.log('✅ Mostrando todas las imágenes:', imagenesAMostrar.length);
+
+            // Actualizar título de la página
+            if (albumTitle) {
+                albumTitle.textContent = 'Nuestro Portafolio';
+            }
+        }
+
+        // Renderizar imágenes en la galería
+        imagenesAMostrar.forEach((imagen, index) => {
+            const imageElement = createImageElement(imagen, index);
+            grid.appendChild(imageElement);
         });
 
-        // Configurar eventos de hover
-        setupHoverEffects();
+        // Configurar lightbox
+        setupLightbox();
 
     } catch (error) {
         console.error('Error al cargar portafolio:', error);
@@ -87,79 +87,177 @@ async function loadPortafolio() {
 }
 
 /**
- * Crear elemento de álbum
+ * Crear elemento de imagen para la galería
  */
-function createAlbumElement(album, index) {
+function createImageElement(imagen, index) {
     const div = document.createElement('div');
 
-    // Determinar las clases CSS según el índice
-    // Para mantener el layout variado como en el diseño original
+    // Determinar las clases CSS según el índice para mantener el layout variado
     const itemClasses = ['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6', 'item-7', 'item-8'];
     const mainLandscape = (index + 1) % 9 === 0; // Cada 9 elementos, uno grande
 
     div.className = mainLandscape
-        ? 'gallery-item item-main-landscape js-hover-item'
-        : `gallery-item ${itemClasses[index % itemClasses.length]} js-hover-item`;
+        ? 'gallery-item item-main-landscape js-lightbox-item'
+        : `gallery-item ${itemClasses[index % itemClasses.length]} js-lightbox-item`;
 
-    // Al hacer clic, ir a la galería del álbum
-    div.onclick = () => abrirDetalle(album.titulo);
+    // Guardar URL de la imagen en un atributo data
+    div.setAttribute('data-image-url', imagen.urlImagen);
 
     const content = document.createElement('div');
     content.className = 'item-content';
-    content.style.backgroundImage = `url('${album.portada || 'https://via.placeholder.com/600x400?text=Sin+imagen'}')`;
+    content.style.backgroundImage = `url('${imagen.urlImagen || 'https://via.placeholder.com/600x400?text=Sin+imagen'}')`;
 
-    // Badge con cantidad de imágenes si son más de 1
-    if (album.totalImagenes > 1) {
+    // Badge si está destacada
+    if (imagen.destacado) {
         const badge = document.createElement('div');
-        badge.style.cssText = 'position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.8); color: white; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
-        badge.innerHTML = `<i class="fas fa-images"></i> ${album.totalImagenes}`;
+        badge.style.cssText = 'position: absolute; top: 15px; right: 15px; background: rgba(255,215,0,0.9); color: #000; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+        badge.innerHTML = `<i class="fas fa-star"></i> Destacado`;
         content.appendChild(badge);
     }
 
-    // Overlay con título del álbum
-    const overlay = document.createElement('div');
-    overlay.className = 'item-overlay';
-    overlay.innerHTML = `
-        <div style="text-align: center; color: white;">
-            <h3 style="font-size: 1.5em; margin-bottom: 10px; font-family: 'GFS Didot', serif;">${album.titulo}</h3>
-            ${album.descripcion ? `<p style="font-size: 0.9em; opacity: 0.9;">${album.descripcion}</p>` : ''}
-            ${album.destacado ? '<span style="display: inline-block; margin-top: 10px; padding: 5px 15px; background: rgba(255,215,0,0.3); border: 2px solid gold; border-radius: 20px; font-size: 0.8em;">⭐ Destacado</span>' : ''}
-        </div>
-    `;
-    content.appendChild(overlay);
+    // Overlay con descripción (opcional)
+    if (imagen.descripcion) {
+        const overlay = document.createElement('div');
+        overlay.className = 'item-overlay';
+        overlay.innerHTML = `
+            <div style="text-align: center; color: white;">
+                <p style="font-size: 0.9em; opacity: 0.9;">${imagen.descripcion}</p>
+            </div>
+        `;
+        content.appendChild(overlay);
+    }
 
     div.appendChild(content);
     return div;
 }
 
 /**
- * Navegar a la galería del álbum
+ * Configurar lightbox para ver imágenes en grande
  */
-function abrirDetalle(albumTitulo) {
-    console.log(`Navegando al álbum: ${albumTitulo}`);
-    window.location.href = `portafolio-galeria.html?album=${encodeURIComponent(albumTitulo)}`;
-}
+function setupLightbox() {
+    const lightboxItems = document.querySelectorAll('.js-lightbox-item');
 
-/**
- * Configurar efectos de hover
- */
-function setupHoverEffects() {
-    const hoverItems = document.querySelectorAll('.js-hover-item');
+    // Crear elementos del lightbox si no existen
+    let lightbox = document.getElementById('lightbox');
+    if (!lightbox) {
+        lightbox = document.createElement('div');
+        lightbox.id = 'lightbox';
+        lightbox.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        `;
 
-    hoverItems.forEach(item => {
+        const lightboxImg = document.createElement('img');
+        lightboxImg.id = 'lightbox-img';
+        lightboxImg.style.cssText = `
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.id = 'lightbox-close';
+        closeBtn.innerHTML = '×';
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: #ffffff;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+            transition: color 0.3s ease;
+        `;
+        closeBtn.onmouseover = () => closeBtn.style.color = '#B8860B';
+        closeBtn.onmouseout = () => closeBtn.style.color = '#ffffff';
+
+        lightbox.appendChild(lightboxImg);
+        lightbox.appendChild(closeBtn);
+        document.body.appendChild(lightbox);
+
+        // Cerrar al hacer clic en el fondo
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        // Cerrar con botón
+        closeBtn.addEventListener('click', closeLightbox);
+
+        // Cerrar con tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.style.display === 'flex') {
+                closeLightbox();
+            }
+        });
+    }
+
+    // Agregar evento click a cada imagen
+    lightboxItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const imageUrl = item.getAttribute('data-image-url');
+            openLightbox(imageUrl);
+        });
+
+        // Efecto hover
         item.addEventListener('mouseenter', () => {
-            item.classList.add('is-hovering');
+            item.style.cursor = 'pointer';
+            item.style.transform = 'scale(1.05)';
+            item.style.transition = 'transform 0.3s ease';
         });
 
         item.addEventListener('mouseleave', () => {
-            item.classList.remove('is-hovering');
+            item.style.transform = 'scale(1)';
         });
     });
 }
 
+/**
+ * Abrir lightbox con imagen
+ */
+function openLightbox(imageUrl) {
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    if (lightbox && lightboxImg) {
+        lightboxImg.src = imageUrl;
+        lightbox.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevenir scroll
+    }
+}
+
+/**
+ * Cerrar lightbox
+ */
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    if (lightbox) {
+        lightbox.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Restaurar scroll
+    }
+}
+
 // Cargar portafolio cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    // Cargar álbumes dinámicamente
+    // Cargar galería dinámicamente
     loadPortafolio();
 
     // Botones de navegación (si existen)

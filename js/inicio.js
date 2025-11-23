@@ -103,8 +103,8 @@ async function loadPortafolio() {
  */
 function createPortfolioItem(album) {
     const item = document.createElement('a');
-    // Enlazar a la galería del álbum
-    item.href = `portafolio-galeria.html?album=${encodeURIComponent(album.titulo)}`;
+    // Enlazar a portafolio.html con el nombre del álbum
+    item.href = `portafolio.html?album=${encodeURIComponent(album.titulo)}`;
     item.className = 'portfolio-item';
 
     const img = document.createElement('img');

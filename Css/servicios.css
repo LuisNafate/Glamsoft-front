@@ -73,29 +73,47 @@ body {
 .services-list {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 10px;
     margin-bottom: 60px;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 100%;
+    width: 100%;
 }
 
 .service-card {
     background: #1a1a1a;
-    border-radius: 12px;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
-    border: 1px solid #2a2a2a;
+    border: none;
+    border-bottom: 1px solid #2a2a2a;
     display: grid;
-    grid-template-columns: 280px 1fr;
-    height: 240px;
+    grid-template-columns: 1fr 1fr;
+    height: 350px;
+}
+
+/* Tarjetas impares: imagen a la izquierda (por defecto) */
+.service-card:nth-child(odd) {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* Tarjetas pares: imagen a la derecha */
+.service-card:nth-child(even) {
+    grid-template-columns: 1fr 1fr;
+}
+
+.service-card:nth-child(even) .service-image {
+    order: 2;
+}
+
+.service-card:nth-child(even) .service-content {
+    order: 1;
 }
 
 .service-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(184, 146, 58, 0.25);
-    border-color: #B8923A;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(109, 87, 35, 0.25);
+    border-color: #24221e;
 }
 
 .service-image {
@@ -113,7 +131,7 @@ body {
 }
 
 .service-card:hover .service-image img {
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .placeholder-image {
@@ -194,23 +212,25 @@ body {
 }
 
 .btn-agendar {
-    background: #B8923A;
-    color: #1a1a1a;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    background-color: transparent;
+    border: 2px solid #B8923A;
+    color: #B8923A;
+    font-family: 'Montserrat', sans-serif;
+    padding: 12px 40px;
+    border-radius: 4px;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
 }
 
 .btn-agendar:hover {
-    background: #d4a853;
+    background-color: #B8923A;
+    color: #1A1A1A;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 146, 58, 0.4);
+    box-shadow: 0 5px 15px rgba(184, 146, 58, 0.3);
 }
 
 .btn-agendar:active {
