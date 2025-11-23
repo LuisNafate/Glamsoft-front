@@ -39,15 +39,27 @@ const UsuariosService = {
      */
     async update(userData) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.USUARIOS.UPDATE);
-            const response = await httpService.patch(url, userData);
+            // 1. Extraemos el ID para ponerlo en la URL
+            const id = userData.idUsuario || userData.id;
+            
+            // 2. Construimos la URL con el ID (/usuarios/33)
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.USUARIOS.UPDATE,
+                { id } 
+            );
+
+            // 3. Usamos PUT (porque tu router Java usa app.put)
+            // Enviamos userData como cuerpo
+            const response = await httpService.put(url, userData);
             
             // Actualizar datos locales si es el usuario autenticado
             const currentUser = localStorage.getItem(API_CONFIG.AUTH.USER_KEY);
             if (currentUser) {
                 const user = JSON.parse(currentUser);
                 if (user.email === userData.email) {
-                    localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(response.data));
+                    // Mezclamos los datos nuevos con los viejos para no perder nada
+                    const updatedLocal = { ...user, ...response.data };
+                    localStorage.setItem(API_CONFIG.AUTH.USER_KEY, JSON.stringify(updatedLocal));
                 }
             }
             
@@ -57,7 +69,6 @@ const UsuariosService = {
             throw error;
         }
     },
-
     /**
      * Eliminar usuario
      * @param {number|string} id - ID del usuario

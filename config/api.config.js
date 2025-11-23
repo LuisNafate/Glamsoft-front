@@ -43,7 +43,7 @@ const API_CONFIG = {
         USUARIOS: {
             GET_BY_EMAIL: '/usuarios/:email',
             GET_BY_ID: '/usuarios/:id',
-            UPDATE: '/usuarios',
+            UPDATE: '/usuarios/:id',
             DELETE: '/usuarios/:id',
             UPDATE_EMPLEADO: '/empleados'
         },
