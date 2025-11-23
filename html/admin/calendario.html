@@ -36,7 +36,7 @@
         
         .calendar-nav button {
             background: var(--admin-accent);
-            color: white;
+            color: rgb(35, 33, 33);
             border: none;
             width: 40px;
             height: 40px;
@@ -134,35 +134,42 @@
         }
         
         .appointment-card {
-            background: var(--admin-accent);
+            background: #9b59b6;
             color: white;
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 5px;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
             transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .appointment-card:hover {
             transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
         
         .appointment-card.pendiente {
-            background: var(--admin-warning);
+            background: #9b59b6; /* Morado */
         }
         
         .appointment-card.confirmada {
-            background: var(--admin-success);
+            background: #27ae60; /* Verde */
         }
         
         .appointment-card.cancelada {
-            background: var(--admin-danger);
+            background: #e74c3c; /* Rojo */
+        }
+        
+        .appointment-card.completada {
+            background: #3498db; /* Azul */
         }
         
         .appointment-client {
-            font-weight: 600;
+            font-weight: bold;
             margin-bottom: 3px;
+            font-size: 13px;
         }
         
         .appointment-service {
@@ -172,23 +179,45 @@
         
         .legend {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             margin-top: 20px;
-            padding: 15px;
+            padding: 20px;
             background: white;
             border-radius: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 14px;
+            color: #2c3e50;
         }
         
         .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .legend-color.pendiente {
+            background: #9b59b6;
+        }
+        
+        .legend-color.confirmada {
+            background: #27ae60;
+        }
+        
+        .legend-color.cancelada {
+            background: #e74c3c;
+        }
+        
+        .legend-color.completada {
+            background: #3498db;
         }
     </style>
 </head>
@@ -218,27 +247,16 @@
             <!-- Navegación del Calendario -->
             <div class="calendar-header">
                 <div class="calendar-nav">
-                    <button id="prevPeriod" title="Período anterior">
+                    <button id="prevWeek" title="Semana anterior">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button id="prevDay" title="Día anterior" style="width: auto; padding: 0 15px;">
-                        <i class="fas fa-angle-left"></i> Día
-                    </button>
                     <h2 class="calendar-title" id="calendarTitle">Semana del 21 - 27 Nov 2025</h2>
-                    <button id="nextDay" title="Día siguiente" style="width: auto; padding: 0 15px;">
-                        Día <i class="fas fa-angle-right"></i>
-                    </button>
-                    <button id="nextPeriod" title="Período siguiente">
+                    <button id="nextWeek" title="Semana siguiente">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
                 
                 <div class="calendar-actions">
-                    <div class="view-switcher">
-                        <button class="view-btn" id="viewDay">Día</button>
-                        <button class="view-btn active" id="viewWeek">Semana</button>
-                        <button class="view-btn" id="viewMonth">Mes</button>
-                    </div>
                     <button class="btn btn-secondary" id="todayBtn">
                         <i class="fas fa-calendar-day"></i> Hoy
                     </button>
@@ -255,16 +273,20 @@
             <!-- Leyenda -->
             <div class="legend">
                 <div class="legend-item">
-                    <div class="legend-color" style="background: var(--admin-warning);"></div>
+                    <div class="legend-color pendiente"></div>
                     <span>Pendiente</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: var(--admin-success);"></div>
+                    <div class="legend-color confirmada"></div>
                     <span>Confirmada</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: var(--admin-danger);"></div>
+                    <div class="legend-color cancelada"></div>
                     <span>Cancelada</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color completada"></div>
+                    <span>Completada</span>
                 </div>
             </div>
             
