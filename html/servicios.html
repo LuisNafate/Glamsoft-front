@@ -13,7 +13,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
          <link rel="stylesheet" href="../Css/modals/logout_confirm.css">
-         <link rel="stylesheet" href="../Css/modals/agendar_servicios.css">
             <link rel="stylesheet" href="../Css/modals/notificacion.css">
                     <link rel="stylesheet" href="../Css/modals/register.css">
                     <link rel="stylesheet" href="../Css/modals/profile_menu.css">
@@ -21,21 +20,34 @@
 <body>
     <div id="header-placeholder"></div>
 
-   <main class="services-container">
-        <div class="services-list">
-            <!-- Lista de servicios generada dinámicamente -->
+    <main class="services-container">
+        <div class="services-header">
+            <h1>Nuestros Servicios</h1>
+            <p>Selecciona el servicio que deseas y agenda tu cita</p>
         </div>
-        <div class="services-details">
-            <!-- Detalles de servicios generados dinámicamente -->
+
+        <div class="category-filters">
+            <button class="category-filter active" data-category="todos">Todos</button>
+            <button class="category-filter" data-category="corte">Cortes</button>
+            <button class="category-filter" data-category="color">Coloración</button>
+            <button class="category-filter" data-category="tratamiento">Tratamientos</button>
+            <button class="category-filter" data-category="peinado">Peinados</button>
+            <button class="category-filter" data-category="manicure">Manicure</button>
+        </div>
+
+        <div class="services-list">
+            <!-- Servicios generados dinámicamente -->
         </div>
     </main>
+
+    <!-- Loader -->
+    <div id="loader" style="display: none;">
+        <div class="loader-spinner"></div>
+    </div>
 
     <div id="footer-placeholder"></div>
     <div id="modal-placeholder"></div>
     <div id="modal-placeholder-logout"></div>
-
-
-   <div id="modal-placeholder-agendar"></div>
 
     <!-- API Configuration & Services -->
     <script src="../config/api.config.js"></script>

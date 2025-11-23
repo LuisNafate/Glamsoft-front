@@ -375,12 +375,8 @@ function toggleProfileMenu() {
 document.addEventListener('click', e => {
     const target = e.target;
 
-    if (target.closest('.btn-agendar')) {
-        e.preventDefault();
-        const modal = document.getElementById('agendarModal');
-        if (modal) modal.style.display = 'flex';
-        return;
-    }
+    // Removido el listener del btn-agendar para permitir navegación normal
+    // El botón ahora navega directamente a servicios.html
 
     const authTrigger = target.closest('.auth-trigger');
     if (authTrigger) {
@@ -407,7 +403,7 @@ document.addEventListener('click', e => {
 document.addEventListener('DOMContentLoaded', () => {
     loadHeaderFooter();
     loadModalNotificaciones();
-    loadModalAgendar();
+    // loadModalAgendar(); // Solo se carga en inicio.html si es necesario
     loadModalAuth();
     loadModalProfileMenu();
 });

@@ -1,242 +1,181 @@
-// Gestión de Servicios Admin - VERSIÓN FINAL CONECTADA
-class ServiciosAdmin {
+// Gestión de Servicios - Vista Cliente
+class ServiciosCliente {
     constructor() {
         this.servicios = [];
-        this.filteredServicios = [];
-        this.currentServicio = null;
+        this.categoriaActual = 'todos';
         this.init();
     }
 
     async init() {
         try {
-            this.setupEventListeners();
             await this.loadServicios();
+            this.setupEventListeners();
         } catch (error) {
             console.error('Error al inicializar:', error);
         }
     }
 
     setupEventListeners() {
-        document.getElementById('btnNuevoServicio')?.addEventListener('click', () => this.openModal());
-        document.getElementById('searchInput')?.addEventListener('input', () => this.filterServicios());
-        document.getElementById('filterCategoria')?.addEventListener('change', () => this.filterServicios());
-        
-        // IMPORTANTE: Prevenir recarga del formulario
-        document.getElementById('formServicio')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveServicio();
+        // Filtros por categoría
+        document.querySelectorAll('.category-filter').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.category-filter').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.categoriaActual = e.target.dataset.category;
+                this.renderServicios();
+            });
         });
     }
 
-    // --- LECTURA (GET) ---
     async loadServicios() {
         this.showLoader();
         try {
+            console.log('Cargando servicios desde API...');
             const response = await ServiciosService.getAll();
-            // Tu API devuelve un DTO: { idServicio, nombre, descripcion, precio, duracion, categoria... }
-            this.servicios = response.data || [];
-            this.filteredServicios = [...this.servicios];
-            this.renderTable();
+            console.log('Respuesta de la API:', response);
+            
+            const serviciosActivos = (response.data || response || []).filter(s => s.activo);
+            console.log('Servicios activos encontrados:', serviciosActivos.length);
+            
+            this.servicios = serviciosActivos;
+            this.renderServicios();
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error al cargar servicios:', error);
             this.showNotification('Error al cargar servicios', 'error');
         } finally {
             this.hideLoader();
         }
     }
 
-    filterServicios() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const categoriaFilter = document.getElementById('filterCategoria').value;
+    renderServicios() {
+        const container = document.querySelector('.services-list');
+        if (!container) return;
+
+        let serviciosFiltrados = this.servicios;
+        if (this.categoriaActual !== 'todos') {
+            serviciosFiltrados = this.servicios.filter(s => 
+                (s.categoria || '').toLowerCase().includes(this.categoriaActual.toLowerCase())
+            );
+        }
+
+        if (serviciosFiltrados.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-cut" style="font-size: 48px; color: #bdc3c7; margin-bottom: 15px;"></i>
+                    <p>No hay servicios disponibles en esta categoría</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = serviciosFiltrados.map(servicio => `
+            <div class="service-card">
+                <div class="service-image">
+                    ${servicio.imagenURL ? 
+                        `<img src="${servicio.imagenURL}" alt="${servicio.nombre}">` :
+                        `<div class="placeholder-image"><i class="fas fa-scissors"></i></div>`
+                    }
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">${servicio.nombre}</h3>
+                    <p class="service-category">${servicio.categoria || 'General'}</p>
+                    <p class="service-description">${servicio.descripcion || 'Servicio profesional de belleza'}</p>
+                    <div class="service-footer">
+                        <div class="service-info">
+                            <span class="service-price">$${parseFloat(servicio.precio).toFixed(2)}</span>
+                            <span class="service-duration"><i class="far fa-clock"></i> ${servicio.duracion} min</span>
+                        </div>
+                        <button class="btn-agendar" data-servicio-id="${servicio.idServicio}">
+                            Agendar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Agregar eventos a los botones después de renderizar
+        this.attachAgendarButtons();
+    }
+
+    attachAgendarButtons() {
+        document.querySelectorAll('.btn-agendar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idServicio = parseInt(e.target.dataset.servicioId);
+                console.log('========================================');
+                console.log('BOTÓN AGENDAR CLICKEADO');
+                console.log('ID del servicio:', idServicio);
+                console.log('========================================');
+                alert('Botón clickeado! Servicio ID: ' + idServicio);
+                this.agendarServicio(idServicio);
+            });
+        });
+    }
+
+    agendarServicio(idServicio) {
+        const servicio = this.servicios.find(s => s.idServicio === idServicio);
+        if (!servicio) {
+            console.error('Servicio no encontrado:', idServicio);
+            this.showNotification('Error: Servicio no encontrado', 'error');
+            return;
+        }
+
+        console.log('Servicio seleccionado:', servicio);
         
-        this.filteredServicios = this.servicios.filter(servicio => {
-            // DTO usa 'nombre'
-            const nombre = servicio.nombre || '';
-            const descripcion = servicio.descripcion || '';
-            // DTO usa 'categoria' (el nombre, ej: "Corte")
-            const categoria = servicio.categoria || '';
-            
-            const matchesSearch = nombre.toLowerCase().includes(searchTerm) ||
-                                descripcion.toLowerCase().includes(searchTerm);
-            
-            const matchesCategoria = !categoriaFilter || categoria.includes(categoriaFilter);
-            
-            return matchesSearch && matchesCategoria;
+        // Guardar ID del servicio en localStorage
+        localStorage.setItem('servicioSeleccionado', idServicio.toString());
+        
+        // También guardar el servicio completo para mostrar información
+        localStorage.setItem('servicioSeleccionadoData', JSON.stringify(servicio));
+        
+        console.log('Datos guardados en localStorage:', {
+            id: localStorage.getItem('servicioSeleccionado'),
+            data: localStorage.getItem('servicioSeleccionadoData')
         });
         
-        this.renderTable();
-    }
-
-    renderTable() {
-        const tbody = document.getElementById('serviciosTableBody');
-        const emptyState = document.getElementById('emptyState');
+        console.log('Redirigiendo a agendar.html...');
         
-        if (!tbody) return;
+        // Mostrar notificación antes de redirigir
+        this.showNotification('Redirigiendo...', 'success');
         
-        if (this.filteredServicios.length === 0) {
-            tbody.innerHTML = '';
-            if (emptyState) emptyState.style.display = 'block';
-            return;
-        }
-        
-        if (emptyState) emptyState.style.display = 'none';
-        
-        tbody.innerHTML = this.filteredServicios.map(servicio => `
-            <tr>
-                <td>
-                   <div class="service-image" style="background: #ecf0f1; display: flex; align-items: center; justify-content: center;">
-                        <i class="ph ph-scissors" style="font-size: 24px; color: #bdc3c7;"></i>
-                    </div>
-                </td>
-                <td><strong>${servicio.nombre}</strong></td>
-                <td>${servicio.categoria || 'General'}</td>
-                <td><strong>$${parseFloat(servicio.precio).toFixed(2)}</strong></td>
-                <td>${servicio.duracion} min</td>
-                <td>
-                    <span class="badge ${servicio.activo ? 'active' : 'inactive'}">
-                        ${servicio.activo ? 'Activo' : 'Inactivo'}
-                    </span>
-                </td>
-                <td>
-                    <div class="table-actions">
-                        <button class="btn-icon edit" type="button" onclick="serviciosAdmin.editServicio(${servicio.idServicio})">
-                            <i class="ph ph-pencil-simple"></i>
-                        </button>
-                        <button class="btn-icon delete" type="button" onclick="serviciosAdmin.deleteServicio(${servicio.idServicio})">
-                            <i class="ph ph-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    // --- EDICIÓN (Mapeo DTO -> Formulario) ---
-    openModal(servicio = null) {
-        const modal = document.getElementById('modalServicio');
-        const modalTitle = document.getElementById('modalTitle');
-        const form = document.getElementById('formServicio');
-        
-        if (servicio) {
-            modalTitle.textContent = 'Editar Servicio';
-            document.getElementById('servicioId').value = servicio.idServicio;
-            
-            // Mapeamos DTO (Lectura) a Inputs
-            document.getElementById('nombreServicio').value = servicio.nombre; // DTO: nombre
-            document.getElementById('descripcionServicio').value = servicio.descripcion || '';
-            document.getElementById('precioServicio').value = servicio.precio;
-            document.getElementById('duracionServicio').value = servicio.duracion; // DTO: duracion
-            
-            // NOTA: El select de categoría quedará vacío si no coincide el valor (ID vs Nombre)
-            // El usuario debe volver a seleccionar la categoría al editar.
-            
-            document.getElementById('activoServicio').checked = servicio.activo;
-        } else {
-            modalTitle.textContent = 'Nuevo Servicio';
-            form.reset();
-            document.getElementById('servicioId').value = '';
-            document.getElementById('activoServicio').checked = true;
-        }
-        
-        modal.classList.add('active');
-    }
-
-    editServicio(id) {
-        const servicio = this.servicios.find(s => s.idServicio === id);
-        if (servicio) this.openModal(servicio);
-    }
-
-    async deleteServicio(id) {
-        if (!confirm('¿Estás seguro de eliminar este servicio?')) return;
-        
-        this.showLoader();
-        try {
-            await ServiciosService.delete(id);
-            this.showNotification('Servicio eliminado correctamente', 'success');
-            await this.loadServicios();
-        } catch (error) {
-            console.error('Error:', error);
-            this.showNotification('Error al eliminar servicio', 'error');
-        } finally {
-            this.hideLoader();
-        }
-    }
-
-    // --- GUARDADO (POST/PUT - Aquí ocurre la TRADUCCIÓN CLAVE) ---
-    async saveServicio() {
-        const servicioId = document.getElementById('servicioId').value;
-        
-        // 1. Recoger datos del HTML
-        const nombreInput = document.getElementById('nombreServicio').value;
-        const categoriaInput = document.getElementById('categoriaServicio').value;
-        const precioInput = document.getElementById('precioServicio').value;
-        const duracionInput = document.getElementById('duracionServicio').value;
-        const descripcionInput = document.getElementById('descripcionServicio').value;
-        const imagenInput = document.getElementById('imagenServicio').value;
-        const activoInput = document.getElementById('activoServicio').checked;
-
-        // Validación simple
-        if (!nombreInput || !precioInput || !duracionInput) {
-            this.showNotification('Completa los campos obligatorios', 'error');
-            return;
-        }
-
-        // 2. TRADUCCIÓN: Convertir al formato EXACTO que exige Java (Servicio.java)
-        const data = {
-            nombreServicio: nombreInput,                  // Java: nombreServicio
-            duracionMinutos: parseInt(duracionInput),     // Java: duracionMinutos (int)
-            idCategoria: parseInt(categoriaInput) || 1,   // Java: idCategoria (int)
-            precio: parseFloat(precioInput),              // Java: precio (double)
-            descripcion: descripcionInput,
-            imagenURL: imagenInput || "",                 // Java: imagenURL
-            idFormulario: null,                           // Java: idFormulario
-            activo: activoInput                           // Java: activo
-        };
-        
-        this.showLoader();
-        
-        try {
-            if (servicioId) {
-                // EDITAR
-                await ServiciosService.update(parseInt(servicioId), data);
-                this.showNotification('Servicio actualizado', 'success');
-            } else {
-                // CREAR
-                await ServiciosService.create(data);
-                this.showNotification('Servicio creado', 'success');
+        // Pequeño delay para que se vea la notificación
+        setTimeout(() => {
+            // Redirigir a la página de agendar
+            try {
+                window.location.href = 'agendar.html';
+            } catch (error) {
+                console.error('Error al redirigir:', error);
+                this.showNotification('Error al redirigir. Intenta de nuevo.', 'error');
             }
-            
-            document.getElementById('modalServicio').classList.remove('active');
-            await this.loadServicios();
-            
-        } catch (error) {
-            console.error('Error:', error);
-            const msg = error.response?.data?.message || 'Error al guardar. Verifica los datos.';
-            this.showNotification(msg, 'error');
-        } finally {
-            this.hideLoader();
-        }
+        }, 300);
     }
 
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `admin-notification ${type}`;
+        notification.className = `notification ${type}`;
         notification.textContent = message;
         notification.style.cssText = `
             position: fixed; top: 20px; right: 20px; padding: 15px 20px;
             border-radius: 8px; background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
-            color: white; z-index: 10000; animation: slideIn 0.3s ease;
+            color: white; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
     }
 
-    showLoader() { document.getElementById('loader').style.display = 'flex'; }
-    hideLoader() { document.getElementById('loader').style.display = 'none'; }
+    showLoader() { 
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'flex'; 
+    }
+    
+    hideLoader() { 
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'none'; 
+    }
 }
 
 // Inicializar
-let serviciosAdmin;
+let serviciosCliente;
 document.addEventListener('DOMContentLoaded', () => {
-    serviciosAdmin = new ServiciosAdmin();
+    serviciosCliente = new ServiciosCliente();
 });

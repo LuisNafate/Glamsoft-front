@@ -5,152 +5,264 @@
 }
 
 body {
-    font-family: 'Lato', sans-serif;
-    background-color: #0a0a0a;
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
     color: #fff;
-    overflow-x: hidden;
+    min-height: 100vh;
 }
 
-/* Lista de servicios (mini menú lateral) */
-.services-list {
+.services-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.services-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.services-header h1 {
+    font-family: 'GFS Didot', serif;
+    font-size: 48px;
+    color: #B8923A;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+
+.services-header p {
+    font-size: 18px;
+    color: #bdc3c7;
+}
+
+/* Filtros de Categoría */
+.category-filters {
     display: flex;
     justify-content: center;
     gap: 15px;
-    margin: 30px 0;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
 }
 
-.service-item {
-    background-color: #1a1a1a;
-    padding: 15px 25px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: center;
-}
-
-.service-item:hover {
-    background-color: #2a2a2a;
-    transform: translateY(-5px);
-}
-
-.service-item span:first-child {
-    display: block;
+.category-filter {
+    padding: 12px 28px;
+    background: #2c2c2c;
+    border: 2px solid transparent;
+    border-radius: 25px;
+    color: #fff;
     font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 5px;
 }
 
-.service-item span:last-child {
-    font-weight: bold;
-    font-size: 16px;
-    color: #ccc;
+.category-filter:hover {
+    background: #3c3c3c;
+    transform: translateY(-2px);
 }
 
-/* Contenedor de detalle de servicios */
-.services-details {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.category-filter.active {
+    background: #B8923A;
+    border-color: #B8923A;
+    color: #1a1a1a;
 }
 
-/* Cada card ocupa 80% de la pantalla */
-.service-detail {
-    display: flex;
-    width: 80vw;
-    height: 80vh;
-    margin: 50px 0;
+/* Grid de Servicios */
+.services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.service-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     border-radius: 15px;
     overflow: hidden;
-    background-color: #1a1a1a;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-    transition: transform 0.3s;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+    border: 1px solid #333;
 }
 
-.service-detail:hover {
-    transform: translateY(-5px);
+.service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(184, 146, 58, 0.3);
+    border-color: #B8923A;
 }
 
 .service-image {
-    flex: 1;
+    width: 100%;
+    height: 220px;
     overflow: hidden;
+    position: relative;
 }
 
 .service-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
 }
 
-.service-info {
-    flex: 1;
-    padding: 40px;
+.service-card:hover .service-image img {
+    transform: scale(1.1);
+}
+
+.placeholder-image {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2c2c2c, #3c3c3c);
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    font-size: 64px;
+    color: #B8923A;
 }
 
-.service-info h2 {
-    font-size: 28px;
-    margin-bottom: 20px;
+.service-content {
+    padding: 25px;
 }
 
-.info-item h3 {
+.service-title {
+    font-family: 'GFS Didot', serif;
+    font-size: 24px;
+    color: #B8923A;
+    margin-bottom: 8px;
+}
+
+.service-category {
+    font-size: 12px;
+    color: #95a5a6;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+}
+
+.service-description {
     font-size: 14px;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-    color: #ccc;
-}
-
-.info-item p, .info-item li {
-    font-size: 14px;
-    color: #ddd;
+    color: #bdc3c7;
     line-height: 1.6;
+    margin-bottom: 20px;
+    min-height: 60px;
 }
 
-.info-item ul {
-    list-style: disc;
-    padding-left: 20px;
-}
-
-.price-section {
-    margin-top: 20px;
+.service-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid #333;
 }
 
-.price-section h3 {
-    font-size: 16px;
+.service-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-.agendar-btn {
-    padding: 10px 20px;
-    background-color: #ff4c4c;
+.service-price {
+    font-size: 28px;
+    font-weight: bold;
+    color: #B8923A;
+}
+
+.service-duration {
+    font-size: 13px;
+    color: #95a5a6;
+}
+
+.service-duration i {
+    margin-right: 5px;
+}
+
+.btn-agendar {
+    background: #B8923A;
+    color: #1a1a1a;
     border: none;
-    border-radius: 6px;
-    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.agendar-btn:hover {
-    background-color: #ff1a1a;
+.btn-agendar:hover {
+    background: #d4a853;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(184, 146, 58, 0.4);
+}
+
+.btn-agendar:active {
+    transform: translateY(0);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    grid-column: 1 / -1;
+}
+
+.empty-state i {
+    display: block;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 18px;
+    color: #7f8c8d;
+}
+
+/* Loader */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader-spinner {
+    border: 4px solid #333;
+    border-top: 4px solid #B8923A;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .service-detail {
-        flex-direction: column;
-        width: 90vw;
-        height: 90vh;
-    }
-
-    .service-info {
-        padding: 20px;
+    .services-header h1 {
+        font-size: 36px;
     }
 
     .services-list {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .category-filters {
         gap: 10px;
+    }
+
+    .category-filter {
+        padding: 10px 20px;
+        font-size: 12px;
     }
 }

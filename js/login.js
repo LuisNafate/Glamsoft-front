@@ -62,6 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('auth_token', token);
                     localStorage.setItem('user_data', JSON.stringify(usuario));
+                    
+                    // Guardar también en StateManager para que funcione con agendar.js
+                    if (typeof StateManager !== 'undefined') {
+                        StateManager.set('user', usuario);
+                        StateManager.set('isLoggedIn', true);
+                    }
 
                     loginBtn.style.backgroundColor = '#4CAF50'; 
                     loginBtn.textContent = "¡Éxito!";

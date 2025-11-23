@@ -200,6 +200,22 @@ function resetSelections() {
 
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Forzar reinicialización del StateManager para cargar el usuario
+    if (typeof StateManager !== 'undefined') {
+        StateManager.init();
+        console.log('StateManager reinicializado. Usuario:', StateManager.get('user'));
+    }
+    
+    // Verificar que el usuario esté logeado
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    console.log('Usuario logeado:', isLoggedIn);
+    
+    if (!isLoggedIn) {
+        console.warn('Usuario no está logeado, redirigiendo a login...');
+        window.location.href = 'login.html';
+        return;
+    }
+    
     cargarModalCancelacion();
     cargarYConfigurarModal();
     cargarErrorModal();
@@ -322,9 +338,9 @@ async function cargarErrorModal() {
 // --- NUEVA FUNCIÓN PARA CARGAR EL MODAL DE ÉXITO ---
 async function cargarSuccessModal() {
     try {
-        const response = await fetch('modals/agenda_success.html');
+        const response = await fetch('modals/agenda_sucess.html'); // Nota: el archivo tiene typo "sucess"
         if (!response.ok) {
-            throw new Error(`Error al cargar modals/agenda_success.html: ${response.statusText}`);
+            throw new Error(`Error al cargar modals/agenda_sucess.html: ${response.statusText}`);
         }
         const htmlModal = await response.text();
 
@@ -432,10 +448,50 @@ async function cargarYConfigurarModal() {
         // Función para crear cita en la API
         async function crearCitaEnAPI(formData) {
             try {
-                // Obtener usuario actual
-                const user = StateManager.get('user');
-                if (!user || !user.idCliente) {
+                console.log('=== INICIANDO CREACIÓN DE CITA ===');
+                
+                // Obtener usuario actual del StateManager
+                let user = StateManager.get('user');
+                console.log('Usuario desde StateManager:', user);
+                
+                // Si no hay usuario en StateManager, intentar cargar desde localStorage
+                if (!user) {
+                    console.log('No hay usuario en StateManager, buscando en localStorage...');
+                    const userDataStr = localStorage.getItem('user_data');
+                    console.log('user_data en localStorage:', userDataStr);
+                    
+                    if (userDataStr) {
+                        try {
+                            user = JSON.parse(userDataStr);
+                            console.log('Usuario recuperado de localStorage:', user);
+                            // Guardar en StateManager para futuras referencias
+                            StateManager.set('user', user);
+                        } catch (e) {
+                            console.error('Error al parsear user_data:', e);
+                        }
+                    }
+                }
+                
+                // Verificar si está logeado
+                const isLoggedIn = localStorage.getItem('isLoggedIn');
+                console.log('isLoggedIn:', isLoggedIn);
+                console.log('Usuario final:', user);
+                
+                if (!user) {
+                    console.error('No se pudo obtener el usuario de ninguna fuente');
                     openErrorModal('Debes iniciar sesión para agendar una cita.');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    return;
+                }
+                
+                // Obtener el ID del cliente (puede estar en diferentes propiedades)
+                const idCliente = user.idCliente || user.idUsuario || user.id || user.userId;
+                console.log('ID del cliente:', idCliente);
+                
+                if (!idCliente) {
+                    console.error('No se encontró idCliente en el usuario:', user);
+                    openErrorModal('No se pudo obtener tu información de usuario. Por favor, inicia sesión nuevamente.');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
                     return;
                 }
                 
@@ -455,20 +511,54 @@ async function cargarYConfigurarModal() {
                     hora24 = `${String(hours).padStart(2, '0')}:${minutes}:00`;
                 }
                 
-                // Formatear fecha
+                // Formatear fecha y hora como LocalDateTime (formato ISO: 2025-11-29T09:00:00)
                 const fechaFormateada = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+                const fechaHoraCita = `${fechaFormateada}T${hora24}`;
                 
-                // Datos de la cita
+                // Fecha de solicitud = ahora
+                const fechaSolicitud = new Date().toISOString().slice(0, 19); // Formato: 2025-11-22T15:30:00
+                
+                // Obtener servicio seleccionado del localStorage
+                const servicioSeleccionado = localStorage.getItem('servicioSeleccionado');
+                const idServicio = servicioSeleccionado ? parseInt(servicioSeleccionado) : null;
+                
+                if (!idServicio) {
+                    openErrorModal('Por favor, selecciona un servicio primero desde la página de servicios.');
+                    setTimeout(() => window.location.href = 'servicios.html', 2000);
+                    return;
+                }
+
+                // PASO CRÍTICO: Obtener o crear un horario válido
+                console.log('Obteniendo horario válido...');
+                let horario = null;
+                try {
+                    horario = await HorariosService.getOrCreateDefault();
+                    console.log('Horario obtenido:', horario);
+                } catch (error) {
+                    console.warn('No se pudo obtener horario, la cita necesita idHorario:', error);
+                    openErrorModal('Error al obtener horario. Por favor, contacta al administrador.');
+                    return;
+                }
+
+                if (!horario || !horario.idHorario) {
+                    openErrorModal('No hay horarios disponibles. Por favor, contacta al administrador.');
+                    return;
+                }
+                
+                // Datos de la cita - formato según API real (CitaController.java)
                 const citaData = {
-                    idCliente: user.idCliente,
-                    idServicio: 1, // TODO: Obtener servicio seleccionado
-                    idEstilista: selectedStylist + 1, // selectedStylist es index 0-based
-                    fechaCita: fechaFormateada,
-                    horaCita: hora24,
-                    estadoCita: 'PENDIENTE'
+                    estadoCita: 'PENDIENTE',
+                    fechaCita: fechaHoraCita, // LocalDateTime: 2025-11-29T09:00:00
+                    fechaSolicitudCita: fechaSolicitud, // LocalDateTime: fecha actual
+                    idCliente: idCliente,
+                    idEstilista: selectedStylist + 1,
+                    idHorario: horario.idHorario,
+                    servicios: [idServicio]
                 };
                 
-                console.log('Creando cita:', citaData);
+                console.log('=== DATOS DE LA CITA (API FORMAT) ===');
+                console.log(JSON.stringify(citaData, null, 2));
+                console.log('=====================================');
                 
                 const response = await CitasService.create(citaData);
                 console.log('Cita creada:', response);

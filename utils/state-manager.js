@@ -25,10 +25,20 @@ const StateManager = {
      */
     init() {
         // Cargar usuario si está autenticado
-        const userStr = localStorage.getItem(API_CONFIG.AUTH.USER_KEY);
+        // Intentar primero con API_CONFIG si existe
+        let userStr = null;
+        if (typeof API_CONFIG !== 'undefined' && API_CONFIG.AUTH && API_CONFIG.AUTH.USER_KEY) {
+            userStr = localStorage.getItem(API_CONFIG.AUTH.USER_KEY);
+        }
+        // Si no existe, intentar con 'user_data' (usado por login.js)
+        if (!userStr) {
+            userStr = localStorage.getItem('user_data');
+        }
+        
         if (userStr) {
             try {
                 this.state.user = JSON.parse(userStr);
+                console.log('Usuario cargado en StateManager:', this.state.user);
             } catch (e) {
                 console.error('Error al parsear datos de usuario:', e);
             }
