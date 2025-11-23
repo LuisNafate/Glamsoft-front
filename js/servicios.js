@@ -32,11 +32,25 @@ class ServiciosCliente {
         try {
             console.log('Cargando servicios desde API...');
             const response = await ServiciosService.getAll();
-            console.log('Respuesta de la API:', response);
-            
+            console.log('Respuesta completa de la API:', response);
+
             const serviciosActivos = (response.data || response || []).filter(s => s.activo);
             console.log('Servicios activos encontrados:', serviciosActivos.length);
-            
+
+            // DEBUG: Ver datos de imagen de cada servicio
+            if (serviciosActivos.length > 0) {
+                console.log('========== DEBUG IMÁGENES ==========');
+                serviciosActivos.forEach((s, index) => {
+                    console.log(`Servicio ${index + 1} - ${s.nombre}:`);
+                    console.log('  - Todos los campos:', Object.keys(s));
+                    console.log('  - imagenURL:', s.imagenURL);
+                    console.log('  - Longitud imagenURL:', s.imagenURL ? s.imagenURL.length : 0);
+                    console.log('  - Empieza con data:image?', s.imagenURL ? s.imagenURL.startsWith('data:image') : false);
+                    console.log('---');
+                });
+                console.log('=====================================');
+            }
+
             this.servicios = serviciosActivos;
             this.renderServicios();
         } catch (error) {

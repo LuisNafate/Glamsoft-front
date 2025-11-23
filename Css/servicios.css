@@ -71,30 +71,36 @@ body {
 
 /* Grid de Servicios */
 .services-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
     margin-bottom: 60px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .service-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-radius: 15px;
+    background: #1a1a1a;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
     transition: all 0.3s ease;
-    border: 1px solid #333;
+    border: 1px solid #2a2a2a;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: 240px;
 }
 
 .service-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 32px rgba(184, 146, 58, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(184, 146, 58, 0.25);
     border-color: #B8923A;
 }
 
 .service-image {
     width: 100%;
-    height: 220px;
+    height: 100%;
     overflow: hidden;
     position: relative;
 }
@@ -107,13 +113,13 @@ body {
 }
 
 .service-card:hover .service-image img {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .placeholder-image {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #2c2c2c, #3c3c3c);
+    background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -122,38 +128,44 @@ body {
 }
 
 .service-content {
-    padding: 25px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #1a1a1a;
 }
 
 .service-title {
     font-family: 'GFS Didot', serif;
-    font-size: 24px;
+    font-size: 26px;
     color: #B8923A;
     margin-bottom: 8px;
+    letter-spacing: 0.5px;
 }
 
 .service-category {
-    font-size: 12px;
-    color: #95a5a6;
+    font-size: 11px;
+    color: #888;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 15px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    font-weight: 500;
 }
 
 .service-description {
-    font-size: 14px;
-    color: #bdc3c7;
+    font-size: 13px;
+    color: #aaa;
     line-height: 1.6;
     margin-bottom: 20px;
-    min-height: 60px;
+    flex: 1;
 }
 
 .service-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 20px;
-    border-top: 1px solid #333;
+    padding-top: 15px;
+    border-top: 1px solid #2a2a2a;
 }
 
 .service-info {
@@ -163,18 +175,22 @@ body {
 }
 
 .service-price {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: bold;
     color: #B8923A;
+    letter-spacing: 0.5px;
 }
 
 .service-duration {
-    font-size: 13px;
-    color: #95a5a6;
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
 }
 
 .service-duration i {
     margin-right: 5px;
+    font-size: 11px;
 }
 
 .btn-agendar {
@@ -253,8 +269,28 @@ body {
     }
 
     .services-list {
-        grid-template-columns: 1fr;
         gap: 20px;
+    }
+
+    .service-card {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .service-image {
+        height: 200px;
+    }
+
+    .service-content {
+        padding: 20px;
+    }
+
+    .service-title {
+        font-size: 22px;
+    }
+
+    .service-price {
+        font-size: 24px;
     }
 
     .category-filters {

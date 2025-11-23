@@ -3,6 +3,7 @@ class ServiciosAdmin {
         this.servicios = [];
         this.filteredServicios = [];
         this.currentServicio = null;
+        this.imagenBase64 = null; // Almacenar imagen en Base64
         // Mapa manual para traducir Nombres de API -> IDs de Formulario
         this.mapaCategorias = {
             'Cabello': 1,
@@ -27,20 +28,149 @@ class ServiciosAdmin {
         document.getElementById('btnNuevoServicio')?.addEventListener('click', () => this.openModal());
         document.getElementById('searchInput')?.addEventListener('input', () => this.filterServicios());
         document.getElementById('filterCategoria')?.addEventListener('change', () => this.filterServicios());
-        
+
         document.getElementById('formServicio')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveServicio();
         });
+
+        // Event listener para la carga de imagen
+        const imagenInput = document.getElementById('imagenServicio');
+        if (imagenInput) {
+            imagenInput.addEventListener('change', (e) => this.handleImageUpload(e));
+        }
+
+        // Event listener para quitar imagen
+        const removeBtn = document.getElementById('removeImageBtn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => this.removeImage());
+        }
+    }
+
+    async handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('No se seleccionó archivo');
+            return;
+        }
+
+        console.log('========== CARGANDO IMAGEN ==========');
+        console.log('Archivo seleccionado:', file.name);
+        console.log('Tipo:', file.type);
+        console.log('Tamaño:', (file.size / 1024).toFixed(2), 'KB');
+
+        // Validar tipo de archivo
+        if (!file.type.startsWith('image/')) {
+            this.showNotification('Por favor selecciona una imagen válida', 'error');
+            return;
+        }
+
+        // Validar tamaño (máximo 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showNotification('La imagen es muy grande. Máximo 5MB', 'error');
+            return;
+        }
+
+        try {
+            // Comprimir y convertir a Base64
+            const base64 = await this.compressAndConvertToBase64(file);
+            this.imagenBase64 = base64;
+
+            console.log('Imagen convertida a Base64');
+            console.log('Longitud Base64:', base64.length);
+            console.log('Primeros 100 caracteres:', base64.substring(0, 100));
+
+            // Mostrar preview
+            const preview = document.getElementById('imagenPreview');
+            const previewImg = document.getElementById('previewImg');
+            if (preview && previewImg) {
+                previewImg.src = base64;
+                preview.style.display = 'block';
+                console.log('Preview mostrado correctamente');
+            } else {
+                console.warn('No se encontraron elementos de preview');
+            }
+
+            console.log('=====================================');
+            this.showNotification('Imagen cargada correctamente', 'success');
+        } catch (error) {
+            console.error('Error al cargar imagen:', error);
+            this.showNotification('Error al cargar la imagen', 'error');
+        }
+    }
+
+    async compressAndConvertToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Redimensionar si es muy grande
+                    const maxWidth = 800;
+                    const maxHeight = 800;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        if (width > height) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        } else {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convertir a Base64 con compresión
+                    const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                    resolve(base64);
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    removeImage() {
+        this.imagenBase64 = null;
+        const imagenInput = document.getElementById('imagenServicio');
+        const preview = document.getElementById('imagenPreview');
+
+        if (imagenInput) imagenInput.value = '';
+        if (preview) preview.style.display = 'none';
+
+        this.showNotification('Imagen eliminada', 'info');
     }
 
     async loadServicios() {
         this.showLoader();
         try {
             const response = await ServiciosService.getAll();
+            console.log('========== ADMIN: CARGANDO SERVICIOS ==========');
+            console.log('Respuesta completa:', response);
+
             // Filtrar solo servicios activos
             this.servicios = (response.data || []).filter(s => s.activo === true);
             this.filteredServicios = [...this.servicios];
+
+            // DEBUG: Ver imágenes
+            if (this.servicios.length > 0) {
+                console.log('Primer servicio:', this.servicios[0]);
+                console.log('¿Tiene imagenURL?', !!this.servicios[0].imagenURL);
+                console.log('Longitud imagenURL:', this.servicios[0].imagenURL ? this.servicios[0].imagenURL.length : 0);
+            }
+            console.log('===============================================');
+
             this.renderTable();
         } catch (error) {
             console.error('Error:', error);
@@ -90,8 +220,11 @@ class ServiciosAdmin {
         tbody.innerHTML = this.filteredServicios.map(servicio => `
             <tr>
                 <td>
-                    <div class="service-image" style="background: #ecf0f1; display: flex; align-items: center; justify-content: center;">
-                        <i class="ph ph-scissors" style="font-size: 24px; color: #bdc3c7;"></i>
+                    <div class="service-image" style="width: 60px; height: 60px; background: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden;">
+                        ${servicio.imagenURL ?
+                            `<img src="${servicio.imagenURL}" alt="${servicio.nombre}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                            `<i class="ph ph-scissors" style="font-size: 24px; color: #bdc3c7;"></i>`
+                        }
                     </div>
                 </td>
                 <td><strong>${servicio.nombre}</strong></td>
@@ -117,6 +250,8 @@ class ServiciosAdmin {
         const modal = document.getElementById('modalServicio');
         const title = document.getElementById('modalTitle');
         const form = document.getElementById('formServicio');
+        const preview = document.getElementById('imagenPreview');
+        const previewImg = document.getElementById('previewImg');
 
         if (servicio) {
             // --- MODO EDICIÓN ---
@@ -133,12 +268,26 @@ class ServiciosAdmin {
             const catId = this.mapaCategorias[servicio.categoria] || "";
             document.getElementById('categoriaServicio').value = catId;
 
+            // Cargar imagen si existe
+            if (servicio.imagenURL) {
+                this.imagenBase64 = servicio.imagenURL;
+                if (preview && previewImg) {
+                    previewImg.src = servicio.imagenURL;
+                    preview.style.display = 'block';
+                }
+            } else {
+                this.imagenBase64 = null;
+                if (preview) preview.style.display = 'none';
+            }
+
         } else {
             // --- MODO CREACIÓN ---
             title.textContent = 'Nuevo Servicio';
             form.reset();
             document.getElementById('servicioId').value = '';
             document.getElementById('activoServicio').checked = true;
+            this.imagenBase64 = null;
+            if (preview) preview.style.display = 'none';
         }
         modal.classList.add('active');
     }
@@ -173,26 +322,38 @@ class ServiciosAdmin {
             idCategoria: parseInt(document.getElementById('categoriaServicio').value) || 1,
             precio: parseFloat(document.getElementById('precioServicio').value),
             descripcion: document.getElementById('descripcionServicio').value,
-            imagenURL: document.getElementById('imagenServicio').value || "",
+            imagenURL: this.imagenBase64 || "", // Usar imagen Base64
             idFormulario: null,
             activo: document.getElementById('activoServicio').checked
         };
 
+        // DEBUG: Ver qué datos estamos enviando
+        console.log('========== GUARDANDO SERVICIO ==========');
+        console.log('¿Tenemos imagenBase64?', !!this.imagenBase64);
+        console.log('Longitud de imagenURL:', data.imagenURL.length);
+        console.log('Primeros 100 caracteres de imagenURL:', data.imagenURL.substring(0, 100));
+        console.log('Datos completos a enviar:', data);
+        console.log('========================================');
+
         this.showLoader();
         try {
+            let response;
             if (servicioId) {
                 // UPDATE: Enviamos ID y DATA
-                await ServiciosService.update(parseInt(servicioId), data);
+                response = await ServiciosService.update(parseInt(servicioId), data);
+                console.log('Respuesta del UPDATE:', response);
                 this.showNotification('Servicio actualizado', 'success');
             } else {
                 // CREATE: Enviamos solo DATA
-                await ServiciosService.create(data);
+                response = await ServiciosService.create(data);
+                console.log('Respuesta del CREATE:', response);
                 this.showNotification('Servicio creado', 'success');
             }
             document.getElementById('modalServicio').classList.remove('active');
             await this.loadServicios();
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error completo:', error);
+            console.error('Error response:', error.response);
             this.showNotification('Error al guardar', 'error');
         } finally {
             this.hideLoader();
