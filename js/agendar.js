@@ -368,12 +368,16 @@ async function loadServicios() {
         console.log('🛍️ Servicios recibidos:', response);
 
         const servicios = response.data || response;
-        todosLosServicios = servicios;
 
-        if (servicios && servicios.length > 0) {
-            // Ordenar servicios por popularidad/valoración (asumiendo que hay un campo de rating o veces solicitado)
-            serviciosOrdenados = [...servicios].sort((a, b) => {
-                // Primero intentar ordenar por rating/valoración
+        // Filtrar solo servicios activos
+        const serviciosActivos = servicios.filter(servicio => servicio.activo === true || servicio.activo === 1);
+        todosLosServicios = serviciosActivos;
+
+        console.log(`🛍️ Servicios activos: ${serviciosActivos.length} de ${servicios.length} total`);
+
+        if (serviciosActivos && serviciosActivos.length > 0) {
+            // Ordenar servicios por popularidad/valoración
+            serviciosOrdenados = [...serviciosActivos].sort((a, b) => {
                 const ratingA = a.rating || a.valoracion || a.vecesSolicitado || 0;
                 const ratingB = b.rating || b.valoracion || b.vecesSolicitado || 0;
                 return ratingB - ratingA;
@@ -382,9 +386,9 @@ async function loadServicios() {
             // Mostrar solo los primeros 3
             renderizarServicios(serviciosOrdenados.slice(0, 3));
 
-            // Mostrar botón "Mostrar más" si hay más de 3 servicios
+            // Mostrar botón "Mostrar más" si hay más de 3 servicios activos
             const btnMostrarMas = document.getElementById('mostrar-mas-servicios');
-            if (btnMostrarMas && servicios.length > 3) {
+            if (btnMostrarMas && serviciosActivos.length > 3) {
                 btnMostrarMas.style.display = 'block';
                 btnMostrarMas.onclick = function() {
                     if (!mostrandoTodosLosServicios) {
