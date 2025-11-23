@@ -111,7 +111,7 @@ body {
 }
 
 .service-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(0px);
     box-shadow: 0 4px 8px rgba(109, 87, 35, 0.25);
     border-color: #24221e;
 }
