@@ -39,8 +39,24 @@
 
    <div id="modal-placeholder-agendar"></div>
 
+    <!-- Scripts - Orden de carga importante -->
+    <!-- 1. Configuración -->
+    <script src="../config/api.config.js"></script>
+
+    <!-- 2. Servicios HTTP base -->
+    <script src="../services/http.service.js"></script>
+
+    <!-- 3. Servicios específicos -->
+    <script src="../services/auth.service.js"></script>
+    <script src="../services/categorias.service.js"></script>
+
+    <!-- 4. Utilidades -->
+    <script src="../utils/error-handler.js"></script>
+    <script src="../utils/state-manager.js"></script>
+
+    <!-- 5. Scripts de página -->
     <script src="../js/header_footer.js"></script>
-    <script src="../js/promocion.js"></script> 
+    <script src="../js/promocion.js"></script>
 
 </body>
 </html>

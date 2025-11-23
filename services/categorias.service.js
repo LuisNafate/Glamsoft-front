@@ -8,7 +8,9 @@ const CategoriasService = {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CATEGORIAS.GET_ALL);
             const response = await httpService.get(url);
-            return response.data;
+            // La API devuelve { data: [...], message: "...", status: "..." }
+            // Extraer el array de datos
+            return response.data?.data || response.data || [];
         } catch (error) {
             console.error('Error al obtener categorías:', error);
             throw error;
