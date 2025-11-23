@@ -7,8 +7,9 @@ const NotificacionesService = {
      */
     async getByUsuario(idUsuario) {
         try {
-            const response = await HttpService.get(`/usuarios/${idUsuario}/notificaciones`);
-            return response;
+            const url = API_CONFIG.buildUrl(`/usuarios/${idUsuario}/notificaciones`);
+            const response = await httpService.get(url);
+            return response.data;
         } catch (error) {
             console.error('Error al obtener notificaciones:', error);
             throw error;
@@ -40,8 +41,9 @@ const NotificacionesService = {
      */
     async contarNoLeidas(idUsuario) {
         try {
-            const response = await HttpService.get(`/usuarios/${idUsuario}/notificaciones/no-leidas`);
-            return response;
+            const url = API_CONFIG.buildUrl(`/usuarios/${idUsuario}/notificaciones/no-leidas`);
+            const response = await httpService.get(url);
+            return response.data;
         } catch (error) {
             console.error('Error al contar notificaciones no leídas:', error);
             throw error;
@@ -73,8 +75,9 @@ const NotificacionesService = {
      */
     async markAsRead(id) {
         try {
-            const response = await HttpService.put(`/notificaciones/${id}/marcar-leida`);
-            return response;
+            const url = API_CONFIG.buildUrl(`/notificaciones/${id}/marcar-leida`);
+            const response = await httpService.put(url);
+            return response.data;
         } catch (error) {
             console.error('Error al marcar notificación como leída:', error);
             throw error;
@@ -116,8 +119,9 @@ const NotificacionesService = {
      */
     async delete(id) {
         try {
-            const response = await HttpService.delete(`/notificaciones/${id}`);
-            return response;
+            const url = API_CONFIG.buildUrl(`/notificaciones/${id}`);
+            const response = await httpService.delete(url);
+            return response.data;
         } catch (error) {
             console.error('Error al eliminar notificación:', error);
             throw error;
