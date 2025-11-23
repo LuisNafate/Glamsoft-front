@@ -100,13 +100,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     closeBtn.addEventListener('click', closeModal);
     btnNo.addEventListener('click', closeModal);
 
-    btnSi.addEventListener('click', () => {
-        console.log("Comentario Enviado:");
-        console.log("Calificación:", currentRating);
-        console.log("Comentario:", comentarioInput.value);
+    btnSi.addEventListener('click', async () => {
+        const comentarioTexto = comentarioInput.value.trim();
         
-        // Simulación de envío
-        alert('¡Gracias por tu valoración!');
+        // Verificar si hay usuario logueado
+        const currentUser = StateManager.getState('user');
+        
+        if (!currentUser) {
+            alert('Debes iniciar sesión para publicar un comentario');
+            closeModal();
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        console.log("Publicando comentario:");
+        console.log("Calificación:", currentRating);
+        console.log("Comentario:", comentarioTexto);
+        
+        // Si hay comentario, enviarlo a la API
+        if (comentarioTexto) {
+            try {
+                const comentarioData = {
+                    idCliente: currentUser.idCliente || currentUser.idUsuario,
+                    idCita: null, // Sin cita asociada desde esta página
+                    comentario: comentarioTexto
+                };
+                
+                console.log('Enviando comentario:', comentarioData);
+                
+                const response = await ComentariosService.create(comentarioData);
+                console.log('Comentario creado:', response);
+                
+                // Mostrar mensaje de éxito
+                alert('¡Gracias por tu valoración! Tu comentario ha sido publicado.');
+            } catch (error) {
+                console.error('Error al enviar comentario:', error);
+                alert('Hubo un error al publicar tu comentario. Por favor, intenta de nuevo.');
+            }
+        } else {
+            alert('¡Gracias por tu valoración!');
+        }
         
         closeModal();
         
@@ -115,5 +148,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentRating = 0;
         ratingValueInput.value = 0;
         resetStars();
+        
+        // Opcional: redirigir a la página de comentarios
+        setTimeout(() => {
+            window.location.href = 'comentarios.html';
+        }, 1500);
     });
 });

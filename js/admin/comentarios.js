@@ -13,7 +13,7 @@ class ComentariosAdmin {
             await this.loadComentarios();
         } catch (error) {
             console.error('Error al inicializar:', error);
-            ErrorHandler.handle(error);
+            this.showNotification('Error al inicializar comentarios', 'error');
         }
     }
 
@@ -28,22 +28,20 @@ class ComentariosAdmin {
         document.getElementById('searchInput')?.addEventListener('input', () => {
             this.filterComentarios();
         });
-        
-        document.getElementById('filterEstado')?.addEventListener('change', () => {
-            this.filterComentarios();
-        });
-        
-        document.getElementById('filterCalificacion')?.addEventListener('change', () => {
-            this.filterComentarios();
-        });
     }
 
     async loadComentarios() {
         this.showLoader();
         
         try {
-            const response = await ValoracionesService.getAll();
-            this.comentarios = response.data || [];
+            const response = await ComentariosService.getAll();
+            console.log('loadComentarios - Response completo:', response);
+            
+            // Manejar estructura de respuesta: {data: [...], message: "...", status: "success"}
+            const comentariosData = response.data?.data || response.data || [];
+            console.log('loadComentarios - Comentarios extraídos:', comentariosData);
+            
+            this.comentarios = comentariosData;
             this.filteredComentarios = [...this.comentarios];
             this.renderComentarios();
         } catch (error) {
@@ -59,19 +57,12 @@ class ComentariosAdmin {
 
     filterComentarios() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const estadoFilter = document.getElementById('filterEstado').value;
-        const calificacionFilter = document.getElementById('filterCalificacion').value;
         
         this.filteredComentarios = this.comentarios.filter(comentario => {
-            const matchesSearch = comentario.comentario.toLowerCase().includes(searchTerm) ||
-                                (comentario.usuario_nombre || '').toLowerCase().includes(searchTerm);
+            const contenido = (comentario.contenido || '').toLowerCase();
+            const clienteNombre = (comentario.cliente?.nombre || '').toLowerCase();
             
-            const matchesEstado = !estadoFilter || comentario.estado === estadoFilter;
-            
-            const matchesCalificacion = !calificacionFilter || 
-                                      comentario.calificacion === parseInt(calificacionFilter);
-            
-            return matchesSearch && matchesEstado && matchesCalificacion;
+            return contenido.includes(searchTerm) || clienteNombre.includes(searchTerm);
         });
         
         this.renderComentarios();
@@ -92,8 +83,9 @@ class ComentariosAdmin {
         if (emptyState) emptyState.style.display = 'none';
         
         container.innerHTML = this.filteredComentarios.map(comentario => {
-            const iniciales = (comentario.usuario_nombre || 'U').charAt(0).toUpperCase();
-            const stars = '★'.repeat(comentario.calificacion) + '☆'.repeat(5 - comentario.calificacion);
+            const clienteNombre = comentario.cliente?.nombre || 'Usuario Anónimo';
+            const iniciales = clienteNombre.charAt(0).toUpperCase();
+            const fechaFormateada = this.formatFecha(comentario.fecha);
             
             return `
                 <div class="comment-card">
@@ -101,83 +93,31 @@ class ComentariosAdmin {
                         <div class="comment-user">
                             <div class="user-avatar">${iniciales}</div>
                             <div class="user-info">
-                                <h4>${comentario.usuario_nombre || 'Usuario Anónimo'}</h4>
-                                <div class="comment-date">${this.formatFecha(comentario.fecha)}</div>
+                                <h4>${clienteNombre}</h4>
+                                <div class="comment-date">${fechaFormateada}</div>
                             </div>
                         </div>
                         <div>
-                            <div class="rating-stars">${stars}</div>
-                            <span class="comment-status ${comentario.estado || 'pendiente'}">
-                                ${this.getEstadoText(comentario.estado)}
-                            </span>
+                            ${comentario.cita ? `
+                                <span class="comment-badge" style="background: #3498db; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    <i class="fas fa-calendar"></i> Cita #${comentario.cita.idCita}
+                                </span>
+                            ` : ''}
                         </div>
                     </div>
                     
                     <div class="comment-text">
-                        ${comentario.comentario}
+                        ${comentario.contenido}
                     </div>
                     
-                    ${comentario.servicio_nombre ? `
-                        <div style="font-size: 13px; color: #7f8c8d; margin-bottom: 15px;">
-                            <i class="fas fa-concierge-bell"></i> ${comentario.servicio_nombre}
-                        </div>
-                    ` : ''}
-                    
                     <div class="comment-actions">
-                        ${comentario.estado !== 'aprobado' ? `
-                            <button class="btn btn-success btn-sm" onclick="comentariosAdmin.updateEstado(${comentario.id}, 'aprobado')">
-                                <i class="fas fa-check"></i> Aprobar
-                            </button>
-                        ` : ''}
-                        
-                        ${comentario.estado !== 'rechazado' ? `
-                            <button class="btn btn-danger btn-sm" onclick="comentariosAdmin.updateEstado(${comentario.id}, 'rechazado')">
-                                <i class="fas fa-times"></i> Rechazar
-                            </button>
-                        ` : ''}
-                        
-                        <button class="btn btn-secondary btn-sm" onclick="comentariosAdmin.deleteComentario(${comentario.id})">
+                        <button class="btn btn-danger btn-sm" onclick="comentariosAdmin.deleteComentario(${comentario.idComentario})">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>
                     </div>
                 </div>
             `;
         }).join('');
-    }
-
-    getEstadoText(estado) {
-        const estados = {
-            'aprobado': 'Aprobado',
-            'pendiente': 'Pendiente',
-            'rechazado': 'Rechazado'
-        };
-        return estados[estado] || 'Pendiente';
-    }
-
-    async updateEstado(id, nuevoEstado) {
-        this.showLoader();
-        
-        try {
-            const comentario = this.comentarios.find(c => c.id === id);
-            if (!comentario) throw new Error('Comentario no encontrado');
-            
-            await ValoracionesService.update(id, {
-                ...comentario,
-                estado: nuevoEstado
-            });
-            
-            this.showNotification(
-                `Comentario ${nuevoEstado === 'aprobado' ? 'aprobado' : 'rechazado'} correctamente`, 
-                'success'
-            );
-            
-            await this.loadComentarios();
-        } catch (error) {
-            console.error('Error al actualizar comentario:', error);
-            this.showNotification('Error al actualizar comentario', 'error');
-        } finally {
-            this.hideLoader();
-        }
     }
 
     async deleteComentario(id) {
@@ -188,7 +128,7 @@ class ComentariosAdmin {
         this.showLoader();
         
         try {
-            await ValoracionesService.delete(id);
+            await ComentariosService.delete(id);
             this.showNotification('Comentario eliminado correctamente', 'success');
             await this.loadComentarios();
         } catch (error) {
@@ -200,6 +140,20 @@ class ComentariosAdmin {
     }
 
     formatFecha(fecha) {
+        // Manejar formato de array [year, month, day, hour, minute, second]
+        if (Array.isArray(fecha)) {
+            const [year, month, day, hour = 0, minute = 0] = fecha;
+            const date = new Date(year, month - 1, day, hour, minute);
+            return date.toLocaleDateString('es-ES', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Fallback para fechas en formato ISO
         const date = new Date(fecha);
         return date.toLocaleDateString('es-ES', { 
             day: '2-digit', 
@@ -221,6 +175,7 @@ class ComentariosAdmin {
             background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db'};
             color: white;
             z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         `;
         notification.textContent = message;
         

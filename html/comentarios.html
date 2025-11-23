@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comentarios - GlamSoft</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../Css/modals/logout_confirm.css">
+    <link rel="stylesheet" href="../Css/header_footer.css">
+    <link rel="stylesheet" href="../Css/modals/agendar_servicios.css">
+    <link rel="stylesheet" href="../Css/modals/register.css">
+    <link rel="stylesheet" href="../Css/modals/notificacion.css">
+    <link rel="stylesheet" href="../Css/modals/profile_menu.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        main {
+            padding: 120px 20px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .comentarios-header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .comentarios-header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .comentarios-header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        .comentarios-container {
+            display: grid;
+            gap: 30px;
+        }
+
+        .add-comment-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .add-comment-card h3 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .comment-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .comment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .user-info h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+
+        .comment-date {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .comment-text {
+            color: #34495e;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-prompt {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .login-prompt i {
+            font-size: 24px;
+        }
+
+        .login-prompt a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-prompt a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .comentarios-header h1 {
+                font-size: 32px;
+            }
+
+            .add-comment-card, .comment-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+
+    <main>
+        <div class="comentarios-header">
+            <h1>💬 Comentarios</h1>
+            <p>Comparte tu experiencia con nosotros</p>
+        </div>
+
+        <div class="comentarios-container">
+            <!-- Formulario para agregar comentario -->
+            <div class="add-comment-card">
+                <h3>
+                    <i class="fas fa-pen"></i>
+                    Deja tu comentario
+                </h3>
+                
+                <div id="loginPrompt" class="login-prompt" style="display: none;">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Debes <a href="login.html">iniciar sesión</a> para dejar un comentario.</span>
+                </div>
+                
+                <form id="comentarioForm">
+                    <div class="form-group">
+                        <label for="comentarioText">Tu comentario *</label>
+                        <textarea 
+                            id="comentarioText" 
+                            placeholder="Cuéntanos sobre tu experiencia en nuestro salón..."
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        Publicar comentario
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de comentarios -->
+            <div id="comentariosLista">
+                <!-- Se llena dinámicamente -->
+            </div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-comments"></i>
+                <p>Aún no hay comentarios. ¡Sé el primero en compartir tu experiencia!</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-placeholder"></div>
+    <div id="modal-placeholder-logout"></div>
+    <div id="footer-placeholder"></div>
+    <div id="modal-placeholder-agendar"></div>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../config/api.config.js"></script>
+    <script src="../services/http.service.js"></script>
+    <script src="../services/auth.service.js"></script>
+    <script src="../services/comentarios.service.js"></script>
+    <script src="../utils/state-manager.js"></script>
+    <script src="../js/header_footer.js"></script>
+    <script src="../js/comentarios-publicos.js"></script>
+
+</body>
+</html>
