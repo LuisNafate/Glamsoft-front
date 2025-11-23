@@ -550,6 +550,11 @@ async function filtrarEstilistasPorServicio(idServicio) {
 
 document.addEventListener('DOMContentLoaded', function() {
 
+    // Inicializar EmailJS
+    if (typeof EmailService !== 'undefined') {
+        EmailService.init();
+    }
+
     // Forzar reinicialización del StateManager para cargar el usuario
     if (typeof StateManager !== 'undefined') {
         StateManager.init();
@@ -934,6 +939,25 @@ async function cargarYConfigurarModal() {
                     servicio: nombreServicio,
                     precio: precioServicio
                 });
+
+                // Enviar email de confirmación
+                if (typeof EmailService !== 'undefined' && EmailService.isConfigured()) {
+                    EmailService.enviarConfirmacionCita({
+                        fecha: fechaFormateada,
+                        hora: hora24,
+                        estilista: nombreEstilista,
+                        servicio: nombreServicio,
+                        precio: precioServicio
+                    }).then(result => {
+                        if (result.success) {
+                            console.log('✅ Email de confirmación enviado');
+                        } else {
+                            console.warn('⚠️ No se pudo enviar el email:', result.message);
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ EmailService no configurado - no se enviará correo');
+                }
 
                 // Resetear selecciones
                 setTimeout(() => {
