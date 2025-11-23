@@ -46,7 +46,6 @@ function loadModalAuth() {
         .then(res => res.text())
         .then(html => {
             document.getElementById('modal-placeholder').insertAdjacentHTML('beforeend', html);
-            // Esperamos un momento breve para asegurar que el DOM esté listo antes de asignar eventos
             setTimeout(() => initializeModalEvents(), 100);
         });
 }
@@ -98,7 +97,6 @@ function initializeModalEvents() {
         const input = document.getElementById(inputId);
         if (!input) return;
         input.classList.add('input-error');
-        // Intentar mostrar mensaje en contenedor específico si existe
         const msgDivId = inputId.includes('reg') ? 'registerMessage' : 'modalLoginMessage';
         const msgDiv = document.getElementById(msgDivId);
         if (msgDiv) {
@@ -116,35 +114,31 @@ function initializeModalEvents() {
         if (msgDiv) msgDiv.style.display = 'none';
     }
 
-    // Limpiar errores al escribir
     ['reg-nombre', 'reg-email', 'reg-telefono', 'reg-password', 'reg-password-confirm'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', () => clearInputError(id));
     });
 
-    // --- 2. VER/OCULTAR CONTRASEÑA (MEJORADA) ---
+    // --- 2. VER/OCULTAR CONTRASEÑA ---
     function setupPasswordToggle(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
         
         if (input && icon) {
-            // Removemos listeners anteriores para evitar duplicados
             const newIcon = icon.cloneNode(true);
             icon.parentNode.replaceChild(newIcon, icon);
             
             newIcon.addEventListener('click', (e) => {
-                e.preventDefault(); // Evitar que el click envíe formulario
+                e.preventDefault();
+                e.stopPropagation(); // Importante para no cerrar modal
                 const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
                 input.setAttribute('type', type);
                 newIcon.classList.toggle('fa-eye');
                 newIcon.classList.toggle('fa-eye-slash');
             });
-        } else {
-            console.warn(`No se encontró input: ${inputId} o icono: ${iconId}`);
         }
     }
     
-    // Configurar toggles
     setupPasswordToggle('reg-password', 'toggleRegPass');
     setupPasswordToggle('reg-password-confirm', 'toggleRegPassConfirm'); 
     setupPasswordToggle('modal-login-password', 'toggleModalLoginPass');
@@ -153,19 +147,16 @@ function initializeModalEvents() {
     if (registerForm) {
         registerForm.addEventListener('submit', async e => {
             e.preventDefault(); 
-            console.log("Intentando registrar usuario...");
             
             const submitBtn = registerForm.querySelector('button[type="submit"]');
             const passInput = document.getElementById('reg-password');
             const passConfirmInput = document.getElementById('reg-password-confirm');
             
-            // Validación A: Longitud
             if (passInput.value.length < 8) {
                 showInputError('reg-password', 'La contraseña debe tener al menos 8 caracteres');
                 return;
             }
 
-            // Validación B: Coincidencia
             if (passInput.value !== passConfirmInput.value) {
                 showInputError('reg-password-confirm', 'Las contraseñas no coinciden');
                 return;
@@ -185,8 +176,6 @@ function initializeModalEvents() {
 
             try {
                 const response = await AuthService.register(userData);
-                console.log("Respuesta Registro:", response);
-
                 if (response.status === 'success' || response.success || response.idUsuario) {
                     alert('✅ ¡Cuenta creada exitosamente! Ahora inicia sesión.');
                     if(registerView) registerView.style.display = 'none';
@@ -200,21 +189,17 @@ function initializeModalEvents() {
                 console.error('Error Registro:', error);
                 const errorMsg = error.response?.data?.message || error.message || 'Error desconocido';
                 
-                // Mostrar error en la interfaz
                 const msgDiv = document.getElementById('registerMessage');
-                let textoError = 'Error al crear cuenta.';
+                let textoError = errorMsg;
                 
-                if (errorMsg.includes('Duplicate entry') || errorMsg.includes('Duplicate')) {
-                    textoError = 'El correo o teléfono ya están registrados.';
-                } else {
-                    textoError = errorMsg;
-                }
+                if (errorMsg.includes('Duplicate')) textoError = 'El correo o teléfono ya están registrados.';
                 
                 if(msgDiv) {
                     msgDiv.textContent = textoError;
                     msgDiv.style.display = 'block';
+                } else {
+                    alert(textoError);
                 }
-                alert(textoError); // Alerta de respaldo
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "CREAR CUENTA";
@@ -222,7 +207,7 @@ function initializeModalEvents() {
         });
     }
 
-    // --- 4. LÓGICA DE LOGIN EN EL MODAL ---
+    // --- 4. LÓGICA DE LOGIN EN EL MODAL (ACTUALIZADA) ---
     if (modalLoginForm) {
         modalLoginForm.addEventListener('submit', async e => {
             e.preventDefault();
@@ -238,7 +223,6 @@ function initializeModalEvents() {
             if(msgDiv) msgDiv.style.display = 'none';
 
             try {
-                // Detectar si es email o teléfono
                 let credenciales = {};
                 if (inputUser.value.includes('@')) {
                     credenciales = { email: inputUser.value, password: inputPass.value };
@@ -250,18 +234,31 @@ function initializeModalEvents() {
 
                 if (response.status === 'success' || response.success || (response.data && response.data.token)) {
                     const data = response.data || response;
+                    const usuario = data.usuario || data.user;
+                    
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('auth_token', data.token);
-                    localStorage.setItem('user_data', JSON.stringify(data.usuario || data.user));
+                    localStorage.setItem('user_data', JSON.stringify(usuario));
 
                     modal.style.display = 'none';
                     
-                    // Redirección
-                    const rol = (data.usuario || data.user).idRol;
-                    if (rol === 1 || rol === 2) { 
+                    // === VALIDACIÓN DE ROL ROBUSTA (IGUAL QUE EN LOGIN.JS) ===
+                    const rawRol = usuario.idRol || usuario.rol || usuario.id_rol || 3;
+                    const idRol = parseInt(rawRol, 10);
+
+                    console.log("Login Modal - Rol detectado:", idRol);
+
+                    if (idRol === 1 || idRol === 2) { 
                         window.location.href = 'admin/dashboard.html';
                     } else {
-                        window.location.reload();
+                        // Cliente: Redirigir o recargar
+                        const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
+                        if (redirectUrl) {
+                            sessionStorage.removeItem('redirectAfterAuth');
+                            window.location.href = redirectUrl;
+                        } else {
+                            window.location.reload();
+                        }
                     }
                 } else {
                     throw new Error('Credenciales incorrectas');
@@ -271,7 +268,7 @@ function initializeModalEvents() {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalBtnText;
                 
-                let mensaje = "Error de conexión o datos incorrectos";
+                let mensaje = "Error de conexión";
                 if (error.response && error.response.status === 404) mensaje = "Usuario no encontrado";
                 if (error.response && error.response.status === 401) mensaje = "Contraseña incorrecta";
 

@@ -1,17 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Script de Login cargado. Esperando interacción...");
+    
+    // --- LIMPIEZA PREVENTIVA ---
+    // Al entrar al login, borramos cualquier sesión vieja para evitar conflictos
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('isLoggedIn');
 
-    // 1. REFERENCIAS
     const loginForm = document.getElementById('loginForm');
-    const userInput = document.getElementById('login-input'); // El campo de texto
+    const userInput = document.getElementById('login-input'); 
     const passInput = document.getElementById('login-password');
     const loginBtn = document.getElementById('btnLogin');
     const msgDiv = document.getElementById('message');
     const toggleBtn = document.getElementById('toggleLoginPass');
 
-    // 2. FUNCIÓN: MOSTRAR / OCULTAR CONTRASEÑA
+    // 1. Toggle Password
     if (toggleBtn && passInput) {
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passInput.setAttribute('type', type);
             toggleBtn.classList.toggle('fa-eye');
@@ -19,31 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. FUNCIÓN PRINCIPAL: ENVIAR FORMULARIO
+    // 2. Login Logic
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
-            // ¡ESTO ES LO MÁS IMPORTANTE!
-            e.preventDefault(); // Evita que la página se recargue
-            console.log("Botón presionado. Iniciando proceso de login...");
+            e.preventDefault(); 
 
-            // Limpiar mensajes previos
-            msgDiv.style.display = 'none';
-            msgDiv.textContent = '';
+            // Reset UI
+            if(msgDiv) msgDiv.style.display = 'none';
             userInput.classList.remove('input-error');
             passInput.classList.remove('input-error');
-
-            // Bloquear botón
+            
+            // Loading State
             const btnTextoOriginal = loginBtn.textContent;
             loginBtn.disabled = true;
             loginBtn.textContent = "Verificando...";
 
-            // Obtener valores
             const valorUsuario = userInput.value.trim();
             const password = passInput.value.trim();
 
             try {
-                // Preparar datos para la API
-                // Determinamos si es email o teléfono automáticamente
                 let credenciales = {};
                 if (valorUsuario.includes('@')) {
                     credenciales = { email: valorUsuario, password: password };
@@ -51,84 +50,62 @@ document.addEventListener('DOMContentLoaded', () => {
                     credenciales = { telefono: valorUsuario, password: password };
                 }
 
-                console.log("Enviando a API:", credenciales);
-
-                // LLAMADA A LA API
                 const response = await AuthService.login(credenciales);
-                console.log("Respuesta API:", response);
+                console.log("API Response:", response); // MIRA ESTO EN CONSOLA SI FALLA
 
-                // Verificar éxito (La API suele devolver { status: 'success', data: {...} } o similar)
-                // Ajustamos para aceptar diferentes formatos de respuesta exitosa
-                if (response.status === 'success' || response.success || response.token || (response.data && response.data.token)) {
+                if (response.status === 'success' || response.success || (response.data && response.data.token)) {
                     
-                    // Extraer datos
                     const data = response.data || response;
                     const token = data.token;
                     const usuario = data.usuario || data.user;
 
-                    // Guardar en LocalStorage
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('auth_token', token);
                     localStorage.setItem('user_data', JSON.stringify(usuario));
 
-                    // Mensaje de éxito visual
-                    loginBtn.style.backgroundColor = '#4CAF50'; // Verde
-                    loginBtn.textContent = "¡Éxito! Redirigiendo...";
+                    loginBtn.style.backgroundColor = '#4CAF50'; 
+                    loginBtn.textContent = "¡Éxito!";
 
-                    // REDIRECCIÓN SEGÚN ROL
-                    // Asumimos: 1=Admin, 2=Estilista, 3=Cliente
-                    const idRol = usuario.idRol || usuario.rol; // Ajusta según tu BD
+                    // --- DETECCIÓN DE ROL ---
+                    // Buscamos cualquier indicio del rol en el objeto
+                    const rol = usuario.rol || usuario.idRol || usuario.role;
+                    
+                    // Normalizamos a string minúscula para comparar fácil
+                    // '1', 1, 'Admin', 'ADMIN' -> todos pasan
+                    const rolStr = String(rol).toLowerCase();
+
+                    console.log("Rol detectado para redirección:", rolStr);
 
                     setTimeout(() => {
-                        if (idRol === 1 || idRol === 2) {
-                            console.log("Es Admin/Estilista -> Dashboard");
+                        // Si es 1, 2, admin o estilista -> Dashboard
+                        if (rolStr === '1' || rolStr === '2' || rolStr.includes('admin') || rolStr.includes('estilista')) {
                             window.location.href = 'admin/dashboard.html';
                         } else {
-                            console.log("Es Cliente -> Inicio");
-                            window.location.href = 'inicio.html';
+                           // window.location.href = '.html';
                         }
-                    }, 1000);
+                    }, 800);
 
                 } else {
                     throw new Error(response.message || 'Credenciales inválidas');
                 }
 
             } catch (error) {
-                console.error("Error en Login:", error);
-                
-                // Restaurar botón
+                console.error("Login Error:", error);
                 loginBtn.disabled = false;
                 loginBtn.textContent = btnTextoOriginal;
 
-                // Determinar mensaje de error
                 let mensaje = "Error al iniciar sesión.";
-                
                 if (error.response) {
-                    // La API respondió con un error (ej. 404, 401)
-                    if (error.response.status === 404) {
-                        mensaje = "El usuario no existe.";
-                    } else if (error.response.status === 401) {
-                        mensaje = "Contraseña incorrecta.";
-                    } else if (error.response.data && error.response.data.message) {
-                        mensaje = error.response.data.message;
-                    }
-                } else {
-                    mensaje = "No se pudo conectar con el servidor.";
+                    if (error.response.status === 404) mensaje = "Usuario no encontrado.";
+                    else if (error.response.status === 401) mensaje = "Contraseña incorrecta.";
+                    else if (error.response.data?.message) mensaje = error.response.data.message;
                 }
 
-                // Mostrar error en pantalla
-                msgDiv.textContent = mensaje;
-                msgDiv.style.display = 'block';
-                
-                // Resaltar input con error
-                if (mensaje.includes("usuario") || mensaje.includes("correo")) {
-                    userInput.classList.add('input-error');
-                } else if (mensaje.includes("Contraseña")) {
-                    passInput.classList.add('input-error');
+                if(msgDiv) {
+                    msgDiv.textContent = mensaje;
+                    msgDiv.style.display = 'block';
                 }
             }
         });
-    } else {
-        console.error("No se encontró el formulario #loginForm en el HTML");
     }
 });
