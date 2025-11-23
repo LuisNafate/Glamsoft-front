@@ -38,12 +38,14 @@
         }
         
         .discount-tag {
-            background: var(--admin-danger);
-            color: white;
-            padding: 8px 15px;
+            
+            color: rgb(16, 15, 15);
+            padding: 8px 16px;
             border-radius: 8px;
             font-weight: 700;
             font-size: 16px;
+            display: inline-block;
+           
         }
         
         /* Modal Styles */
@@ -212,6 +214,57 @@
             #formPromocion {
                 padding: 20px;
             }
+        }
+        
+        /* Mejoras adicionales para la tabla */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        .admin-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            color: #333;
+        }
+        
+        .admin-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-icon {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .btn-icon.edit:hover {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-icon.delete:hover {
+            background: #dc3545;
+            color: white;
         }
     </style>
 </head>
