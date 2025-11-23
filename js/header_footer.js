@@ -46,7 +46,8 @@ function loadModalAuth() {
         .then(res => res.text())
         .then(html => {
             document.getElementById('modal-placeholder').insertAdjacentHTML('beforeend', html);
-            initializeModalEvents(); // Aquí conectamos la lógica
+            // Esperamos un momento breve para asegurar que el DOM esté listo antes de asignar eventos
+            setTimeout(() => initializeModalEvents(), 100);
         });
 }
 
@@ -81,15 +82,15 @@ function loadModalAgendar() {
 // ================== LOGICA DE AUTH (LOGIN/REGISTRO) ==================
 function initializeModalEvents() {
     const modal = document.getElementById('authModal');
-    // Si no hay modal, al menos intentamos buscar el formulario de login normal
-    // por si estamos en la página login.html
-    
+    if (!modal) return;
+
     const showLoginBtn = document.getElementById('showLogin');
     const showRegisterBtn = document.getElementById('showRegister');
     const registerView = document.getElementById('registerView');
     const loginView = document.getElementById('loginView');
     
-    const loginForm = document.getElementById('loginForm');
+    const loginForm = document.getElementById('loginForm'); 
+    const modalLoginForm = document.getElementById('modalLoginForm');
     const registerForm = document.getElementById('registerForm');
 
     // --- 1. VALIDACIÓN VISUAL DE ERRORES ---
@@ -97,54 +98,76 @@ function initializeModalEvents() {
         const input = document.getElementById(inputId);
         if (!input) return;
         input.classList.add('input-error');
-        let errorSpan = input.parentNode.querySelector('.error-text');
-        if (!errorSpan) {
-            errorSpan = document.createElement('span');
-            errorSpan.className = 'error-text';
-            input.parentNode.appendChild(errorSpan);
+        // Intentar mostrar mensaje en contenedor específico si existe
+        const msgDivId = inputId.includes('reg') ? 'registerMessage' : 'modalLoginMessage';
+        const msgDiv = document.getElementById(msgDivId);
+        if (msgDiv) {
+            msgDiv.textContent = message;
+            msgDiv.style.display = 'block';
         }
-        errorSpan.textContent = message;
     }
 
     function clearInputError(inputId) {
         const input = document.getElementById(inputId);
         if (!input) return;
         input.classList.remove('input-error');
-        const errorSpan = input.parentNode.querySelector('.error-text');
-        if (errorSpan) errorSpan.remove();
+        const msgDivId = inputId.includes('reg') ? 'registerMessage' : 'modalLoginMessage';
+        const msgDiv = document.getElementById(msgDivId);
+        if (msgDiv) msgDiv.style.display = 'none';
     }
 
-    ['reg-nombre', 'reg-email', 'reg-telefono', 'reg-password'].forEach(id => {
+    // Limpiar errores al escribir
+    ['reg-nombre', 'reg-email', 'reg-telefono', 'reg-password', 'reg-password-confirm'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', () => clearInputError(id));
     });
 
-    // --- 2. VER/OCULTAR CONTRASEÑA ---
+    // --- 2. VER/OCULTAR CONTRASEÑA (MEJORADA) ---
     function setupPasswordToggle(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
+        
         if (input && icon) {
-            icon.addEventListener('click', () => {
+            // Removemos listeners anteriores para evitar duplicados
+            const newIcon = icon.cloneNode(true);
+            icon.parentNode.replaceChild(newIcon, icon);
+            
+            newIcon.addEventListener('click', (e) => {
+                e.preventDefault(); // Evitar que el click envíe formulario
                 const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
                 input.setAttribute('type', type);
-                icon.classList.toggle('fa-eye');
-                icon.classList.toggle('fa-eye-slash');
+                newIcon.classList.toggle('fa-eye');
+                newIcon.classList.toggle('fa-eye-slash');
             });
+        } else {
+            console.warn(`No se encontró input: ${inputId} o icono: ${iconId}`);
         }
     }
+    
+    // Configurar toggles
     setupPasswordToggle('reg-password', 'toggleRegPass');
-    setupPasswordToggle('modal-login-password', 'toggleLoginPass');
+    setupPasswordToggle('reg-password-confirm', 'toggleRegPassConfirm'); 
+    setupPasswordToggle('modal-login-password', 'toggleModalLoginPass');
 
     // --- 3. LÓGICA DE REGISTRO ---
     if (registerForm) {
         registerForm.addEventListener('submit', async e => {
-            e.preventDefault(); // ¡IMPORTANTE! Evita la recarga
+            e.preventDefault(); 
+            console.log("Intentando registrar usuario...");
             
             const submitBtn = registerForm.querySelector('button[type="submit"]');
             const passInput = document.getElementById('reg-password');
+            const passConfirmInput = document.getElementById('reg-password-confirm');
             
+            // Validación A: Longitud
             if (passInput.value.length < 8) {
-                showInputError('reg-password', 'Mínimo 8 caracteres');
+                showInputError('reg-password', 'La contraseña debe tener al menos 8 caracteres');
+                return;
+            }
+
+            // Validación B: Coincidencia
+            if (passInput.value !== passConfirmInput.value) {
+                showInputError('reg-password-confirm', 'Las contraseñas no coinciden');
                 return;
             }
 
@@ -162,27 +185,36 @@ function initializeModalEvents() {
 
             try {
                 const response = await AuthService.register(userData);
-                if (response.status === 'success' || response.success) {
-                    alert('✅ ¡Cuenta creada! Inicia sesión.');
+                console.log("Respuesta Registro:", response);
+
+                if (response.status === 'success' || response.success || response.idUsuario) {
+                    alert('✅ ¡Cuenta creada exitosamente! Ahora inicia sesión.');
                     if(registerView) registerView.style.display = 'none';
                     if(loginView) loginView.style.display = 'block';
                     registerForm.reset();
-                    clearInputError('reg-email');
-                    clearInputError('reg-telefono');
+                    document.getElementById('registerMessage').style.display = 'none';
                 } else {
-                    throw new Error(response.message || 'Error desconocido');
+                    throw new Error(response.message || 'No se pudo completar el registro');
                 }
             } catch (error) {
                 console.error('Error Registro:', error);
-                const errorMsg = error.response?.data?.message || error.message || '';
+                const errorMsg = error.response?.data?.message || error.message || 'Error desconocido';
                 
-                if (errorMsg.includes('Duplicate entry')) {
-                    if (errorMsg.includes('email')) showInputError('reg-email', 'Correo ya registrado');
-                    else if (errorMsg.includes('telefono')) showInputError('reg-telefono', 'Teléfono ya registrado');
-                    else alert('El usuario ya existe');
+                // Mostrar error en la interfaz
+                const msgDiv = document.getElementById('registerMessage');
+                let textoError = 'Error al crear cuenta.';
+                
+                if (errorMsg.includes('Duplicate entry') || errorMsg.includes('Duplicate')) {
+                    textoError = 'El correo o teléfono ya están registrados.';
                 } else {
-                    alert('Error: ' + errorMsg);
+                    textoError = errorMsg;
                 }
+                
+                if(msgDiv) {
+                    msgDiv.textContent = textoError;
+                    msgDiv.style.display = 'block';
+                }
+                alert(textoError); // Alerta de respaldo
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "CREAR CUENTA";
@@ -190,101 +222,90 @@ function initializeModalEvents() {
         });
     }
 
-    // --- 4. LÓGICA DE LOGIN (CORREGIDA REDIRECCIÓN) ---
-    // Buscamos el form del modal O el form de la página de login normal
-    const formLoginToUse = document.getElementById('modalLoginForm') || document.getElementById('loginForm');
-
-    if (formLoginToUse) {
-        formLoginToUse.addEventListener('submit', async e => {
-            e.preventDefault(); // ¡CRUCIAL! Detiene el envío ?
+    // --- 4. LÓGICA DE LOGIN EN EL MODAL ---
+    if (modalLoginForm) {
+        modalLoginForm.addEventListener('submit', async e => {
+            e.preventDefault();
             
-            const submitBtn = formLoginToUse.querySelector('button[type="submit"]');
+            const submitBtn = modalLoginForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+            const inputUser = document.getElementById('modal-login-input');
+            const inputPass = document.getElementById('modal-login-password');
+            const msgDiv = document.getElementById('modalLoginMessage');
+
             submitBtn.disabled = true;
-            submitBtn.textContent = "Entrando...";
-
-            // Detectar inputs (soportamos ambos IDs para compatibilidad)
-            const inputUser = document.getElementById('modal-login-telefono') || document.getElementById('login-telefono') || document.getElementById('login-email');
-            const inputPass = document.getElementById('modal-login-password') || document.getElementById('login-password');
-            
-            // Limpiar errores previos
-            if(inputUser) clearInputError(inputUser.id);
+            submitBtn.textContent = "Verificando...";
+            if(msgDiv) msgDiv.style.display = 'none';
 
             try {
-                const response = await AuthService.login({ 
-                    telefono: inputUser.value, 
-                    password: inputPass.value 
-                });
+                // Detectar si es email o teléfono
+                let credenciales = {};
+                if (inputUser.value.includes('@')) {
+                    credenciales = { email: inputUser.value, password: inputPass.value };
+                } else {
+                    credenciales = { telefono: inputUser.value, password: inputPass.value };
+                }
 
-                if (response.success || response.status === 'success') {
-                    const token = response.data ? response.data.token : response.token;
-                    const usuario = response.data ? response.data.usuario : response.usuario;
+                const response = await AuthService.login(credenciales);
 
+                if (response.status === 'success' || response.success || (response.data && response.data.token)) {
+                    const data = response.data || response;
                     localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('auth_token', token);
-                    localStorage.setItem('user_data', JSON.stringify(usuario));
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('user_data', JSON.stringify(data.usuario || data.user));
 
-                    if(modal) modal.style.display = 'none';
+                    modal.style.display = 'none';
                     
-                    // === REDIRECCIÓN INTELIGENTE ===
-                    const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
-                    if (redirectUrl) {
-                        window.location.href = redirectUrl;
-                        sessionStorage.removeItem('redirectAfterAuth');
+                    // Redirección
+                    const rol = (data.usuario || data.user).idRol;
+                    if (rol === 1 || rol === 2) { 
+                        window.location.href = 'admin/dashboard.html';
                     } else {
-                        const rol = usuario.rol || usuario.idRol;
-                        
-                        if (rol === 1 || rol === 2) { 
-                            // Admin/Estilista -> Dashboard
-                            window.location.href = 'admin/dashboard.html';
-                        } else {
-                            // Cliente -> Inicio
-                            // Si ya estamos en inicio, recargamos. Si estamos en login, vamos a inicio.
-                            if (window.location.pathname.includes('login.html')) {
-                                window.location.href = 'inicio.html';
-                            } else {
-                                window.location.reload();
-                            }
-                        }
+                        window.location.reload();
                     }
                 } else {
-                    // Mostrar error visualmente en el input
-                    if(inputUser) showInputError(inputUser.id, 'Credenciales incorrectas');
-                    else alert('Credenciales incorrectas');
+                    throw new Error('Credenciales incorrectas');
                 }
             } catch (error) {
-                console.error('Error Login:', error);
-                if(inputUser) showInputError(inputUser.id, 'Error de conexión o datos erróneos');
-            } finally {
+                console.error('Error Login Modal:', error);
                 submitBtn.disabled = false;
-                submitBtn.textContent = "ENTRAR";
+                submitBtn.textContent = originalBtnText;
+                
+                let mensaje = "Error de conexión o datos incorrectos";
+                if (error.response && error.response.status === 404) mensaje = "Usuario no encontrado";
+                if (error.response && error.response.status === 401) mensaje = "Contraseña incorrecta";
+
+                if(msgDiv) {
+                    msgDiv.textContent = mensaje;
+                    msgDiv.style.display = 'block';
+                }
+                inputPass.classList.add('input-error');
             }
         });
     }
 
-    // --- 5. EVENTOS DEL MODAL (SOLO SI EXISTE) ---
-    if (modal) {
-        const closeBtn = modal.querySelector('.close-btn-auth');
-        if (closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
-        
-        window.addEventListener('click', e => { 
-            if (e.target === modal) modal.style.display = 'none'; 
-        });
+    // --- 5. EVENTOS DE NAVEGACIÓN DEL MODAL ---
+    const closeBtn = modal.querySelector('.close-btn-auth');
+    if (closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    
+    window.addEventListener('click', e => { 
+        if (e.target === modal) modal.style.display = 'none'; 
+    });
 
-        showLoginBtn?.addEventListener('click', e => {
-            e.preventDefault();
-            registerView.style.display = 'none';
-            loginView.style.display = 'block';
-        });
+    if (showLoginBtn) showLoginBtn.addEventListener('click', e => {
+        e.preventDefault();
+        registerView.style.display = 'none';
+        loginView.style.display = 'block';
+    });
 
-        showRegisterBtn?.addEventListener('click', e => {
-            e.preventDefault();
-            loginView.style.display = 'none';
-            registerView.style.display = 'block';
-        });
-    }
+    if (showRegisterBtn) showRegisterBtn.addEventListener('click', e => {
+        e.preventDefault();
+        loginView.style.display = 'none';
+        registerView.style.display = 'block';
+    });
 }
 
-// ================== Otros Modales ==================
+// ================== Otros Modales (Logout, Agendar, Notif) ==================
 function initLogoutModalEvents() {
     const logoutModal = document.getElementById('logoutModal');
     if (!logoutModal) return;
@@ -294,7 +315,7 @@ function initLogoutModalEvents() {
 
     if (confirmBtn) confirmBtn.addEventListener('click', async () => {
         await AuthService.logout();
-        window.location.href = 'index.html'; // O login.html
+        window.location.href = 'index.html'; 
     });
     if (cancelBtn) cancelBtn.addEventListener('click', () => logoutModal.style.display = 'none');
     if (closeBtn) closeBtn.addEventListener('click', () => logoutModal.style.display = 'none');
@@ -357,7 +378,6 @@ function toggleProfileMenu() {
 document.addEventListener('click', e => {
     const target = e.target;
 
-    // Abrir Agendar
     if (target.closest('.btn-agendar')) {
         e.preventDefault();
         const modal = document.getElementById('agendarModal');
@@ -365,7 +385,6 @@ document.addEventListener('click', e => {
         return;
     }
 
-    // Auth / Perfil Trigger
     const authTrigger = target.closest('.auth-trigger');
     if (authTrigger) {
         e.preventDefault();
@@ -381,7 +400,6 @@ document.addEventListener('click', e => {
         return;
     }
     
-    // Cerrar perfil al click fuera
     const profileModal = document.getElementById('profileMenuModal');
     if (profileModal && profileModal.style.display === 'block' && !target.closest('#profileMenuModal') && !target.closest('.auth-trigger')) {
         profileModal.style.display = 'none';
