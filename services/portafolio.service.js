@@ -10,6 +10,22 @@ const PortafolioService = {
         }
     },
 
+    async getDestacados(limit = 4) {
+        try {
+            // Usar el endpoint GET_ALL en lugar de GET_DESTACADOS
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PORTAFOLIO.GET_ALL);
+            const response = await httpService.get(url);
+            // La API devuelve { data: [...], message: "...", status: "..." }
+            // Extraer el array de datos
+            const trabajos = response.data?.data || response.data || [];
+            // Limitar la cantidad de resultados si se especifica
+            return limit ? trabajos.slice(0, limit) : trabajos;
+        } catch (error) {
+            console.error('Error al obtener portafolio destacados:', error);
+            throw error;
+        }
+    },
+
     async create(data) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PORTAFOLIO.CREATE);

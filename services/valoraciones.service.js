@@ -9,7 +9,9 @@ const ValoracionesService = {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.VALORACIONES.GET_ALL);
             const response = await httpService.get(url, params);
-            return response.data;
+            // La API devuelve { data: [...], message: "...", status: "..." }
+            // Extraer el array de datos
+            return response.data?.data || response.data || [];
         } catch (error) {
             console.error('Error al obtener valoraciones:', error);
             throw error;

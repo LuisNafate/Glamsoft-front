@@ -19,23 +19,28 @@ async function loadPortafolio() {
     try {
         // Obtener trabajos destacados (máximo 4 para la página de inicio)
         const trabajos = await PortafolioService.getDestacados(4);
-        
+
+        console.log('📸 Datos de portafolio recibidos:', trabajos);
+
         const portfolioGrid = document.querySelector('.portfolio-grid');
         if (!portfolioGrid) return;
-        
+
         // Limpiar el contenido actual
         portfolioGrid.innerHTML = '';
-        
+
         // Renderizar trabajos
         if (trabajos && trabajos.length > 0) {
+            console.log(`✅ Renderizando ${trabajos.length} trabajos del portafolio`);
             trabajos.forEach(trabajo => {
+                console.log('Trabajo:', trabajo);
                 const item = createPortfolioItem(trabajo);
                 portfolioGrid.appendChild(item);
             });
         } else {
+            console.log('⚠️ No hay trabajos en el portafolio');
             portfolioGrid.innerHTML = '<p style="text-align: center; color: #ccc; padding: 40px;">No hay trabajos disponibles en el portafolio</p>';
         }
-        
+
     } catch (error) {
         console.error('Error al cargar portafolio:', error);
         const portfolioGrid = document.querySelector('.portfolio-grid');
@@ -52,23 +57,24 @@ function createPortfolioItem(trabajo) {
     const item = document.createElement('a');
     item.href = 'portafolio.html';
     item.className = 'portfolio-item';
-    
+
     const img = document.createElement('img');
-    img.src = trabajo.imagen || trabajo.url || 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop';
+    // La API usa 'urlImagen' en lugar de 'imagen' o 'url'
+    img.src = trabajo.urlImagen || trabajo.imagen || trabajo.url || 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop';
     img.alt = trabajo.titulo || 'Trabajo';
     img.loading = 'lazy';
-    
+
     const overlay = document.createElement('div');
     overlay.className = 'portfolio-overlay';
-    
+
     const label = document.createElement('p');
     label.className = 'portfolio-label';
     label.textContent = trabajo.titulo || 'Trabajo';
-    
+
     overlay.appendChild(label);
     item.appendChild(img);
     item.appendChild(overlay);
-    
+
     return item;
 }
 
@@ -77,25 +83,40 @@ function createPortfolioItem(trabajo) {
  */
 async function loadComentarios() {
     try {
-        // Obtener valoraciones destacadas
-        const valoraciones = await ValoracionesService.getAll({ destacadas: true, limit: 6 });
-        
+        // Obtener todas las valoraciones (sin filtro de destacadas)
+        const valoraciones = await ValoracionesService.getAll();
+
+        console.log('💬 Datos de valoraciones recibidos:', valoraciones);
+
         const comentariosGrid = document.querySelector('.comentarios-grid');
         if (!comentariosGrid) return;
-        
+
         // Limpiar el contenido actual
         comentariosGrid.innerHTML = '';
-        
+
         // Renderizar comentarios
         if (valoraciones && valoraciones.length > 0) {
-            valoraciones.forEach(valoracion => {
+            // Ordenar por fecha (más reciente primero) y tomar solo 6
+            const valoracionesOrdenadas = valoraciones
+                .sort((a, b) => {
+                    // Convertir fechas si vienen como arrays [año, mes, día, ...]
+                    const fechaA = Array.isArray(a.fecha) ? new Date(...a.fecha.slice(0, 6)) : new Date(a.fecha);
+                    const fechaB = Array.isArray(b.fecha) ? new Date(...b.fecha.slice(0, 6)) : new Date(b.fecha);
+                    return fechaB - fechaA; // Más reciente primero
+                })
+                .slice(0, 6);
+
+            console.log(`✅ Renderizando ${valoracionesOrdenadas.length} comentarios`);
+            valoracionesOrdenadas.forEach(valoracion => {
+                console.log('Valoración:', valoracion);
                 const item = createComentarioItem(valoracion);
                 comentariosGrid.appendChild(item);
             });
         } else {
+            console.log('⚠️ No hay comentarios disponibles');
             comentariosGrid.innerHTML = '<p style="text-align: center; color: #ccc; padding: 40px; grid-column: 1/-1;">No hay comentarios disponibles</p>';
         }
-        
+
     } catch (error) {
         console.error('Error al cargar comentarios:', error);
         const comentariosGrid = document.querySelector('.comentarios-grid');
@@ -112,25 +133,49 @@ function createComentarioItem(valoracion) {
     const item = document.createElement('div');
     item.className = 'comentario-item';
     item.style.cssText = 'padding: 20px; display: flex; flex-direction: column; justify-content: center;';
-    
+
+    // Comentario
     const texto = document.createElement('p');
-    texto.style.cssText = 'font-size: 14px; color: #ccc; line-height: 1.6;';
-    texto.textContent = `"${valoracion.comentario || valoracion.texto}"`;
-    
-    const autor = document.createElement('p');
-    autor.style.cssText = 'font-size: 12px; color: #B8860B; margin-top: 10px;';
-    
-    // Renderizar estrellas si existe calificación
-    let estrellas = '';
-    if (valoracion.calificacion) {
-        estrellas = '⭐'.repeat(valoracion.calificacion) + ' ';
+    texto.style.cssText = 'font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 8px;';
+    texto.textContent = `"${valoracion.comentario || valoracion.texto || 'Sin comentario'}"`;
+
+    // Información del cliente y calificación
+    const infoCliente = document.createElement('p');
+    infoCliente.style.cssText = 'font-size: 12px; color: #B8860B; margin-top: 10px;';
+
+    // Obtener el nombre del usuario
+    const nombreUsuario = valoracion.nombreCliente ||
+                         valoracion.usuario ||
+                         valoracion.nombre ||
+                         valoracion.cliente?.nombre ||
+                         'Cliente';
+
+    // Obtener calificación
+    const calificacion = valoracion.calificacion ? `${valoracion.calificacion}/5` : '';
+
+    infoCliente.textContent = `- ${nombreUsuario}${calificacion ? ` (${calificacion})` : ''}`;
+
+    // Información del servicio y estilista
+    const infoServicio = document.createElement('p');
+    infoServicio.style.cssText = 'font-size: 11px; color: #999; margin-top: 5px; font-style: italic;';
+
+    const servicio = valoracion.nombreServicio || valoracion.servicio?.nombre || '';
+    const estilista = valoracion.nombreEstilista || valoracion.estilista?.nombre || '';
+
+    let infoTexto = [];
+    if (servicio) infoTexto.push(`Servicio: ${servicio}`);
+    if (estilista) infoTexto.push(`Estilista: ${estilista}`);
+
+    if (infoTexto.length > 0) {
+        infoServicio.textContent = infoTexto.join(' | ');
     }
-    
-    autor.textContent = `${estrellas}- ${valoracion.usuario || valoracion.nombre || 'Usuario'}`;
-    
+
     item.appendChild(texto);
-    item.appendChild(autor);
-    
+    item.appendChild(infoCliente);
+    if (infoTexto.length > 0) {
+        item.appendChild(infoServicio);
+    }
+
     return item;
 }
 
