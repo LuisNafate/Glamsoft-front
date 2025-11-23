@@ -9,6 +9,7 @@ class PromocionesAdmin {
     async init() {
         try {
             this.setupEventListeners();
+            await this.loadServicios(); // Cargar servicios para el selector
             await this.loadPromociones();
         } catch (error) {
             console.error('Error al inicializar:', error);
@@ -33,6 +34,63 @@ class PromocionesAdmin {
             e.preventDefault();
             this.savePromocion();
         });
+        
+        // Cambiar el helper text según el tipo de descuento
+        document.getElementById('tipoDescuento')?.addEventListener('change', (e) => {
+            const helper = document.getElementById('descuentoHelp');
+            const input = document.getElementById('descuentoPromocion');
+            if (e.target.value === 'PORCENTAJE') {
+                helper.textContent = '(0-100%)';
+                input.max = 100;
+            } else {
+                helper.textContent = '(Monto en $)';
+                input.max = 999999;
+            }
+        });
+        
+        // Validar fechas
+        document.getElementById('fechaInicio')?.addEventListener('change', () => {
+            this.validateDates();
+        });
+        
+        document.getElementById('fechaFin')?.addEventListener('change', () => {
+            this.validateDates();
+        });
+    }
+
+    validateDates() {
+        const fechaInicio = document.getElementById('fechaInicio').value;
+        const fechaFin = document.getElementById('fechaFin').value;
+        
+        if (fechaInicio && fechaFin) {
+            if (new Date(fechaFin) < new Date(fechaInicio)) {
+                document.getElementById('fechaFin').setCustomValidity('La fecha fin debe ser posterior a la fecha inicio');
+            } else {
+                document.getElementById('fechaFin').setCustomValidity('');
+            }
+        }
+    }
+
+    async loadServicios() {
+        try {
+            // Cargar servicios para el selector
+            const response = await fetch('http://localhost:7000/api/servicios');
+            const data = await response.json();
+            const servicios = data.data || [];
+            
+            const select = document.getElementById('servicioPromocion');
+            if (select) {
+                select.innerHTML = '<option value="">Todos los servicios</option>';
+                servicios.forEach(servicio => {
+                    const option = document.createElement('option');
+                    option.value = servicio.idServicio;
+                    option.textContent = servicio.nombre || servicio.nombreServicio;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar servicios:', error);
+        }
     }
 
     async loadPromociones() {
@@ -186,8 +244,16 @@ class PromocionesAdmin {
             modalTitle.textContent = 'Editar Promoción';
             document.getElementById('promocionId').value = promo.idPromocion;
             document.getElementById('tituloPromocion').value = promo.nombre;
+            document.getElementById('descripcionPromocion').value = promo.descripcion || '';
             document.getElementById('tipoDescuento').value = 'PORCENTAJE';
             document.getElementById('descuentoPromocion').value = promo.porcentajeDescuento || promo.descuento || '';
+            
+            // Servicio asociado
+            if (promo.servicios && promo.servicios.length > 0) {
+                document.getElementById('servicioPromocion').value = promo.servicios[0].idServicio || '';
+            } else {
+                document.getElementById('servicioPromocion').value = '';
+            }
             
             // Convertir fecha de array a string YYYY-MM-DD
             if (Array.isArray(promo.fechaInicio)) {
@@ -208,6 +274,12 @@ class PromocionesAdmin {
             form.reset();
             document.getElementById('promocionId').value = '';
             document.getElementById('tipoDescuento').value = 'PORCENTAJE';
+            document.getElementById('servicioPromocion').value = '';
+            
+            // Establecer fecha mínima como hoy
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaInicio').min = today;
+            document.getElementById('fechaFin').min = today;
         }
         
         modal.classList.add('active');
@@ -245,17 +317,33 @@ class PromocionesAdmin {
     async savePromocion() {
         const promocionId = document.getElementById('promocionId').value;
         const tipoDescuento = document.getElementById('tipoDescuento').value;
+        const servicioId = document.getElementById('servicioPromocion').value;
         
         const data = {
-            nombrePromocion: document.getElementById('tituloPromocion').value,
+            nombrePromocion: document.getElementById('tituloPromocion').value.trim(),
             tipoDescuento: tipoDescuento,
             descuento: parseFloat(document.getElementById('descuentoPromocion').value),
             fechaInicio: document.getElementById('fechaInicio').value,
             fechaFin: document.getElementById('fechaFin').value,
-            idServicio: null
+            idServicio: servicioId ? parseInt(servicioId) : null
         };
         
-        // Validación
+        // Validaciones
+        if (!data.nombrePromocion) {
+            this.showNotification('El nombre de la promoción es obligatorio', 'error');
+            return;
+        }
+        
+        if (data.descuento <= 0) {
+            this.showNotification('El descuento debe ser mayor a 0', 'error');
+            return;
+        }
+        
+        if (tipoDescuento === 'PORCENTAJE' && data.descuento > 100) {
+            this.showNotification('El porcentaje de descuento no puede ser mayor a 100%', 'error');
+            return;
+        }
+        
         if (new Date(data.fechaFin) < new Date(data.fechaInicio)) {
             this.showNotification('La fecha de fin debe ser posterior a la fecha de inicio', 'error');
             return;
