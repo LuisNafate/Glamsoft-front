@@ -13,12 +13,48 @@ function toggleLoader(show) {
 }
 
 /**
- * Cargar trabajos del portafolio desde la API
+ * Agrupar imágenes por título para crear álbumes
+ */
+function agruparPorTitulo(imagenes) {
+    const grupos = {};
+
+    imagenes.forEach(img => {
+        const titulo = img.titulo || 'Sin título';
+        if (!grupos[titulo]) {
+            grupos[titulo] = {
+                titulo: titulo,
+                descripcion: img.descripcion,
+                idCategoria: img.idCategoria,
+                destacado: false,
+                portada: null,
+                totalImagenes: 0
+            };
+        }
+
+        grupos[titulo].totalImagenes++;
+
+        // Si es destacada, usar como portada y marcar el álbum como destacado
+        if (img.destacado) {
+            grupos[titulo].destacado = true;
+            grupos[titulo].portada = img.urlImagen;
+        }
+
+        // Si no hay portada, usar la primera imagen
+        if (!grupos[titulo].portada) {
+            grupos[titulo].portada = img.urlImagen;
+        }
+    });
+
+    return Object.values(grupos);
+}
+
+/**
+ * Cargar trabajos del portafolio desde la API (AGRUPADOS POR ÁLBUM)
  */
 async function loadPortafolio() {
     try {
-        // Obtener trabajos destacados (máximo 4 para la página de inicio)
-        const trabajos = await PortafolioService.getDestacados(4);
+        // Obtener todos los trabajos
+        const trabajos = await PortafolioService.getAll();
 
         console.log('📸 Datos de portafolio recibidos:', trabajos);
 
@@ -30,10 +66,22 @@ async function loadPortafolio() {
 
         // Renderizar trabajos
         if (trabajos && trabajos.length > 0) {
-            console.log(`✅ Renderizando ${trabajos.length} trabajos del portafolio`);
-            trabajos.forEach(trabajo => {
-                console.log('Trabajo:', trabajo);
-                const item = createPortfolioItem(trabajo);
+            // Agrupar por título (álbumes)
+            const albumes = agruparPorTitulo(trabajos);
+            console.log(`✅ ${albumes.length} álbumes encontrados`);
+
+            // Tomar solo los primeros 4 álbumes destacados o los primeros 4
+            const albumesDestacados = albumes
+                .filter(a => a.destacado)
+                .slice(0, 4);
+
+            const albumesMostrar = albumesDestacados.length >= 4
+                ? albumesDestacados
+                : albumes.slice(0, 4);
+
+            albumesMostrar.forEach(album => {
+                console.log('Álbum:', album);
+                const item = createPortfolioItem(album);
                 portfolioGrid.appendChild(item);
             });
         } else {
@@ -51,17 +99,18 @@ async function loadPortafolio() {
 }
 
 /**
- * Crear elemento de portafolio
+ * Crear elemento de portafolio (ÁLBUM)
  */
-function createPortfolioItem(trabajo) {
+function createPortfolioItem(album) {
     const item = document.createElement('a');
-    item.href = 'portafolio.html';
+    // Enlazar a la galería del álbum
+    item.href = `portafolio-galeria.html?album=${encodeURIComponent(album.titulo)}`;
     item.className = 'portfolio-item';
 
     const img = document.createElement('img');
-    // La API usa 'urlImagen' en lugar de 'imagen' o 'url'
-    img.src = trabajo.urlImagen || trabajo.imagen || trabajo.url || 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop';
-    img.alt = trabajo.titulo || 'Trabajo';
+    // Usar la imagen de portada del álbum
+    img.src = album.portada || 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop';
+    img.alt = album.titulo || 'Álbum';
     img.loading = 'lazy';
 
     const overlay = document.createElement('div');
@@ -69,7 +118,15 @@ function createPortfolioItem(trabajo) {
 
     const label = document.createElement('p');
     label.className = 'portfolio-label';
-    label.textContent = trabajo.titulo || 'Trabajo';
+    label.textContent = album.titulo || 'Álbum';
+
+    // Mostrar cantidad de imágenes si es más de 1
+    if (album.totalImagenes > 1) {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;';
+        badge.innerHTML = `<i class="fas fa-images"></i> ${album.totalImagenes}`;
+        item.appendChild(badge);
+    }
 
     overlay.appendChild(label);
     item.appendChild(img);
