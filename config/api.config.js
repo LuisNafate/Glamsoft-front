@@ -81,11 +81,11 @@ const API_CONFIG = {
         
         // Portafolio - PortafolioRouter
         PORTAFOLIO: {
-            GET_ALL: '/imagenes',
-            GET_DESTACADOS: '/imagenes/inicio',
-            CREATE: '/imagenes',
-            UPDATE: '/imagenes',
-            DELETE: '/imagenes/:id'
+            GET_ALL: '/portafolio',
+            GET_DESTACADOS: '/portafolio/destacados',
+            CREATE: '/portafolio',
+            UPDATE: '/portafolio/:id',
+            DELETE: '/portafolio/:id'
         },
         
         // Valoraciones - ValoracionRouter
