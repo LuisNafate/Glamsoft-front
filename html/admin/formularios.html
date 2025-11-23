@@ -56,15 +56,24 @@
         <!-- Contenido -->
         <main class="main-content">
             
+            <!-- Header con botón de agregar -->
+            <div class="content-card" style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0;">Lista de Formularios</h2>
+                    <button class="btn btn-primary" id="btnNuevoFormulario">
+                        <i class="fas fa-plus"></i> Nuevo Formulario
+                    </button>
+                </div>
+            </div>
+            
             <!-- Filtros -->
             <div class="content-card">
                 <div class="search-bar">
                     <input type="text" class="search-input" id="searchInput" placeholder="Buscar formularios...">
                     <select class="filter-select" id="filterEstado">
                         <option value="">Todos los estados</option>
-                        <option value="nuevo">Nuevos</option>
-                        <option value="leido">Leídos</option>
-                        <option value="respondido">Respondidos</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
                     </select>
                 </div>
             </div>
@@ -74,11 +83,9 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Fecha</th>
+                            <th>ID</th>
                             <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Teléfono</th>
-                            <th>Asunto</th>
+                            <th>Descripción</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -111,14 +118,14 @@
             </div>
             
             <div class="form-actions">
-                <button type="button" class="btn btn-success" id="btnMarcarLeido">
-                    <i class="fas fa-check"></i> Marcar como Leído
+                <button type="button" class="btn btn-primary" id="btnGuardarFormulario" style="display: none;">
+                    <i class="fas fa-save"></i> Guardar
                 </button>
-                <button type="button" class="btn btn-primary" id="btnResponder">
-                    <i class="fas fa-reply"></i> Responder
-                </button>
-                <button type="button" class="btn btn-danger" id="btnEliminar">
+                <button type="button" class="btn btn-danger" id="btnEliminar" style="display: none;">
                     <i class="fas fa-trash"></i> Eliminar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i> Cerrar
                 </button>
             </div>
         </div>
