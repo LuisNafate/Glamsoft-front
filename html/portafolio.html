@@ -26,53 +26,21 @@
             <h2 class="section-title">Portafolio Trabajo</h2>
         </section>
 <section class="portfolio-gallery-section">
-    <div class="gallery-grid">
+    <div class="gallery-grid" id="portfolioGrid">
+        <!-- Los álbumes se cargarán dinámicamente desde la API -->
+    </div>
 
-        <!-- Maquillaje de ojos colorido -->
-        <div class="gallery-item item-1 js-hover-item" onclick="abrirDetalle('id_item_1')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg');"></div>
-        </div>
+    <!-- Estado vacío -->
+    <div id="emptyState" style="display: none; text-align: center; padding: 80px 20px;">
+        <i class="fas fa-images" style="font-size: 64px; color: #ccc; margin-bottom: 20px;"></i>
+        <h3 style="color: #999;">No hay álbumes en el portafolio</h3>
+        <p style="color: #bbb;">Los álbumes aparecerán aquí cuando se agreguen</p>
+    </div>
 
-        <!-- Aplicación de maquillaje -->
-        <div class="gallery-item item-2 js-hover-item" onclick="abrirDetalle('id_item_2')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg');"></div>
-        </div>
-
-        <!-- Makeup artístico close-up -->
-        <div class="gallery-item item-3 js-hover-item" onclick="abrirDetalle('id_item_3')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3373734/pexels-photo-3373734.jpeg');"></div>
-        </div>
-
-        <!-- Productos de maquillaje -->
-        <div class="gallery-item item-4 js-hover-item" onclick="abrirDetalle('id_item_4')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/2533266/pexels-photo-2533266.jpeg');"></div>
-        </div>
-
-        <!-- Maquillaje glam dorado -->
-        <div class="gallery-item item-5 js-hover-item" onclick="abrirDetalle('id_item_5')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3373739/pexels-photo-3373739.jpeg');"></div>
-        </div>
-
-        <!-- Labios y makeup -->
-        <div class="gallery-item item-6 js-hover-item" onclick="abrirDetalle('id_item_6')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3373738/pexels-photo-3373738.jpeg');"></div>
-        </div>
-
-        <!-- Maquillaje profesional -->
-        <div class="gallery-item item-7 js-hover-item" onclick="abrirDetalle('id_item_7')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3465604/pexels-photo-3465604.jpeg');"></div>
-        </div>
-
-        <!-- Eye makeup dramático -->
-        <div class="gallery-item item-8 js-hover-item" onclick="abrirDetalle('id_item_8')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3373731/pexels-photo-3373731.jpeg');"></div>
-        </div>
-
-        <!-- Maquillaje editorial principal -->
-        <div class="gallery-item item-main-landscape js-hover-item" onclick="abrirDetalle('id_item_9')">
-            <div class="item-content" style="background-image: url('https://images.pexels.com/photos/3373737/pexels-photo-3373737.jpeg');"></div>
-        </div>
-
+    <!-- Loader -->
+    <div id="portfolioLoader" style="display: none; text-align: center; padding: 80px 20px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #ccc;"></i>
+        <p style="color: #999; margin-top: 20px;">Cargando portafolio...</p>
     </div>
 </section>
     </main>
@@ -85,8 +53,12 @@
 
    <div id="modal-placeholder-agendar"></div>
 
+    <!-- Scripts necesarios -->
+    <script src="../config/api.config.js"></script>
+    <script src="../services/http.service.js"></script>
+    <script src="../services/portafolio.service.js"></script>
     <script src="../js/header_footer.js"></script>
-    <script src="../js/portafolio.js"></script> 
+    <script src="../js/portafolio.js"></script>
 </body>
 </html> 
 
