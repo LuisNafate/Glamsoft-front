@@ -5,20 +5,6 @@ const UsuariosService = {
      * Obtener usuario por email
      * @param {string} email - Email del usuario
      */
-    async getById(id) {
-        try {
-            const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.USUARIOS.GET_BY_ID,
-                { id }
-            );
-            const response = await httpService.get(url);
-            return response.data; // O response completo según tu backend
-        } catch (error) {
-            console.error('Error al obtener usuario por ID:', error);
-            throw error;
-        }
-    },
-    
     async getByEmail(email) {
         try {
             const url = API_CONFIG.buildUrl(
@@ -29,6 +15,38 @@ const UsuariosService = {
             return response.data;
         } catch (error) {
             console.error('Error al obtener usuario:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener usuario por ID
+     */
+    async getById(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.USUARIOS.GET_BY_ID,
+                { id }
+            );
+            const response = await httpService.get(url);
+            return response.data; 
+        } catch (error) {
+            console.error('Error al obtener usuario por ID:', error);
+            throw error;
+        }
+    },
+
+    // ✅ NUEVO MÉTODO: Obtener por teléfono
+    async getByTelefono(telefono) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.USUARIOS.GET_BY_TELEFONO,
+                { telefono }
+            );
+            const response = await httpService.get(url);
+            return response.data; // Retorna el body { status, data: {...} }
+        } catch (error) {
+            console.error('Error al buscar usuario por teléfono:', error);
             throw error;
         }
     },
@@ -69,6 +87,7 @@ const UsuariosService = {
             throw error;
         }
     },
+
     /**
      * Eliminar usuario
      * @param {number|string} id - ID del usuario

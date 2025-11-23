@@ -42,6 +42,8 @@ const API_CONFIG = {
         // Usuarios - UsuarioRouter
         USUARIOS: {
             GET_BY_EMAIL: '/usuarios/:email',
+            // ✅ NUEVA RUTA AGREGADA
+            GET_BY_TELEFONO: '/usuarios/telefono/:telefono',
             GET_BY_ID: '/usuarios/:id',
             UPDATE: '/usuarios/:id',
             DELETE: '/usuarios/:id',
@@ -83,7 +85,7 @@ const API_CONFIG = {
         // Portafolio - PortafolioRouter
         PORTAFOLIO: {
             GET_ALL: '/portafolio',
-            GET_DESTACADOS: '/portafolio/destacados',
+            GET_DESTACADOS: '/portafolio',
             CREATE: '/portafolio',
             UPDATE: '/portafolio/:id',
             DELETE: '/portafolio/:id'
@@ -115,7 +117,7 @@ const API_CONFIG = {
         COMENTARIOS: {
             GET_ALL: '/comentarios',
             GET_BY_CLIENT: '/comentarios/cliente/:id',
-            GET_RECIENTES: '/comentarios/fecha',
+            GET_RECIENTES: '/comentarios',
             CREATE: '/comentarios',
             DELETE: '/comentarios/:id'
         },
@@ -155,16 +157,14 @@ const API_CONFIG = {
         }
     },
     
-    // Configuración de tiempo de espera
-    TIMEOUT: 30000, // 30 segundos
+    // Configuración general
+    TIMEOUT: 30000, 
     
-    // Headers por defecto
     DEFAULT_HEADERS: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     },
     
-    // Configuración de autenticación
     AUTH: {
         TOKEN_KEY: 'auth_token',
         REFRESH_TOKEN_KEY: 'refresh_token',
@@ -172,7 +172,6 @@ const API_CONFIG = {
         TOKEN_PREFIX: 'Bearer'
     },
     
-    // Códigos de estado HTTP
     HTTP_STATUS: {
         OK: 200,
         CREATED: 201,
@@ -186,39 +185,30 @@ const API_CONFIG = {
     }
 };
 
-// Helper para reemplazar parámetros en URLs
+// Helpers
 API_CONFIG.buildUrl = function(endpoint, params = {}) {
-    // Soporte para notación de punto (ej: 'portafolio.getAll')
     if (endpoint.includes('.')) {
         const [section, method] = endpoint.split('.');
         const sectionUpper = section.toUpperCase();
         const methodUpper = method.replace(/([A-Z])/g, '_$1').toUpperCase();
-        
         if (this.ENDPOINTS[sectionUpper] && this.ENDPOINTS[sectionUpper][methodUpper]) {
             endpoint = this.ENDPOINTS[sectionUpper][methodUpper];
         }
     }
-    
     let url = this.BASE_URL + endpoint;
-    
-    // Reemplazar parámetros de ruta (:id, :userId, etc.)
     Object.keys(params).forEach(key => {
         url = url.replace(`:${key}`, params[key]);
     });
-    
     return url;
 };
 
-// Helper para agregar query parameters
 API_CONFIG.addQueryParams = function(url, queryParams = {}) {
     const params = new URLSearchParams();
-    
     Object.keys(queryParams).forEach(key => {
         if (queryParams[key] !== null && queryParams[key] !== undefined) {
             params.append(key, queryParams[key]);
         }
     });
-    
     const queryString = params.toString();
     return queryString ? `${url}?${queryString}` : url;
 };
@@ -227,6 +217,4 @@ API_CONFIG.addQueryParams = function(url, queryParams = {}) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = API_CONFIG;
 }
-
-// Crear alias global para facilitar el acceso
 const ApiConfig = API_CONFIG;
