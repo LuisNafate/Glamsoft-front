@@ -51,16 +51,27 @@ class ServiciosAdmin {
     }
 
     filterServicios() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const categoriaFilter = document.getElementById('filterCategoria').value; // Nombre
-        
+        const searchInput = document.getElementById('searchInput');
+        const categoriaSelect = document.getElementById('filterCategoria');
+
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const categoriaFilter = categoriaSelect ? categoriaSelect.value : '';
+
         this.filteredServicios = this.servicios.filter(servicio => {
-            const nombre = servicio.nombre || '';
+            // Búsqueda por nombre y descripción
+            const nombre = (servicio.nombre || '').toLowerCase();
+            const descripcion = (servicio.descripcion || '').toLowerCase();
+            const matchesSearch = !searchTerm ||
+                                nombre.includes(searchTerm) ||
+                                descripcion.includes(searchTerm);
+
+            // Filtro por categoría (por nombre de categoría)
             const catNombre = servicio.categoria || '';
-            const matchesSearch = nombre.toLowerCase().includes(searchTerm);
             const matchesCategoria = !categoriaFilter || catNombre === categoriaFilter;
+
             return matchesSearch && matchesCategoria;
         });
+
         this.renderTable();
     }
 
