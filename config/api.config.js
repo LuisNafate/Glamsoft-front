@@ -29,7 +29,7 @@ const API_CONFIG = {
         CITAS: {
             GET_ALL: '/citas',
             GET_BY_ID: '/citas/:id',
-            GET_BY_CLIENT: '/citas/clientes/:id',
+            GET_BY_CLIENT: '/citas/cliente/:id',
             GET_BY_MES: '/citas/mes',
             GET_BY_SEMANA: '/citas/semanas',
             GET_BY_DIA: '/citas/dias',
@@ -42,6 +42,7 @@ const API_CONFIG = {
         // Usuarios - UsuarioRouter
         USUARIOS: {
             GET_BY_EMAIL: '/usuarios/:email',
+            GET_BY_ID: '/usuarios/:id',
             UPDATE: '/usuarios',
             DELETE: '/usuarios/:id',
             UPDATE_EMPLEADO: '/empleados'
@@ -113,7 +114,7 @@ const API_CONFIG = {
         // Comentarios - ComentarioRouter
         COMENTARIOS: {
             GET_ALL: '/comentarios',
-            GET_BY_CLIENT: '/comentarios/clientes/:id',
+            GET_BY_CLIENT: '/comentarios/cliente/:id',
             GET_RECIENTES: '/comentarios/fecha',
             CREATE: '/comentarios',
             DELETE: '/comentarios/:id'

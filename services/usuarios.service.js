@@ -5,6 +5,20 @@ const UsuariosService = {
      * Obtener usuario por email
      * @param {string} email - Email del usuario
      */
+    async getById(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.USUARIOS.GET_BY_ID,
+                { id }
+            );
+            const response = await httpService.get(url);
+            return response.data; // O response completo según tu backend
+        } catch (error) {
+            console.error('Error al obtener usuario por ID:', error);
+            throw error;
+        }
+    },
+    
     async getByEmail(email) {
         try {
             const url = API_CONFIG.buildUrl(

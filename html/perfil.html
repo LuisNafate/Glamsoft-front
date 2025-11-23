@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil - NOMBRE</title>
-         <link rel="stylesheet" href="../Css/modals/logout_confirm.css">
-         <link rel="stylesheet" href="../Css/modals/agendar_servicios.css">
+    <title>Mi Perfil - GLAMSOFT</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="../Css/modals/logout_confirm.css">
+    <link rel="stylesheet" href="../Css/modals/agendar_servicios.css">
     <link rel="stylesheet" href="../Css/header_footer.css">
     <link rel="stylesheet" href="../Css/modals/notificacion.css">
     <link rel="stylesheet" href="../Css/modals/register.css">
@@ -18,102 +22,95 @@
 
     <main>
         <div class="profile-container">
-            <!-- VISTA: VER PERFIL -->
+            
             <section id="view-profile-section" class="profile-section">
                 <div class="profile-grid">
                     <div class="profile-details">
-                        <h2 class="profile-name">Nombre perfil</h2>
+                        <h2 class="profile-name" id="profile-name-display">Cargando...</h2>
+                        
                         <a href="historial_citas.html" class="link-historial">Ver historial de citas</a>
+                        
                         <form id="view-profile-form">
                             <div class="profile-form-group">
                                 <label for="view-email">Email</label>
-                                <input type="email" id="view-email" value="usuario@email.com" disabled>
+                                <input type="email" id="view-email" value="..." disabled>
                             </div>
+                            
                             <div class="profile-form-group">
-                                <label for="view-pass">Contraseña</label>
-                                <input type="text" id="view-pass" value="**********" disabled>
+                                <label for="view-phone">Teléfono</label>
+                                <input type="tel" id="view-phone" value="..." disabled>
                             </div>
-                            <button type="button" id="btn-edit" class="btn-outline">Editar</button>
+                            
+                            <button type="button" id="btn-edit" class="btn-outline">Editar Perfil</button>
                         </form>
                     </div>
+                    
                     <div class="profile-comments">
-                        <h3>Comentarios:</h3>
-                        <div class="comment-list">
-                            <div class="comment-box"></div>
-                            <div class="comment-box"></div>
-                            <div class="comment-box"></div>
-                            <div class="comment-box"></div>
+                        <h3>Mis Comentarios:</h3>
+                        <div class="comment-list" id="user-comments-list">
+                            <p style="color: #aaa;">Cargando comentarios...</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- VISTA: EDITAR PERFIL -->
-<!-- VISTA: EDITAR PERFIL -->
-<section id="edit-profile-section" class="profile-section hidden">
-    <h2 class="section-title">Editar Perfil</h2>
-    <form id="edit-profile-form">
-        
-        <div class="profile-form-group">
-            <label for="edit-username">Nombre de usuario</label>
-            <input type="text" id="edit-username" placeholder="Usuario anterior">
-            <span class="error-message" id="error-username"></span>
-        </div>
+            <section id="edit-profile-section" class="profile-section hidden">
+                <h2 class="section-title">Editar Perfil</h2>
+                <form id="edit-profile-form">
+                    
+                    <div class="profile-form-group">
+                        <label for="edit-username">Nombre completo</label>
+                        <input type="text" id="edit-username" placeholder="Tu nombre">
+                        <span class="error-message" id="error-username"></span>
+                    </div>
 
-       
+                    <div class="profile-form-group">
+                        <label for="edit-email">Email</label>
+                        <input type="email" id="edit-email" placeholder="nuevo@correo.com">
+                        <span class="error-message" id="error-email"></span>
+                    </div>
 
-        <div class="profile-form-group">
-            <label for="edit-email">Email</label>
-            <input type="email" id="edit-email" placeholder="Email anterior">
-            <span class="error-message" id="error-email"></span>
-        </div>
+                    <div class="profile-form-group">
+                        <label for="edit-phone">Teléfono</label>
+                        <input type="tel" id="edit-phone" placeholder="5551234567">
+                        <span class="error-message" id="error-phone"></span>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <p style="color: #B8860B; margin-bottom: 10px; font-size: 0.9rem;">Cambiar contraseña (dejar en blanco para mantener la actual)</p>
+                        
+                        <div class="profile-form-group">
+                            <label for="edit-pass">Nueva Contraseña</label>
+                            <input type="password" id="edit-pass" placeholder="********">
+                            <span class="error-message" id="error-pass"></span>
+                        </div>
 
-        <div class="profile-form-group">
-            <label for="edit-email-confirm">Confirmar email</label>
-            <input type="email" id="edit-email-confirm" placeholder="Confirmar email">
-            <span class="error-message" id="error-email-confirm"></span>
-        </div>
- <div class="profile-form-group">
-            <label for="edit-pass">Contraseña</label>
-            <input type="password" id="edit-pass" placeholder="Contraseña anterior">
-            <span class="error-message" id="error-pass"></span>
-        </div>
+                        <div class="profile-form-group">
+                            <label for="edit-pass-confirm">Confirmar contraseña</label>
+                            <input type="password" id="edit-pass-confirm" placeholder="********">
+                            <span class="error-message" id="error-pass-confirm"></span>
+                        </div>
+                    </div>
 
-        <div class="profile-form-group">
-            <label for="edit-pass-confirm">Confirmar contraseña</label>
-            <input type="password" id="edit-pass-confirm" placeholder="Confirmar contraseña">
-            <span class="error-message" id="error-pass-confirm"></span>
-        </div>
-        <div class="profile-form-group">
-            <label for="edit-phone">Número de teléfono</label>
-            <input type="tel" id="edit-phone" placeholder="9661818289">
-            <span class="error-message" id="error-phone"></span>
-        </div>
-
-       
-
-        <div class="button-group">
-            <button type="button" id="btn-save" class="btn-outline">Guardar</button>
-            <button type="button" id="btn-cancel" class="btn-secondary">Cancelar</button>
-        </div>
-    </form>
-</section>
+                    <div class="button-group">
+                        <button type="button" id="btn-save" class="btn-outline">Guardar Cambios</button>
+                        <button type="button" id="btn-cancel" class="btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </section>
 
         </div>
     </main>
 
-  
-    <!-- ============================================
-         MODAL DE CONFIRMACIÓN (¿Guardar cambios?)
-         ============================================ -->
     <div id="profile-modal-overlay" class="modal-overlay"></div>
-    <div id="profile-confirm-modal" class="profile-modal">
+    
+    <div id="profile-confirm-modal" class="profile-modal" style="display: none;">
         <div class="modal-header">
             <h2>Confirmar Cambios</h2>
             <button id="modal-close-x" class="modal-close-btn">&times;</button>
         </div>
         <div class="modal-body">
-            <p>¿Estás seguro de que deseas guardar los cambios en tu perfil?</p>
+            <p>¿Estás seguro de que deseas actualizar tu información?</p>
         </div>
         <div class="modal-footer">
             <button id="modal-cancel-btn" class="btn-secondary">Cancelar</button>
@@ -121,10 +118,7 @@
         </div>
     </div>
 
-    <!-- ============================================
-         MODAL DE ÉXITO (¡Cambios guardados!)
-         ============================================ -->
-    <div id="profile-success-modal" class="profile-modal">
+    <div id="profile-success-modal" class="profile-modal" style="display: none;">
         <div class="modal-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -136,13 +130,21 @@
         <button id="profile-close-modal" class="modal-button">Aceptar</button>
     </div>
 
-  <div id="footer-placeholder"></div>
-    
-  <div id="modal-placeholder"></div>
-   <div id="modal-placeholder-agendar"></div>
-      <div id="modal-placeholder-logout"></div>
+    <div id="footer-placeholder"></div>
+    <div id="modal-placeholder"></div>
+    <div id="modal-placeholder-agendar"></div>
+    <div id="modal-placeholder-logout"></div>
+
+    <script src="../config/api.config.js"></script>
+    <script src="../services/http.service.js"></script>
+    <script src="../services/auth.service.js"></script>
+    <script src="../services/usuarios.service.js"></script>
+    <script src="../services/comentarios.service.js"></script>
+    <script src="../utils/state-manager.js"></script>
+    <script src="../utils/error-handler.js"></script>
 
     <script src="../js/header_footer.js"></script>
     <script src="../js/perfil.js"></script>
+
 </body>
 </html>

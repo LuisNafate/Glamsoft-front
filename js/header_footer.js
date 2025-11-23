@@ -353,7 +353,7 @@ function initLogoutModalEvents() {
 
     if (confirmBtn) confirmBtn.addEventListener('click', async () => {
         await AuthService.logout();
-        window.location.href = 'index.html'; 
+        window.location.href = 'inicio.html'; 
     });
     if (cancelBtn) cancelBtn.addEventListener('click', () => logoutModal.style.display = 'none');
     if (closeBtn) closeBtn.addEventListener('click', () => logoutModal.style.display = 'none');
