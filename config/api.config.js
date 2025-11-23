@@ -55,7 +55,9 @@ const API_CONFIG = {
             GET_SERVICIOS: '/estilistas/:id/servicios',
             GET_BY_SERVICIO: '/estilistas/servicios/:id',
             CREATE_HORARIO: '/estilistas/horarios',
-            CREATE_SERVICIO: '/estilistas/servicios'
+            CREATE_SERVICIO: '/estilistas/servicios',
+            UPDATE: '/estilistas/:id',
+            DELETE: '/estilistas/:id'
         },
         
         // Horarios - HorarioRouter

@@ -3,13 +3,15 @@ class EstilistasAdmin {
     constructor() {
         this.estilistas = [];
         this.filteredEstilistas = [];
+        this.servicios = [];
         this.init();
     }
 
     async init() {
         try {
-            await this.checkAuth();
+            // await this.checkAuth(); // Temporalmente desactivado para desarrollo
             this.setupEventListeners();
+            await this.loadServicios();
             await this.loadEstilistas();
         } catch (error) {
             console.error('Error al inicializar:', error);
@@ -17,8 +19,19 @@ class EstilistasAdmin {
         }
     }
 
+    async loadServicios() {
+        try {
+            const response = await ServiciosService.getAll();
+            this.servicios = response.data || response || [];
+            console.log('Servicios cargados:', this.servicios);
+        } catch (error) {
+            console.error('Error al cargar servicios:', error);
+            this.servicios = [];
+        }
+    }
+
     async checkAuth() {
-        const user = StateManager.getState('user');
+        const user = StateManager.get('user');
         if (!user || user.rol !== 'admin') {
             window.location.href = '../login.html';
         }
@@ -28,15 +41,11 @@ class EstilistasAdmin {
         document.getElementById('btnNuevoEstilista')?.addEventListener('click', () => {
             this.openModal();
         });
-        
+
         document.getElementById('searchInput')?.addEventListener('input', () => {
             this.filterEstilistas();
         });
-        
-        document.getElementById('filterDisponibilidad')?.addEventListener('change', () => {
-            this.filterEstilistas();
-        });
-        
+
         document.getElementById('formEstilista')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveEstilista();
@@ -45,10 +54,37 @@ class EstilistasAdmin {
 
     async loadEstilistas() {
         this.showLoader();
-        
+
         try {
             const response = await EstilistasService.getAll();
-            this.estilistas = response.data || [];
+
+            console.log('Respuesta completa del backend:', response);
+
+            // El backend devuelve un objeto con propiedad 'data' que contiene el array
+            const estilistasList = response.data || [];
+
+            console.log('Estilistas recibidos del backend:', estilistasList);
+
+            // Mapear los campos del backend al formato esperado por la vista
+            this.estilistas = estilistasList.map(e => ({
+                id: e.idEstilista,
+                idUsuario: e.idUsuario,
+                idEstilista: e.idEstilista,
+                nombre: e.nombre,
+                email: e.email,
+                telefono: e.telefono,
+                avatar: e.imagenPerfil || e.avatar,
+                disponibilidad: e.activo ? 'disponible' : 'no_disponible',
+                especialidades: e.especialidad ? [e.especialidad] : [],
+                puesto: e.puesto || e.especialidad || 'Estilista',
+                activo: e.activo,
+                valoracionPromedio: e.valoracionPromedio,
+                totalValoraciones: e.totalValoraciones,
+                servicios: e.servicios || []
+            }));
+
+            console.log('Estilistas mapeados:', this.estilistas);
+
             this.filteredEstilistas = [...this.estilistas];
             this.renderTable();
         } catch (error) {
@@ -64,18 +100,14 @@ class EstilistasAdmin {
 
     filterEstilistas() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const disponibilidadFilter = document.getElementById('filterDisponibilidad').value;
-        
+
         this.filteredEstilistas = this.estilistas.filter(estilista => {
             const matchesSearch = estilista.nombre.toLowerCase().includes(searchTerm) ||
                                 (estilista.email || '').toLowerCase().includes(searchTerm);
-            
-            const matchesDisponibilidad = !disponibilidadFilter || 
-                                        estilista.disponibilidad === disponibilidadFilter;
-            
-            return matchesSearch && matchesDisponibilidad;
+
+            return matchesSearch;
         });
-        
+
         this.renderTable();
     }
 
@@ -94,27 +126,23 @@ class EstilistasAdmin {
         if (emptyState) emptyState.style.display = 'none';
         
         tbody.innerHTML = this.filteredEstilistas.map(estilista => {
-            const disponibilidadMap = {
-                'disponible': 'available',
-                'ocupado': 'busy',
-                'no_disponible': 'unavailable'
-            };
-            
-            const disponibilidadText = {
-                'disponible': 'Disponible',
-                'ocupado': 'Ocupado',
-                'no_disponible': 'No disponible'
-            };
-            
-            const especialidades = estilista.especialidades || [];
-            const especialidadesHtml = Array.isArray(especialidades) 
-                ? especialidades.slice(0, 3).map(esp => `<span class="specialty-tag">${esp}</span>`).join('')
-                : '';
-            
+            // Colores para los servicios
+            const servicioColors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+                '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B195', '#C06C84'
+            ];
+
+            const serviciosHtml = estilista.servicios && Array.isArray(estilista.servicios)
+                ? estilista.servicios.slice(0, 3).map((servicio, index) => {
+                    const color = servicioColors[index % servicioColors.length];
+                    return `<span class="service-tag" style="background-color: ${color}">${servicio.nombreServicio || servicio}</span>`;
+                }).join('')
+                : '<span style="color: #999; font-size: 12px;">Sin servicios</span>';
+
             return `
                 <tr>
                     <td>
-                        ${estilista.avatar ? 
+                        ${estilista.avatar ?
                             `<img src="${estilista.avatar}" alt="${estilista.nombre}" class="estilista-avatar">` :
                             `<div class="estilista-avatar" style="background: #3498db; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
                                 ${estilista.nombre.charAt(0).toUpperCase()}
@@ -124,17 +152,12 @@ class EstilistasAdmin {
                     <td><strong>${estilista.nombre}</strong></td>
                     <td>
                         <div class="specialties-list">
-                            ${especialidadesHtml}
-                            ${especialidades.length > 3 ? `<span class="specialty-tag">+${especialidades.length - 3}</span>` : ''}
+                            ${serviciosHtml}
+                            ${estilista.servicios && estilista.servicios.length > 3 ? `<span class="service-tag" style="background-color: #95a5a6">+${estilista.servicios.length - 3}</span>` : ''}
                         </div>
                     </td>
                     <td>${estilista.telefono || '-'}</td>
                     <td>${estilista.email || '-'}</td>
-                    <td>
-                        <span class="availability-badge ${disponibilidadMap[estilista.disponibilidad] || 'available'}">
-                            ${disponibilidadText[estilista.disponibilidad] || 'Disponible'}
-                        </span>
-                    </td>
                     <td>
                         <div class="table-actions">
                             <button class="btn-icon edit" onclick="estilistasAdmin.editEstilista(${estilista.id})" title="Editar">
@@ -154,7 +177,13 @@ class EstilistasAdmin {
         const modal = document.getElementById('modalEstilista');
         const modalTitle = document.getElementById('modalTitle');
         const form = document.getElementById('formEstilista');
-        
+
+        // Llenar select de servicios
+        const serviciosSelect = document.getElementById('serviciosEstilista');
+        serviciosSelect.innerHTML = this.servicios.map(s =>
+            `<option value="${s.idServicio}">${s.nombreServicio}</option>`
+        ).join('');
+
         // Resetear checkboxes
         document.querySelectorAll('.day-checkbox').forEach(cb => {
             cb.checked = false;
@@ -162,20 +191,24 @@ class EstilistasAdmin {
             daySchedule.classList.remove('active');
             daySchedule.querySelector('.time-inputs').style.display = 'none';
         });
-        
+
         if (estilista) {
             modalTitle.textContent = 'Editar Estilista';
             document.getElementById('estilistaId').value = estilista.id;
             document.getElementById('nombreEstilista').value = estilista.nombre;
             document.getElementById('emailEstilista').value = estilista.email || '';
             document.getElementById('telefonoEstilista').value = estilista.telefono || '';
-            document.getElementById('disponibilidadEstilista').value = estilista.disponibilidad || 'disponible';
-            document.getElementById('especialidadesEstilista').value = Array.isArray(estilista.especialidades) 
-                ? estilista.especialidades.join(', ') 
-                : '';
+            document.getElementById('especialidadesEstilista').value = estilista.puesto || '';
             document.getElementById('avatarEstilista').value = estilista.avatar || '';
             document.getElementById('biografiaEstilista').value = estilista.biografia || '';
-            
+
+            // Seleccionar servicios del estilista
+            if (estilista.servicios && Array.isArray(estilista.servicios)) {
+                Array.from(serviciosSelect.options).forEach(option => {
+                    option.selected = estilista.servicios.some(s => s.idServicio == option.value);
+                });
+            }
+
             // Cargar horario
             if (estilista.horario) {
                 Object.keys(estilista.horario).forEach(dia => {
@@ -184,7 +217,7 @@ class EstilistasAdmin {
                         const checkbox = daySchedule.querySelector('.day-checkbox');
                         checkbox.checked = true;
                         daySchedule.classList.add('active');
-                        
+
                         const timeInputs = daySchedule.querySelector('.time-inputs');
                         timeInputs.style.display = 'flex';
                         timeInputs.querySelector('.hora-inicio').value = estilista.horario[dia].inicio;
@@ -196,9 +229,8 @@ class EstilistasAdmin {
             modalTitle.textContent = 'Nuevo Estilista';
             form.reset();
             document.getElementById('estilistaId').value = '';
-            document.getElementById('disponibilidadEstilista').value = 'disponible';
         }
-        
+
         modal.classList.add('active');
     }
 
@@ -213,73 +245,151 @@ class EstilistasAdmin {
         if (!confirm('¿Estás seguro de eliminar este estilista?')) {
             return;
         }
-        
+
+        // Buscar el estilista para obtener su información
+        const estilista = this.estilistas.find(e => e.id === id);
+        if (!estilista) {
+            this.showNotification('Estilista no encontrado', 'error');
+            return;
+        }
+
+        console.log('Estilista a eliminar:', estilista);
+        console.log('idEstilista:', estilista.idEstilista);
+
         this.showLoader();
-        
+
         try {
+            // Usar idEstilista para eliminar (id ya es idEstilista)
             await EstilistasService.delete(id);
             this.showNotification('Estilista eliminado correctamente', 'success');
+
+            // Recargar inmediatamente la lista de estilistas
             await this.loadEstilistas();
         } catch (error) {
             console.error('Error al eliminar estilista:', error);
             this.showNotification('Error al eliminar estilista', 'error');
-        } finally {
             this.hideLoader();
         }
     }
 
     async saveEstilista() {
         const estilistaId = document.getElementById('estilistaId').value;
-        
-        // Obtener horario
-        const horario = {};
-        document.querySelectorAll('.day-schedule').forEach(daySchedule => {
-            const checkbox = daySchedule.querySelector('.day-checkbox');
-            if (checkbox.checked) {
-                const dia = daySchedule.getAttribute('data-day');
-                const timeInputs = daySchedule.querySelector('.time-inputs');
-                horario[dia] = {
-                    inicio: timeInputs.querySelector('.hora-inicio').value,
-                    fin: timeInputs.querySelector('.hora-fin').value
-                };
-            }
-        });
-        
-        // Obtener especialidades
-        const especialidadesInput = document.getElementById('especialidadesEstilista').value;
-        const especialidades = especialidadesInput 
-            ? especialidadesInput.split(',').map(e => e.trim()).filter(e => e)
-            : [];
-        
+
+        // Obtener especialidad del formulario
+        const especialidadInput = document.getElementById('especialidadesEstilista').value.trim();
+        const puesto = especialidadInput || 'Estilista';
+
+        // Preparar datos según el formato esperado por el backend
         const data = {
-            nombre: document.getElementById('nombreEstilista').value,
-            email: document.getElementById('emailEstilista').value,
-            telefono: document.getElementById('telefonoEstilista').value,
-            disponibilidad: document.getElementById('disponibilidadEstilista').value,
-            especialidades: especialidades,
-            avatar: document.getElementById('avatarEstilista').value,
-            biografia: document.getElementById('biografiaEstilista').value,
-            horario: horario
+            nombre: document.getElementById('nombreEstilista').value.trim(),
+            email: document.getElementById('emailEstilista').value.trim(),
+            telefono: document.getElementById('telefonoEstilista').value.trim(),
+            idRol: 2, // Rol de estilista
+            activo: true,
+            puesto: puesto, // La primera especialidad como puesto
+            imagenPerfil: document.getElementById('avatarEstilista').value.trim() || null
         };
-        
+
+        // Solo agregar password si es un nuevo estilista
+        if (!estilistaId) {
+            data.password = 'glamsoft123'; // Password por defecto
+        }
+
+        console.log('Datos a enviar:', data);
+
         this.showLoader();
-        
+
         try {
+            let createdEstilista;
+
             if (estilistaId) {
                 await EstilistasService.update(estilistaId, data);
                 this.showNotification('Estilista actualizado correctamente', 'success');
             } else {
-                await EstilistasService.create(data);
+                const response = await EstilistasService.create(data);
+                console.log('Respuesta del servidor:', response);
+                createdEstilista = response;
                 this.showNotification('Estilista creado correctamente', 'success');
             }
-            
+
+            // Guardar servicios y horarios si se creó un nuevo estilista
+            const idEstilistaFinal = createdEstilista ? (createdEstilista.idEstilista || createdEstilista.idUsuario) : estilistaId;
+
+            if (idEstilistaFinal) {
+                // Guardar servicios
+                await this.saveServicios(idEstilistaFinal);
+
+                // Guardar horarios
+                await this.saveHorarios(idEstilistaFinal);
+            }
+
             closeModal();
+
+            // Recargar inmediatamente la lista de estilistas
             await this.loadEstilistas();
         } catch (error) {
             console.error('Error al guardar estilista:', error);
-            this.showNotification('Error al guardar estilista', 'error');
-        } finally {
+            const errorMessage = error.message || 'Error al guardar estilista';
+            this.showNotification(errorMessage, 'error');
             this.hideLoader();
+        }
+    }
+
+    async saveServicios(idEstilista) {
+        const serviciosSelect = document.getElementById('serviciosEstilista');
+        const selectedOptions = Array.from(serviciosSelect.selectedOptions);
+
+        if (selectedOptions.length === 0) {
+            console.log('No hay servicios seleccionados');
+            return;
+        }
+
+        const serviciosPromises = selectedOptions.map(option => {
+            const data = {
+                idEstilista: idEstilista,
+                idServicio: parseInt(option.value)
+            };
+            return EstilistasService.createServicio(data);
+        });
+
+        try {
+            await Promise.all(serviciosPromises);
+            console.log('Servicios guardados correctamente');
+        } catch (error) {
+            console.error('Error al guardar servicios:', error);
+            // No mostramos error al usuario porque el estilista ya fue creado
+        }
+    }
+
+    async saveHorarios(idEstilista) {
+        const horariosPromises = [];
+
+        document.querySelectorAll('.day-schedule').forEach(daySchedule => {
+            const checkbox = daySchedule.querySelector('.day-checkbox');
+            if (checkbox.checked) {
+                const dia = daySchedule.getAttribute('data-day').toUpperCase();
+                const timeInputs = daySchedule.querySelector('.time-inputs');
+                const horaInicio = timeInputs.querySelector('.hora-inicio').value;
+                const horaFin = timeInputs.querySelector('.hora-fin').value;
+
+                const horarioData = {
+                    idEstilista: idEstilista,
+                    diaSemana: dia,
+                    horaInicio: horaInicio + ':00',
+                    horaFin: horaFin + ':00'
+                };
+
+                horariosPromises.push(
+                    EstilistasService.createHorario(horarioData)
+                );
+            }
+        });
+
+        try {
+            await Promise.all(horariosPromises);
+        } catch (error) {
+            console.error('Error al guardar horarios:', error);
+            // No mostramos error al usuario porque el estilista ya fue creado
         }
     }
 

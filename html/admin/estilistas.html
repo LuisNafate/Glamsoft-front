@@ -22,35 +22,35 @@
             border-radius: 50%;
             object-fit: cover;
         }
-        
+
         .availability-badge {
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
         }
-        
+
         .availability-badge.available {
             background: #d4edda;
             color: #155724;
         }
-        
+
         .availability-badge.busy {
             background: #fff3cd;
             color: #856404;
         }
-        
+
         .availability-badge.unavailable {
             background: #f8d7da;
             color: #721c24;
         }
-        
+
         .specialties-list {
             display: flex;
             gap: 5px;
             flex-wrap: wrap;
         }
-        
+
         .specialty-tag {
             background: var(--admin-accent);
             color: white;
@@ -58,38 +58,200 @@
             border-radius: 15px;
             font-size: 11px;
         }
-        
+
+        .service-tag {
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #95a5a6;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: #e74c3c;
+        }
+
+        .modal-content form {
+            padding: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #f5f5f5;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #ff9800;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+
+        /* Select múltiple para servicios */
+        select[multiple].form-control {
+            background-image: none;
+            padding-right: 15px;
+        }
+
+        select[multiple].form-control option {
+            padding: 10px;
+            margin: 3px 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        select[multiple].form-control option:hover {
+            background-color: #e3f2fd !important;
+        }
+
+        select[multiple].form-control option:checked {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            font-weight: 600;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+
         .schedule-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 10px;
             margin-top: 15px;
         }
-        
+
         .day-schedule {
             border: 2px solid #ecf0f1;
             border-radius: 8px;
             padding: 10px;
             text-align: center;
         }
-        
+
         .day-schedule.active {
             border-color: var(--admin-accent);
             background: rgba(52, 152, 219, 0.05);
         }
-        
+
         .day-name {
             font-weight: 600;
             margin-bottom: 8px;
             color: var(--admin-primary);
         }
-        
+
         .time-inputs {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
-        
+
         .time-inputs input {
             padding: 5px;
             border: 1px solid #ddd;
@@ -125,12 +287,6 @@
             <div class="content-card">
                 <div class="search-bar">
                     <input type="text" class="search-input" id="searchInput" placeholder="Buscar estilistas...">
-                    <select class="filter-select" id="filterDisponibilidad">
-                        <option value="">Todas las disponibilidades</option>
-                        <option value="disponible">Disponibles</option>
-                        <option value="ocupado">Ocupados</option>
-                        <option value="no_disponible">No disponibles</option>
-                    </select>
                 </div>
             </div>
             
@@ -144,7 +300,6 @@
                             <th>Especialidades</th>
                             <th>Teléfono</th>
                             <th>Email</th>
-                            <th>Disponibilidad</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -193,22 +348,23 @@
                         <label class="form-label">Teléfono *</label>
                         <input type="tel" class="form-control" id="telefonoEstilista" required>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Disponibilidad</label>
-                        <select class="form-control" id="disponibilidadEstilista">
-                            <option value="disponible">Disponible</option>
-                            <option value="ocupado">Ocupado</option>
-                            <option value="no_disponible">No disponible</option>
-                        </select>
-                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Especialidades (separadas por comas)</label>
-                    <input type="text" class="form-control" id="especialidadesEstilista" placeholder="Corte, Tinte, Maquillaje">
+                    <label class="form-label">Especialidad / Puesto</label>
+                    <input type="text" class="form-control" id="especialidadesEstilista" placeholder="Ej: Estilista Senior, Colorista">
                 </div>
-                
+
+                <div class="form-group">
+                    <label class="form-label">Servicios que ofrece</label>
+                    <select multiple class="form-control" id="serviciosEstilista" style="height: 140px;">
+                        <!-- Se llena dinámicamente -->
+                    </select>
+                    <small style="color: #ff9800; font-size: 12px; margin-top: 5px; display: block; font-weight: 500;">
+                        <i class="fas fa-info-circle"></i> Haz clic en cada servicio para seleccionar. Puedes elegir varios.
+                    </small>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">URL de Foto</label>
                     <input type="url" class="form-control" id="avatarEstilista" placeholder="https://...">

@@ -123,6 +123,70 @@ const EstilistasService = {
             console.error('Error al asignar servicio a estilista:', error);
             throw error;
         }
+    },
+
+    /**
+     * Crear nuevo estilista
+     * @param {Object} estilistaData - Datos del estilista
+     * @returns {Promise<Object>} Estilista creado
+     */
+    async create(estilistaData) {
+        try {
+            // Asegurar que tenga idRol = 2 (Estilista)
+            const data = {
+                ...estilistaData,
+                idRol: 2,
+                activo: estilistaData.activo !== undefined ? estilistaData.activo : true
+            };
+
+            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.AUTH.REGISTER_EMPLEADO);
+            const response = await httpService.post(url, data);
+            return response.data;
+        } catch (error) {
+            console.error('Error al crear estilista:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Actualizar estilista
+     * @param {string|number} id - ID del estilista
+     * @param {Object} estilistaData - Datos actualizados
+     * @returns {Promise<Object>} Estilista actualizado
+     */
+    async update(id, estilistaData) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.ESTILISTAS.UPDATE,
+                { id }
+            );
+            const response = await httpService.put(url, estilistaData);
+            return response.data;
+        } catch (error) {
+            console.error(`Error al actualizar estilista ${id}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Eliminar estilista
+     * @param {string|number} id - ID del estilista
+     * @returns {Promise<Object>} Resultado de la eliminación
+     */
+    async delete(id) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.ESTILISTAS.DELETE,
+                { id }
+            );
+            console.log('URL de eliminación:', url);
+            console.log('ID que se envía:', id);
+            const response = await httpService.delete(url);
+            return response.data;
+        } catch (error) {
+            console.error(`Error al eliminar estilista ${id}:`, error);
+            throw error;
+        }
     }
 };
 

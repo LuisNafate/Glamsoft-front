@@ -4,7 +4,7 @@ const ServiciosService = {
     /**
      * Obtener todos los servicios
      */
-    async getAll() {
+async getAll() {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.GET_ALL);
             const response = await httpService.get(url);
@@ -69,7 +69,7 @@ const ServiciosService = {
      * Crear nuevo servicio
      * @param {Object} servicioData - Ver JSON ejemplo en documentación
      */
-    async create(servicioData) {
+  async create(servicioData) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.CREATE);
             const response = await httpService.post(url, servicioData);
@@ -82,12 +82,16 @@ const ServiciosService = {
 
     /**
      * Actualizar servicio
+     * @param {number|string} id - ID del servicio a actualizar
      * @param {Object} servicioData - Debe incluir todos los campos del servicio
      */
-    async update(servicioData) {
+async update(id, servicioData) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE);
-            const response = await httpService.patch(url, servicioData);
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE, 
+                { id } // Pasamos el ID para que reemplace el :id en la URL
+            );
+            const response = await httpService.put(url, servicioData);
             return response.data;
         } catch (error) {
             console.error('Error al actualizar servicio:', error);
@@ -112,8 +116,10 @@ const ServiciosService = {
             throw error;
         }
     }
+
 };
 
+// Exportar servicio
 // Exportar servicio
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ServiciosService;
