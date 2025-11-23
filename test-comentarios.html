@@ -265,8 +265,8 @@
             
             const comentarioData = {
                 idCliente: parseInt(idCliente),
-                idCita: null,
                 comentario: comentario
+                // No enviamos idCita para evitar error con null
             };
 
             addLog(`Datos a enviar: ${JSON.stringify(comentarioData)}`, 'info');

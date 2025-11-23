@@ -59,7 +59,7 @@ class ComentariosAdmin {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         
         this.filteredComentarios = this.comentarios.filter(comentario => {
-            const contenido = (comentario.contenido || '').toLowerCase();
+            const contenido = (comentario.contenido || comentario.comentario || '').toLowerCase();
             const clienteNombre = (comentario.cliente?.nombre || '').toLowerCase();
             
             return contenido.includes(searchTerm) || clienteNombre.includes(searchTerm);
@@ -86,6 +86,8 @@ class ComentariosAdmin {
             const clienteNombre = comentario.cliente?.nombre || 'Usuario Anónimo';
             const iniciales = clienteNombre.charAt(0).toUpperCase();
             const fechaFormateada = this.formatFecha(comentario.fecha);
+            // La API retorna 'contenido' pero puede venir como 'comentario'
+            const textoComentario = comentario.contenido || comentario.comentario || '';
             
             return `
                 <div class="comment-card">
@@ -107,7 +109,7 @@ class ComentariosAdmin {
                     </div>
                     
                     <div class="comment-text">
-                        ${comentario.contenido}
+                        ${textoComentario}
                     </div>
                     
                     <div class="comment-actions">

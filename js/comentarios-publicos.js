@@ -95,6 +95,7 @@ class ComentariosPublicos {
             const clienteNombre = comentario.cliente?.nombre || 'Usuario Anónimo';
             const iniciales = clienteNombre.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2);
             const fechaFormateada = this.formatFecha(comentario.fecha);
+            const textoComentario = comentario.contenido || comentario.comentario || '';
             
             return `
                 <div class="comment-card">
@@ -109,7 +110,7 @@ class ComentariosPublicos {
                     </div>
                     
                     <div class="comment-text">
-                        ${comentario.contenido}
+                        ${textoComentario}
                     </div>
                 </div>
             `;
@@ -140,8 +141,8 @@ class ComentariosPublicos {
         try {
             const comentarioData = {
                 idCliente: this.currentUser.idCliente || this.currentUser.idUsuario,
-                idCita: null, // Sin cita asociada para comentarios generales
                 comentario: contenido
+                // No enviamos idCita si no existe para evitar null
             };
             
             console.log('submitComentario - Enviando:', comentarioData);

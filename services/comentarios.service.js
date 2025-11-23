@@ -52,13 +52,22 @@ const ComentariosService = {
 
     /**
      * Crear nuevo comentario
-     * @param {Object} comentarioData - { idCliente, idCita, comentario }
+     * @param {Object} comentarioData - { idCliente, comentario, idCita (opcional) }
      */
     async create(comentarioData) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.COMENTARIOS.CREATE);
-            console.log('ComentariosService.create - Data:', comentarioData);
-            const response = await httpService.post(url, comentarioData);
+            
+            // Preparar datos según API: el campo debe ser 'comentario' no 'contenido'
+            // idCita es opcional, si no existe se omite
+            const dataToSend = {
+                idCliente: comentarioData.idCliente,
+                comentario: comentarioData.comentario,
+                ...(comentarioData.idCita && { idCita: comentarioData.idCita })
+            };
+            
+            console.log('ComentariosService.create - Data enviada:', dataToSend);
+            const response = await httpService.post(url, dataToSend);
             console.log('ComentariosService.create - Response:', response);
             return response;
         } catch (error) {

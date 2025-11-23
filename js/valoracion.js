@@ -122,8 +122,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const comentarioData = {
                     idCliente: currentUser.idCliente || currentUser.idUsuario,
-                    idCita: null, // Sin cita asociada desde esta página
                     comentario: comentarioTexto
+                    // No enviamos idCita para evitar errores con null
                 };
                 
                 console.log('Enviando comentario:', comentarioData);
