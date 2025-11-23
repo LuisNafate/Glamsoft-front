@@ -79,6 +79,103 @@ function createPortfolioItem(trabajo) {
 }
 
 /**
+ * Cargar destacados basados en las mejores valoraciones
+ */
+async function loadDestacados() {
+    try {
+        // Obtener todas las valoraciones
+        const valoraciones = await ValoracionesService.getAll();
+        console.log('⭐ Valoraciones para destacados:', valoraciones);
+
+        const destacadoGrid = document.querySelector('.destacado-grid');
+        if (!destacadoGrid) return;
+
+        // Calcular promedio de valoraciones por servicio
+        const serviciosValoraciones = {};
+
+        valoraciones.forEach(val => {
+            // El idServicio puede venir directo o dentro del objeto servicio
+            const idServicio = val.idServicio || val.servicio?.idServicio;
+            if (!idServicio) return;
+
+            if (!serviciosValoraciones[idServicio]) {
+                serviciosValoraciones[idServicio] = {
+                    total: 0,
+                    count: 0,
+                    nombreServicio: val.nombreServicio || val.servicio?.nombre || 'Servicio'
+                };
+            }
+            serviciosValoraciones[idServicio].total += val.calificacion || 0;
+            serviciosValoraciones[idServicio].count++;
+        });
+
+        // Calcular promedio y ordenar
+        const serviciosOrdenados = Object.entries(serviciosValoraciones)
+            .map(([id, data]) => ({
+                idServicio: id,
+                promedio: data.total / data.count,
+                nombreServicio: data.nombreServicio,
+                totalValoraciones: data.count
+            }))
+            .sort((a, b) => b.promedio - a.promedio)
+            .slice(0, 2); // Top 2
+
+        console.log('🏆 Servicios más valorados:', serviciosOrdenados);
+
+        // Obtener imágenes del portafolio para estos servicios
+        const trabajos = await PortafolioService.getAll();
+
+        // Limpiar grid
+        destacadoGrid.innerHTML = '';
+
+        if (serviciosOrdenados.length > 0) {
+            serviciosOrdenados.forEach(servicio => {
+                const div = document.createElement('div');
+                div.className = 'destacado-item';
+
+                // Buscar imagen relacionada o usar placeholder
+                const imagenRelacionada = trabajos.find(t =>
+                    t.categoria === servicio.nombreServicio ||
+                    t.titulo?.toLowerCase().includes(servicio.nombreServicio.toLowerCase())
+                );
+
+                // Usar imágenes de Unsplash según el índice
+                const imagenesUnsplash = [
+                    'https://images.unsplash.com/photo-1675034743339-0b0747047727?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHNhbG9uJTIwZGUlMjBiZWxsZXphfGVufDB8fDB8fHww',
+                    'https://images.unsplash.com/photo-1559599101-f09722fb4948?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                ];
+                const indice = serviciosOrdenados.indexOf(servicio);
+                const urlImagen = imagenRelacionada?.urlImagen ||
+                                imagenesUnsplash[indice] ||
+                                imagenesUnsplash[0];
+
+                div.style.cssText = `background-image: url('${urlImagen}'); background-size: cover; background-position: center; position: relative;`;
+
+                // Agregar overlay con información
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px; color: white;';
+                overlay.innerHTML = `
+                    <h3 style="margin: 0; font-size: 18px; color: white;">${servicio.nombreServicio}</h3>
+                    <p style="margin: 5px 0 0; font-size: 14px;">⭐ ${servicio.promedio.toFixed(1)}/5 (${servicio.totalValoraciones} valoraciones)</p>
+                `;
+
+                div.appendChild(overlay);
+                destacadoGrid.appendChild(div);
+            });
+        } else {
+            // Si no hay valoraciones, mostrar imágenes genéricas
+            destacadoGrid.innerHTML = `
+                <div class="destacado-item" style="background-image: url('https://images.unsplash.com/photo-1675034743339-0b0747047727?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHNhbG9uJTIwZGUlMjBiZWxsZXphfGVufDB8fDB8fHww'); background-size: cover; background-position: center;"></div>
+                <div class="destacado-item" style="background-image: url('https://images.unsplash.com/photo-1600948836101-f9ffda59d250?q=80&w=1136&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); background-size: cover; background-position: center;"></div>
+            `;
+        }
+
+    } catch (error) {
+        console.error('Error al cargar destacados:', error);
+    }
+}
+
+/**
  * Cargar comentarios/valoraciones desde la API
  */
 async function loadComentarios() {
@@ -199,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Cargar datos desde la API
         await Promise.all([
             loadPortafolio(),
+            loadDestacados(),
             loadComentarios()
         ]);
     } catch (error) {

@@ -3,7 +3,8 @@ const PortafolioService = {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PORTAFOLIO.GET_ALL);
             const response = await httpService.get(url);
-            return response.data;
+            // La API devuelve { data: [...], message: "...", status: "..." }
+            return response.data?.data || response.data || [];
         } catch (error) {
             console.error('Error al obtener portafolio:', error);
             throw error;
