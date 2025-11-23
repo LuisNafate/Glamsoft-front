@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Promociones Frontend</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        .log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .log-entry {
+            margin: 3px 0;
+            padding: 3px;
+        }
+        
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+        .log-info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de Promociones Frontend</h1>
+        <p>Esta página prueba todos los endpoints de promociones desde el frontend</p>
+        
+        <div class="test-section">
+            <h3>Control de Pruebas</h3>
+            <button onclick="runAllTests()">▶️ Ejecutar Todas las Pruebas</button>
+            <button onclick="clearLog()">🗑️ Limpiar Log</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Pruebas Individuales</h3>
+            <button onclick="testGetAll()">1️⃣ GET - Listar Todas</button>
+            <button onclick="testCreate()">2️⃣ POST - Crear Nueva</button>
+            <button onclick="testGetById()">3️⃣ GET - Obtener por ID</button>
+            <button onclick="testUpdate()">4️⃣ PUT - Actualizar</button>
+            <button onclick="testGetServicios()">5️⃣ GET - Servicios</button>
+            <button onclick="testAddServicio()">6️⃣ POST - Agregar Servicio</button>
+            <button onclick="testDelete()">7️⃣ DELETE - Eliminar</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 Log de Resultados</h3>
+            <div class="log" id="logContainer"></div>
+        </div>
+    </div>
+    
+    <!-- Scripts necesarios -->
+    <script src="config/api.config.js"></script>
+    <script src="services/http.service.js"></script>
+    <script src="services/promociones.service.js"></script>
+    
+    <script>
+        let testPromocionId = null;
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+        
+        async function testGetAll() {
+            log('🔄 TEST 1: GET /api/promociones - Obteniendo todas las promociones...', 'info');
+            try {
+                const response = await PromocionesService.getAll();
+                const promociones = response.data?.data || response.data || [];
+                log(`✅ SUCCESS: Se obtuvieron ${promociones.length} promociones`, 'success');
+                log(`   Respuesta: ${JSON.stringify(response.data).substring(0, 100)}...`, 'info');
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testCreate() {
+            log('🔄 TEST 2: POST /api/promociones - Creando nueva promoción...', 'info');
+            try {
+                const data = {
+                    nombrePromocion: `Test Frontend ${new Date().getTime()}`,
+                    tipoDescuento: 'PORCENTAJE',
+                    descuento: 15.0,
+                    fechaInicio: '2025-12-01',
+                    fechaFin: '2025-12-31',
+                    idServicio: null
+                };
+                
+                const response = await PromocionesService.create(data);
+                testPromocionId = response.data?.data?.idPromocion || response.data?.idPromocion;
+                
+                log(`✅ SUCCESS: Promoción creada con ID=${testPromocionId}`, 'success');
+                log(`   Nombre: ${response.data?.data?.nombre || response.data?.nombre}`, 'info');
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testGetById() {
+            if (!testPromocionId) {
+                log('⚠️ Primero debes crear una promoción (Test 2)', 'error');
+                return false;
+            }
+            
+            log(`🔄 TEST 3: GET /api/promociones/${testPromocionId} - Obteniendo por ID...`, 'info');
+            try {
+                const response = await PromocionesService.getById(testPromocionId);
+                log(`✅ SUCCESS: Promoción obtenida`, 'success');
+                log(`   Datos: ${JSON.stringify(response).substring(0, 100)}...`, 'info');
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testUpdate() {
+            if (!testPromocionId) {
+                log('⚠️ Primero debes crear una promoción (Test 2)', 'error');
+                return false;
+            }
+            
+            log(`🔄 TEST 4: PUT /api/promociones/${testPromocionId} - Actualizando...`, 'info');
+            try {
+                const data = {
+                    nombrePromocion: 'Test Frontend ACTUALIZADO',
+                    tipoDescuento: 'PORCENTAJE',
+                    descuento: 25.0,
+                    fechaInicio: '2025-12-01',
+                    fechaFin: '2025-12-31',
+                    idServicio: null
+                };
+                
+                const response = await PromocionesService.update(testPromocionId, data);
+                log(`✅ SUCCESS: Promoción actualizada`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testGetServicios() {
+            if (!testPromocionId) {
+                log('⚠️ Primero debes crear una promoción (Test 2)', 'error');
+                return false;
+            }
+            
+            log(`🔄 TEST 5: GET /api/promociones/${testPromocionId}/servicios - Obteniendo servicios...`, 'info');
+            try {
+                const response = await PromocionesService.getServicios(testPromocionId);
+                const servicios = response.data || response || [];
+                log(`✅ SUCCESS: ${servicios.length} servicios asociados`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testAddServicio() {
+            if (!testPromocionId) {
+                log('⚠️ Primero debes crear una promoción (Test 2)', 'error');
+                return false;
+            }
+            
+            log(`🔄 TEST 6: POST /api/promociones/${testPromocionId}/servicios - Agregando servicio...`, 'info');
+            try {
+                const response = await PromocionesService.addServicio(testPromocionId, { idServicio: 1 });
+                log(`✅ SUCCESS: Servicio agregado`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testDelete() {
+            if (!testPromocionId) {
+                log('⚠️ Primero debes crear una promoción (Test 2)', 'error');
+                return false;
+            }
+            
+            log(`🔄 TEST 7: DELETE /api/promociones/${testPromocionId} - Eliminando...`, 'info');
+            try {
+                const response = await PromocionesService.delete(testPromocionId);
+                log(`✅ SUCCESS: Promoción eliminada`, 'success');
+                
+                // Verificar que fue eliminada
+                try {
+                    await PromocionesService.getById(testPromocionId);
+                    log(`⚠️ WARNING: La promoción todavía existe`, 'error');
+                } catch (error) {
+                    log(`✅ CONFIRMED: Promoción eliminada correctamente (404)`, 'success');
+                }
+                
+                testPromocionId = null;
+                return true;
+            } catch (error) {
+                log(`❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function runAllTests() {
+            clearLog();
+            log('🚀 Iniciando suite completa de pruebas...', 'info');
+            log('═══════════════════════════════════════════', 'info');
+            
+            await testGetAll();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testCreate();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testGetById();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testUpdate();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testGetServicios();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAddServicio();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDelete();
+            
+            log('═══════════════════════════════════════════', 'info');
+            log('✅ Suite de pruebas completada', 'success');
+        }
+        
+        // Log inicial
+        log('✨ Sistema de pruebas listo', 'success');
+        log('Haz clic en "Ejecutar Todas las Pruebas" o prueba endpoints individuales', 'info');
+    </script>
+</body>
+</html>
