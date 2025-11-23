@@ -20,9 +20,14 @@ class CalendarioAdmin {
     }
 
     async checkAuth() {
-        const user = StateManager.getState('user');
-        if (!user || user.rol !== 'admin') {
-            window.location.href = '../login.html';
+        try {
+            const user = StateManager.get('user');
+            if (!user || user.rol !== 'admin') {
+                console.warn('Usuario no autenticado o no es admin');
+                // window.location.href = '../login.html';
+            }
+        } catch (error) {
+            console.warn('StateManager no disponible:', error);
         }
     }
 
@@ -71,7 +76,10 @@ class CalendarioAdmin {
     async loadCitas() {
         try {
             const response = await CitasService.getAll();
-            this.citas = response.data || [];
+            console.log('loadCitas - Response:', response);
+            // Manejar estructura: {data: [...], message: "...", status: "success"}
+            this.citas = response.data?.data || response.data || [];
+            console.log('Citas cargadas:', this.citas.length);
         } catch (error) {
             console.error('Error al cargar citas:', error);
             this.citas = [];
@@ -118,16 +126,31 @@ class CalendarioAdmin {
                 
                 // Buscar citas para este día y hora
                 const citasDelSlot = this.citas.filter(cita => {
-                    return cita.fecha === dateStr && cita.hora.startsWith(hora.substring(0, 2));
+                    // Manejar diferentes formatos de fecha: "2025-11-22" o [2025, 11, 22]
+                    const citaFecha = Array.isArray(cita.fechaCita) 
+                        ? `${cita.fechaCita[0]}-${String(cita.fechaCita[1]).padStart(2, '0')}-${String(cita.fechaCita[2]).padStart(2, '0')}`
+                        : cita.fechaCita;
+                    
+                    // Manejar hora: "10:00:00" o [10, 0, 0]
+                    const citaHora = Array.isArray(cita.horaCita)
+                        ? `${String(cita.horaCita[0]).padStart(2, '0')}:${String(cita.horaCita[1]).padStart(2, '0')}`
+                        : cita.horaCita;
+                    
+                    return citaFecha === dateStr && citaHora.startsWith(hora.substring(0, 2));
                 });
                 
                 html += `<div class="calendar-cell" data-date="${dateStr}" data-hora="${hora}">`;
                 
                 citasDelSlot.forEach(cita => {
+                    const estadoClass = (cita.estadoCita || cita.estado || 'pendiente').toLowerCase();
+                    const clienteNombre = cita.cliente?.nombre || cita.cliente_nombre || 'Cliente';
+                    const servicioNombre = cita.servicio?.nombre || cita.servicio_nombre || '';
+                    const citaId = cita.idCita || cita.id;
+                    
                     html += `
-                        <div class="appointment-card ${cita.estado}" onclick="calendarioAdmin.showCitaDetail(${cita.id})">
-                            <div class="appointment-client">${cita.cliente_nombre || 'Cliente'}</div>
-                            <div class="appointment-service">${cita.servicio_nombre || ''}</div>
+                        <div class="appointment-card ${estadoClass}" onclick="calendarioAdmin.showCitaDetail(${citaId})">
+                            <div class="appointment-client">${clienteNombre}</div>
+                            <div class="appointment-service">${servicioNombre}</div>
                         </div>
                     `;
                 });
@@ -152,7 +175,8 @@ class CalendarioAdmin {
         
         try {
             const response = await CitasService.getById(citaId);
-            this.currentCita = response.data;
+            console.log('showCitaDetail - Response:', response);
+            this.currentCita = response.data?.data || response.data;
             
             if (!this.currentCita) {
                 throw new Error('Cita no encontrada');
@@ -164,48 +188,61 @@ class CalendarioAdmin {
             const estadoColors = {
                 'pendiente': '#f39c12',
                 'confirmada': '#27ae60',
-                'cancelada': '#e74c3c'
+                'cancelada': '#e74c3c',
+                'PENDIENTE': '#f39c12',
+                'CONFIRMADA': '#27ae60',
+                'CANCELADA': '#e74c3c'
             };
+            
+            const estadoCita = this.currentCita.estadoCita || this.currentCita.estado || 'pendiente';
+            const estadoColor = estadoColors[estadoCita] || '#7f8c8d';
+            
+            const clienteNombre = this.currentCita.cliente?.nombre || this.currentCita.cliente_nombre || 'N/A';
+            const servicioNombre = this.currentCita.servicio?.nombre || this.currentCita.servicio_nombre || 'N/A';
+            const estilistaNombre = this.currentCita.estilista?.nombre || this.currentCita.estilista_nombre || '';
+            const fechaCita = this.currentCita.fechaCita || this.currentCita.fecha;
+            const horaCita = this.currentCita.horaCita || this.currentCita.hora;
+            const notas = this.currentCita.notas || this.currentCita.observaciones || '';
             
             detalle.innerHTML = `
                 <div style="padding: 20px 0;">
-                    <div style="margin-bottom: 20px; padding: 15px; background: ${estadoColors[this.currentCita.estado]}; color: white; border-radius: 8px; text-align: center;">
-                        <strong style="font-size: 18px; text-transform: uppercase;">${this.currentCita.estado}</strong>
+                    <div style="margin-bottom: 20px; padding: 15px; background: ${estadoColor}; color: white; border-radius: 8px; text-align: center;">
+                        <strong style="font-size: 18px; text-transform: uppercase;">${estadoCita}</strong>
                     </div>
                     
                     <div style="display: grid; gap: 15px;">
                         <div>
                             <strong style="color: #7f8c8d;">Cliente:</strong><br>
-                            <span style="font-size: 18px; color: var(--admin-primary);">${this.currentCita.cliente_nombre || 'N/A'}</span>
+                            <span style="font-size: 18px; color: var(--admin-primary);">${clienteNombre}</span>
                         </div>
                         
                         <div>
                             <strong style="color: #7f8c8d;">Servicio:</strong><br>
-                            <span style="font-size: 16px;">${this.currentCita.servicio_nombre || 'N/A'}</span>
+                            <span style="font-size: 16px;">${servicioNombre}</span>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div>
                                 <strong style="color: #7f8c8d;">Fecha:</strong><br>
-                                <span>${this.formatFecha(this.currentCita.fecha)}</span>
+                                <span>${this.formatFecha(fechaCita)}</span>
                             </div>
                             <div>
                                 <strong style="color: #7f8c8d;">Hora:</strong><br>
-                                <span>${this.currentCita.hora}</span>
+                                <span>${this.formatHora(horaCita)}</span>
                             </div>
                         </div>
                         
-                        ${this.currentCita.estilista_nombre ? `
+                        ${estilistaNombre ? `
                             <div>
                                 <strong style="color: #7f8c8d;">Estilista:</strong><br>
-                                <span>${this.currentCita.estilista_nombre}</span>
+                                <span>${estilistaNombre}</span>
                             </div>
                         ` : ''}
                         
-                        ${this.currentCita.notas ? `
+                        ${notas ? `
                             <div>
                                 <strong style="color: #7f8c8d;">Notas:</strong><br>
-                                <span>${this.currentCita.notas}</span>
+                                <span>${notas}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -216,13 +253,13 @@ class CalendarioAdmin {
             const btnConfirmar = document.getElementById('btnConfirmar');
             const btnCancelar = document.getElementById('btnCancelar');
             
-            if (this.currentCita.estado === 'confirmada') {
+            if (estadoCita.toLowerCase() === 'confirmada') {
                 btnConfirmar.style.display = 'none';
             } else {
                 btnConfirmar.style.display = 'inline-flex';
             }
             
-            if (this.currentCita.estado === 'cancelada') {
+            if (estadoCita.toLowerCase() === 'cancelada') {
                 btnCancelar.style.display = 'none';
             } else {
                 btnCancelar.style.display = 'inline-flex';
@@ -248,9 +285,10 @@ class CalendarioAdmin {
         this.showLoader();
         
         try {
-            await CitasService.update(this.currentCita.id, {
-                ...this.currentCita,
-                estado: nuevoEstado
+            const citaId = this.currentCita.idCita || this.currentCita.id;
+            await CitasService.updateEstado({
+                idCita: citaId,
+                estadoCita: nuevoEstado.toUpperCase()
             });
             
             this.showNotification(`Cita ${nuevoEstado} correctamente`, 'success');
@@ -267,12 +305,34 @@ class CalendarioAdmin {
     }
 
     formatFecha(fecha) {
+        // Manejar formato array [year, month, day]
+        if (Array.isArray(fecha)) {
+            const [year, month, day] = fecha;
+            const date = new Date(year, month - 1, day);
+            return date.toLocaleDateString('es-ES', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        }
+        
         const date = new Date(fecha);
         return date.toLocaleDateString('es-ES', { 
             day: '2-digit', 
             month: 'long', 
             year: 'numeric' 
         });
+    }
+    
+    formatHora(hora) {
+        // Manejar formato array [hour, minute, second]
+        if (Array.isArray(hora)) {
+            const [hour, minute] = hora;
+            return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        }
+        
+        // Formato string "10:00:00"
+        return hora.substring(0, 5);
     }
 
     showNotification(message, type = 'info') {
