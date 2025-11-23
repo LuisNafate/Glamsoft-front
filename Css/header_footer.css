@@ -59,6 +59,38 @@ body {
     color: #B8860B;
 }
 
+/* Contenedor del icono de notificaciones con badge */
+.notification-icon-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background-color: #B8923A;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 .btn-agendar {
     background: transparent;
     color: #fff;

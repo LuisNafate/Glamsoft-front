@@ -168,7 +168,7 @@ const CitasService = {
 
     /**
      * Eliminar cita
-     * @param {number|string} id 
+     * @param {number|string} id
      */
     async delete(id) {
         try {
@@ -180,6 +180,53 @@ const CitasService = {
             return response.data;
         } catch (error) {
             console.error('Error al eliminar cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener citas pendientes de aprobación (ADMIN)
+     * @returns {Promise}
+     */
+    async getPendientes() {
+        try {
+            const response = await HttpService.get('/citas/pendientes');
+            return response;
+        } catch (error) {
+            console.error('Error al obtener citas pendientes:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Aprobar una cita (ADMIN)
+     * @param {number} idCita - ID de la cita
+     * @returns {Promise}
+     */
+    async aprobar(idCita) {
+        try {
+            const response = await HttpService.put(`/citas/${idCita}/aprobar`);
+            return response;
+        } catch (error) {
+            console.error('Error al aprobar cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Rechazar una cita (ADMIN)
+     * @param {number} idCita - ID de la cita
+     * @param {string} razonRechazo - Motivo del rechazo
+     * @returns {Promise}
+     */
+    async rechazar(idCita, razonRechazo) {
+        try {
+            const response = await HttpService.put(`/citas/${idCita}/rechazar`, {
+                razonRechazo: razonRechazo
+            });
+            return response;
+        } catch (error) {
+            console.error('Error al rechazar cita:', error);
             throw error;
         }
     }

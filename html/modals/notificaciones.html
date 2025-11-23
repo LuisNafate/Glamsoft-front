@@ -1,17 +1,19 @@
 <div id="notificaciones-modal" class="modal-notificaciones">
     <div class="modal-content-notificaciones">
-        <span class="close-btn-notif">&times;</span>
-        
-        <h2>NOTIFICACIONES</h2>
-        
-        <div class="notification-options">
-            <button class="notification-option-btn">Recordatorio</button>
-            <a href="valoracion.html" class="notification-option-btn">Valoracion</a>
-            <button class="notification-option-btn">Confirmacion</button>
+        <div class="modal-header-notif">
+            <h2>NOTIFICACIONES</h2>
+            <button class="btn-marcar-todas-leidas" id="marcarTodasLeidasBtn" style="display: none;">
+                Marcar todas como leídas
+            </button>
+            <span class="close-btn-notif">&times;</span>
         </div>
 
-        <div class="notification-footer">
-            <button class="btn-select">Seleccionar</button>
+        <div class="notifications-list" id="notificationsList">
+            <!-- Las notificaciones se cargarán dinámicamente aquí -->
+            <div class="no-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No tienes notificaciones</p>
+            </div>
         </div>
     </div>
 </div>

@@ -574,8 +574,9 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarModalCancelacion();
     cargarYConfigurarModal();
     cargarErrorModal();
-    cargarSuccessModal();  // NUEVO
-    cargarRejectModal();   // NUEVO
+    cargarSuccessModal();
+    cargarRejectModal();
+    cargarFormularioCitaModal();
 
     loadTimeSlots(); // Cargar horarios desde la API
     loadServicios(); // Cargar servicios disponibles
@@ -727,7 +728,7 @@ async function cargarRejectModal() {
                 closeRejectModal();
                 resetSelections();
             });
-            
+
             document.getElementById('reject-modal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     closeRejectModal();
@@ -738,6 +739,435 @@ async function cargarRejectModal() {
     } catch (error) {
         console.error('No se pudo cargar el modal de rechazo:', error);
     }
+}
+
+// --- FUNCIÓN PARA CARGAR EL MODAL DE FORMULARIO PERSONALIZADO ---
+async function cargarFormularioCitaModal() {
+    try {
+        const response = await fetch('modals/formulario_cita.html');
+        if (!response.ok) {
+            throw new Error(`Error al cargar modals/formulario_cita.html: ${response.statusText}`);
+        }
+        const htmlModal = await response.text();
+
+        const placeholder = document.getElementById('modal-placeholder-formulario');
+        if (placeholder) {
+            placeholder.innerHTML = htmlModal;
+            initFormularioCitaModal();
+        }
+    } catch (error) {
+        console.error('No se pudo cargar el modal de formulario:', error);
+    }
+}
+
+function initFormularioCitaModal() {
+    const modal = document.getElementById('formulario-cita-modal');
+    if (!modal) return;
+
+    const closeBtn = modal.querySelector('.close-btn-formulario');
+    const cancelBtn = modal.querySelector('.btn-cancelar-formulario');
+    const formulario = document.getElementById('formularioCitaForm');
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    // Cerrar al hacer clic fuera
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Manejar envío del formulario
+    if (formulario) {
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await enviarCitaConFormulario();
+        });
+    }
+}
+
+/**
+ * Cargar preguntas del servicio y mostrar formulario personalizado
+ */
+async function mostrarFormularioPersonalizado() {
+    try {
+        console.log('🔍 Cargando preguntas para servicio:', selectedService);
+
+        // Obtener preguntas del servicio
+        const response = await PreguntasFormularioService.getByServicio(selectedService);
+        const preguntas = response.data || response;
+
+        console.log('📋 Preguntas recibidas:', preguntas);
+
+        // Renderizar preguntas en el formulario
+        renderizarPreguntasFormulario(preguntas);
+
+        // Mostrar modal
+        const modal = document.getElementById('formulario-cita-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+
+    } catch (error) {
+        console.error('Error al cargar preguntas del formulario:', error);
+        // Si no hay preguntas o hay error, proceder directamente a crear la cita sin formulario
+        console.warn('No hay preguntas configuradas para este servicio, creando cita directamente...');
+        await enviarCitaConFormulario();
+    }
+}
+
+/**
+ * Renderizar preguntas dinámicamente en el formulario
+ */
+function renderizarPreguntasFormulario(preguntas) {
+    const container = document.getElementById('preguntasDinamicas');
+    if (!container) return;
+
+    // Limpiar contenedor
+    container.innerHTML = '';
+
+    if (!preguntas || preguntas.length === 0) {
+        container.innerHTML = '<p style="color: #999; text-align: center;">No hay preguntas adicionales para este servicio.</p>';
+        return;
+    }
+
+    // Ordenar por campo 'orden'
+    const preguntasOrdenadas = [...preguntas].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+    preguntasOrdenadas.forEach((pregunta) => {
+        const preguntaDiv = document.createElement('div');
+        preguntaDiv.className = 'pregunta-item';
+        preguntaDiv.dataset.idPregunta = pregunta.idPregunta;
+
+        const label = document.createElement('label');
+        label.textContent = pregunta.pregunta;
+        if (pregunta.obligatoria) {
+            label.innerHTML += ' <span style="color: #dc3545;">*</span>';
+        }
+
+        preguntaDiv.appendChild(label);
+
+        let inputElement;
+
+        switch (pregunta.tipoRespuesta) {
+            case 'texto':
+                inputElement = document.createElement('input');
+                inputElement.type = 'text';
+                inputElement.className = 'form-input';
+                inputElement.required = pregunta.obligatoria;
+                break;
+
+            case 'textarea':
+                inputElement = document.createElement('textarea');
+                inputElement.className = 'form-input';
+                inputElement.rows = 4;
+                inputElement.required = pregunta.obligatoria;
+                break;
+
+            case 'numero':
+                inputElement = document.createElement('input');
+                inputElement.type = 'number';
+                inputElement.className = 'form-input';
+                inputElement.required = pregunta.obligatoria;
+                break;
+
+            case 'si_no':
+                inputElement = document.createElement('select');
+                inputElement.className = 'form-input';
+                inputElement.required = pregunta.obligatoria;
+                inputElement.innerHTML = `
+                    <option value="">Selecciona una opción</option>
+                    <option value="Sí">Sí</option>
+                    <option value="No">No</option>
+                `;
+                break;
+
+            case 'opcion_multiple':
+                inputElement = document.createElement('select');
+                inputElement.className = 'form-input';
+                inputElement.required = pregunta.obligatoria;
+
+                let optionsHTML = '<option value="">Selecciona una opción</option>';
+                const opciones = pregunta.opciones || [];
+
+                opciones.forEach(opcion => {
+                    optionsHTML += `<option value="${opcion}">${opcion}</option>`;
+                });
+
+                inputElement.innerHTML = optionsHTML;
+                break;
+
+            default:
+                inputElement = document.createElement('input');
+                inputElement.type = 'text';
+                inputElement.className = 'form-input';
+                inputElement.required = pregunta.obligatoria;
+        }
+
+        inputElement.name = `pregunta_${pregunta.idPregunta}`;
+        preguntaDiv.appendChild(inputElement);
+        container.appendChild(preguntaDiv);
+    });
+}
+
+/**
+ * Capturar respuestas del formulario y crear cita
+ */
+async function enviarCitaConFormulario() {
+    try {
+        console.log('=== ENVIANDO CITA CON FORMULARIO ===');
+
+        // Capturar respuestas del formulario
+        const respuestasFormulario = capturarRespuestasFormulario();
+        console.log('📝 Respuestas del formulario:', respuestasFormulario);
+
+        // Cerrar modal del formulario
+        const modal = document.getElementById('formulario-cita-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+
+        // Obtener usuario actual
+        let user = StateManager.get('user');
+        if (!user) {
+            const userDataStr = localStorage.getItem('user_data');
+            if (userDataStr) {
+                user = JSON.parse(userDataStr);
+                StateManager.set('user', user);
+            }
+        }
+
+        if (!user) {
+            openErrorModal('Debes iniciar sesión para agendar una cita.');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            return;
+        }
+
+        const idCliente = user.idCliente || user.idUsuario || user.id || user.userId;
+        if (!idCliente) {
+            openErrorModal('No se pudo obtener tu información de usuario. Por favor, inicia sesión nuevamente.');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            return;
+        }
+
+        // Convertir hora de formato "9:00 AM" a "09:00:00"
+        let hora24 = selectedTime;
+        if (selectedTime.includes('AM') || selectedTime.includes('PM')) {
+            const [time, period] = selectedTime.split(' ');
+            let [hours, minutes] = time.split(':');
+            hours = parseInt(hours);
+
+            if (period === 'PM' && hours !== 12) {
+                hours += 12;
+            } else if (period === 'AM' && hours === 12) {
+                hours = 0;
+            }
+
+            hora24 = `${String(hours).padStart(2, '0')}:${minutes}:00`;
+        }
+
+        // Formatear fecha en formato YYYY-MM-DD
+        const fechaFormateada = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+
+        const idServicio = selectedService ? parseInt(selectedService) : null;
+        if (!idServicio) {
+            openErrorModal('Por favor, selecciona un servicio.');
+            return;
+        }
+
+        // Obtener horario
+        let horario = null;
+        try {
+            horario = await HorariosService.getOrCreateDefault();
+        } catch (error) {
+            console.warn('⚠️ No se pudo obtener horario:', error);
+            openErrorModal('No hay horarios configurados. Por favor, contacta al administrador.');
+            return;
+        }
+
+        const idHorario = horario.idHorario || horario.id;
+        if (!idHorario) {
+            openErrorModal('No hay horarios disponibles. Por favor, contacta al administrador.');
+            return;
+        }
+
+        // IMPORTANTE: Crear cita con respuestas del formulario y estado PENDIENTE
+        const citaData = {
+            fecha: fechaFormateada,
+            hora: hora24,
+            notas: '', // Las notas ahora están en respuestasFormulario
+            idCliente: idCliente,
+            idEstilista: parseInt(selectedStylist),
+            idHorario: idHorario,
+            servicios: [idServicio],
+            estado: 'PENDIENTE', // NUEVO: Estado pendiente por defecto
+            respuestasFormulario: respuestasFormulario // NUEVO: Respuestas del formulario
+        };
+
+        console.log('📤 Enviando cita:', citaData);
+
+        const response = await CitasService.create(citaData);
+        console.log('✅ Cita creada exitosamente:', response);
+
+        // Obtener nombres para el resumen
+        let nombreServicio = 'Servicio';
+        let precioServicio = 0;
+        let nombreEstilista = 'Estilista';
+
+        try {
+            const servicioResponse = await ServiciosService.getById(idServicio);
+            const servicio = servicioResponse.data || servicioResponse;
+            nombreServicio = servicio.nombre || servicio.nombreServicio || 'Servicio';
+            precioServicio = servicio.precio || 0;
+        } catch (error) {
+            console.warn('No se pudo obtener el nombre del servicio:', error);
+        }
+
+        try {
+            const estilistas = await EstilistasService.getAll();
+            const estilistasArray = estilistas.data || estilistas;
+            const estilista = estilistasArray.find(e =>
+                (e.idEstilista || e.idUsuario) == selectedStylist
+            );
+            nombreEstilista = estilista?.nombre || 'Estilista';
+        } catch (error) {
+            console.warn('No se pudo obtener el nombre del estilista:', error);
+        }
+
+        // MODIFICADO: Mostrar modal de éxito con mensaje de "pendiente de aprobación"
+        mostrarModalPendienteAprobacion({
+            fecha: fechaFormateada,
+            hora: hora24,
+            estilista: nombreEstilista,
+            servicio: nombreServicio,
+            precio: precioServicio
+        });
+
+        // IMPORTANTE: NO enviar email aquí - el email se enviará cuando el admin apruebe la cita
+        console.log('ℹ️ Email NO enviado - la cita está pendiente de aprobación');
+
+        // Resetear selecciones
+        setTimeout(() => {
+            selectedDate = null;
+            selectedTime = null;
+            selectedService = null;
+            selectedStylist = null;
+            generateCalendar(currentMonth, currentYear);
+            document.querySelector('.time-slot.selected')?.classList.remove('selected');
+            document.querySelector('.service-card.selected')?.classList.remove('selected');
+            document.querySelector('.stylist-card.selected')?.classList.remove('selected');
+            renderizarEstilistas(todosLosEstilistas);
+        }, 2000);
+
+    } catch (error) {
+        console.error('❌ Error al crear cita:', error);
+
+        let mensajeError = 'No se pudo agendar la cita. Por favor intenta de nuevo.';
+
+        if (error.message && error.message.includes('no está disponible')) {
+            mensajeError = 'El estilista seleccionado no está disponible en la fecha y hora elegidas. Por favor, selecciona otro horario o estilista.';
+        } else if (error.message) {
+            mensajeError = error.message;
+        }
+
+        openErrorModal(mensajeError);
+    }
+}
+
+/**
+ * Capturar respuestas del formulario dinámico
+ */
+function capturarRespuestasFormulario() {
+    const respuestas = [];
+    const preguntasItems = document.querySelectorAll('#preguntasDinamicas .pregunta-item');
+
+    preguntasItems.forEach((item) => {
+        const idPregunta = item.dataset.idPregunta;
+        const input = item.querySelector('input, textarea, select');
+
+        if (input && input.value) {
+            respuestas.push({
+                idPregunta: parseInt(idPregunta),
+                pregunta: item.querySelector('label').textContent.replace(' *', '').trim(),
+                respuesta: input.value
+            });
+        }
+    });
+
+    return respuestas;
+}
+
+/**
+ * Mostrar modal de éxito con mensaje de "pendiente de aprobación"
+ */
+function mostrarModalPendienteAprobacion(citaData) {
+    const successModal = document.getElementById('success-modal');
+    if (!successModal) return;
+
+    // Actualizar mensaje principal
+    const tituloModal = successModal.querySelector('h2');
+    const mensajeModal = successModal.querySelector('p');
+
+    if (tituloModal) {
+        tituloModal.textContent = '¡Solicitud Enviada!';
+    }
+
+    if (mensajeModal) {
+        mensajeModal.textContent = 'Tu solicitud de cita ha sido enviada y está pendiente de aprobación. Recibirás una notificación cuando sea confirmada.';
+    }
+
+    // Actualizar datos del resumen
+    if (citaData.fecha) {
+        const fechaElement = document.getElementById('cita-fecha');
+        if (fechaElement) {
+            const [year, month, day] = citaData.fecha.split('-');
+            fechaElement.textContent = `${day}/${month}/${year}`;
+        }
+    }
+
+    if (citaData.hora) {
+        const horaElement = document.getElementById('cita-hora');
+        if (horaElement) {
+            const [hours, minutes] = citaData.hora.split(':');
+            const horaNum = parseInt(hours);
+            const hora12 = horaNum === 0 ? 12 : horaNum > 12 ? horaNum - 12 : horaNum;
+            const periodo = horaNum >= 12 ? 'PM' : 'AM';
+            horaElement.textContent = `${hora12}:${minutes} ${periodo}`;
+        }
+    }
+
+    if (citaData.estilista) {
+        const estilistaElement = document.getElementById('cita-estilista');
+        if (estilistaElement) {
+            estilistaElement.textContent = citaData.estilista;
+        }
+    }
+
+    if (citaData.servicio) {
+        const servicioElement = document.getElementById('cita-servicio');
+        if (servicioElement) {
+            servicioElement.textContent = citaData.servicio;
+        }
+    }
+
+    if (citaData.precio !== undefined && citaData.precio !== null) {
+        const precioElement = document.getElementById('cita-precio');
+        if (precioElement) {
+            precioElement.textContent = `$${Number(citaData.precio).toLocaleString('es-CO')}`;
+        }
+    }
+
+    successModal.classList.add('visible');
 }
 
 async function cargarYConfigurarModal() {
@@ -989,7 +1419,7 @@ async function cargarYConfigurarModal() {
             }
         }
 
-        document.querySelector('.btn-confirm').addEventListener('click', function() {
+        document.querySelector('.btn-confirm').addEventListener('click', async function() {
 
             if (!selectedDate || !selectedTime || !selectedService || selectedStylist === null) {
                 let errorMessage = 'Por favor, completa lo siguiente:';
@@ -1006,24 +1436,24 @@ async function cargarYConfigurarModal() {
             selectedDateObj.setHours(0, 0, 0, 0);
             const now = new Date();
             now.setHours(0, 0, 0, 0);
-            
+
             if (selectedDateObj < now) {
                 openErrorModal('No puedes agendar una cita en una fecha pasada.');
                 selectedDate = null;
                 generateCalendar(currentMonth, currentYear);
                 return;
             }
-            
+
             const isToday = selectedDateObj.getTime() === now.getTime();
             if (isToday) {
                 const currentHour = new Date().getHours();
                 let slotHour = parseInt(selectedTime.split(':')[0]);
                 const isPM = selectedTime.includes('PM');
                 const is12 = slotHour === 12;
-                
+
                 if (isPM && !is12) slotHour += 12;
                 if (!isPM && is12) slotHour = 0;
-                
+
                 if (slotHour <= currentHour) {
                     openErrorModal('La hora seleccionada ya pasó. Por favor selecciona otra hora.');
                     selectedTime = null;
@@ -1033,7 +1463,8 @@ async function cargarYConfigurarModal() {
                 }
             }
 
-            openPreCitaModal();
+            // NUEVO: Cargar y mostrar formulario personalizado en lugar de pre-cita-modal
+            await mostrarFormularioPersonalizado();
         });
 
     } catch (error) {

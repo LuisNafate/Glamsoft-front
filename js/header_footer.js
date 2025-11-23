@@ -336,19 +336,162 @@ function initLogoutModalEvents() {
 // Removido: initAgendarModal() - ya no se usa
 
 function initBellIcon() {
-    const bellIcon = document.querySelector('.fa-bell');
+    const bellIcon = document.querySelector('.notification-icon-container');
     if (!bellIcon) return;
-    bellIcon.addEventListener('click', () => {
+
+    bellIcon.addEventListener('click', async () => {
         const modal = document.getElementById('notificaciones-modal');
-        if (modal) modal.style.display = 'block';
+        if (modal) {
+            modal.style.display = 'block';
+            await cargarNotificaciones();
+        }
     });
+
+    // Cargar contador de notificaciones no leídas
+    actualizarContadorNotificaciones();
+
+    // Actualizar cada 30 segundos
+    setInterval(actualizarContadorNotificaciones, 30000);
+}
+
+async function actualizarContadorNotificaciones() {
+    try {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        if (!isLoggedIn) return;
+
+        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        const idUsuario = userData.idUsuario || userData.id_usuario;
+
+        if (!idUsuario) return;
+
+        const response = await NotificacionesService.contarNoLeidas(idUsuario);
+        const count = response.data || response.count || 0;
+
+        const badge = document.getElementById('notificationBadge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Error al actualizar contador de notificaciones:', error);
+    }
+}
+
+async function cargarNotificaciones() {
+    try {
+        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        const idUsuario = userData.idUsuario || userData.id_usuario;
+
+        if (!idUsuario) return;
+
+        const response = await NotificacionesService.getByUsuario(idUsuario);
+        const notificaciones = response.data || response;
+
+        renderizarNotificaciones(notificaciones);
+
+        // Mostrar botón de marcar todas como leídas si hay no leídas
+        const noLeidas = notificaciones.filter(n => !n.leida);
+        const btnMarcarTodas = document.getElementById('marcarTodasLeidasBtn');
+        if (btnMarcarTodas) {
+            btnMarcarTodas.style.display = noLeidas.length > 0 ? 'block' : 'none';
+        }
+    } catch (error) {
+        console.error('Error al cargar notificaciones:', error);
+    }
+}
+
+function renderizarNotificaciones(notificaciones) {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    if (!notificaciones || notificaciones.length === 0) {
+        container.innerHTML = `
+            <div class="no-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No tienes notificaciones</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = '';
+
+    notificaciones.forEach(notif => {
+        const item = document.createElement('div');
+        item.className = `notification-item ${!notif.leida ? 'unread' : ''}`;
+
+        const tiempo = formatearTiempoTranscurrido(notif.fechaCreacion || notif.fecha_creacion);
+        const tipo = (notif.tipo || '').toLowerCase().replace('cita_', '');
+
+        item.innerHTML = `
+            <div class="notification-header">
+                <h4 class="notification-title">${notif.titulo}</h4>
+                <span class="notification-time">${tiempo}</span>
+            </div>
+            <p class="notification-message">${notif.mensaje}</p>
+            <span class="notification-tipo ${tipo}">${tipo}</span>
+        `;
+
+        // Click para marcar como leída
+        item.addEventListener('click', async () => {
+            if (!notif.leida) {
+                await NotificacionesService.markAsRead(notif.idNotificacion || notif.id_notificacion);
+                item.classList.remove('unread');
+                actualizarContadorNotificaciones();
+            }
+        });
+
+        container.appendChild(item);
+    });
+}
+
+function formatearTiempoTranscurrido(fecha) {
+    if (!fecha) return '';
+
+    const ahora = new Date();
+    const fechaNotif = new Date(fecha);
+    const diff = Math.floor((ahora - fechaNotif) / 1000); // segundos
+
+    if (diff < 60) return 'Ahora';
+    if (diff < 3600) return `${Math.floor(diff / 60)}min`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+    return fechaNotif.toLocaleDateString();
 }
 
 function initNotificacionesModal() {
     const modal = document.getElementById('notificaciones-modal');
     if(!modal) return;
+
     const closeBtn = modal.querySelector('.close-btn-notif');
-    if(closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    if(closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    // Botón marcar todas como leídas
+    const btnMarcarTodas = document.getElementById('marcarTodasLeidasBtn');
+    if (btnMarcarTodas) {
+        btnMarcarTodas.addEventListener('click', async () => {
+            try {
+                const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+                const idUsuario = userData.idUsuario || userData.id_usuario;
+
+                if (idUsuario) {
+                    await NotificacionesService.marcarTodasComoLeidas(idUsuario);
+                    await cargarNotificaciones();
+                    actualizarContadorNotificaciones();
+                }
+            } catch (error) {
+                console.error('Error al marcar todas como leídas:', error);
+            }
+        });
+    }
 }
 
 // ================== Menú Perfil ==================

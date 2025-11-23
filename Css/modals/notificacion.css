@@ -1,104 +1,208 @@
 /* --- BASE MODAL (POSICIÓN) --- */
 .modal-notificaciones {
-    display: none; /* Oculto por defecto */
-    position: absolute; 
+    display: none;
+    position: absolute;
     z-index: 1000;
-    top: 80px; /* Ajusta según altura del icono */
-    right: 60px; /* Ajusta para alinearlo al icono */
+    top: 80px;
+    right: 60px;
     background: transparent;
 }
 
 /* --- CAJA DE CONTENIDO --- */
 .modal-content-notificaciones {
     background-color: #1a1a1a;
-    padding: 30px;
-    border: 1px solid #333; /* Borde sutil */
-    width: 340px; /* Ancho ajustado al diseño */
+    padding: 0;
+    border: 1px solid #333;
+    width: 400px;
+    max-height: 600px;
     color: white;
     font-family: 'Montserrat', sans-serif;
     box-shadow: 0 8px 20px rgba(0,0,0,0.6);
     border-radius: 8px;
     position: relative;
+    overflow: hidden;
+}
+
+/* --- HEADER DEL MODAL --- */
+.modal-header-notif {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #333;
+    background-color: #1a1a1a;
+    position: relative;
+}
+
+.modal-header-notif h2 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: white;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+/* --- BOTÓN MARCAR TODAS COMO LEÍDAS --- */
+.btn-marcar-todas-leidas {
+    background: none;
+    border: none;
+    color: #B8923A;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: color 0.2s ease;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-marcar-todas-leidas:hover {
+    color: #d4af37;
 }
 
 /* --- BOTÓN DE CIERRE (X) --- */
 .close-btn-notif {
     color: white;
-    position: absolute;
-    top: 10px;
-    right: 15px;
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
     transition: color 0.2s ease;
-}
-.close-btn-notif:hover { 
-    color: #aaa; 
-}
-
-/* --- TÍTULO --- */
-.modal-content-notificaciones h2 {
-    margin-top: 0;
-    margin-bottom: 30px; /* Más espacio */
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: white;
-    text-align: left;
-    font-size: 1.5rem; /* Más grande */
-    text-transform: uppercase; /* Como en la imagen */
-}
-
-/* --- Opciones de Notificación (Botones grises) --- */
-.notification-options {
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Espacio entre botones */
-    margin-bottom: 30px;
-}
-
-.notification-option-btn {
-    background-color: #e0e0e0; /* Gris claro como en la imagen */
-    color: #222; /* Texto oscuro */
-    border: none;
-    border-radius: 12px; /* Redondeado */
-    padding: 18px 20px;
-    font-size: 1rem;
-    font-weight: 500;
-    font-family: 'Montserrat', sans-serif;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.notification-option-btn:hover {
-    background-color: #f0f0f0; /* Más claro al pasar el ratón */
-    transform: scale(1.02);
-}
-
-/* Estilo para cuando se selecciona (puedes activarlo con JS) */
-.notification-option-btn.selected { 
-    outline: 2px solid #d4af37;
-    background-color: #f5f5f5;
-}
-
-
-/* --- Footer del Modal ("Seleccionar") --- */
-.notification-footer {
-    text-align: right; /* Alinea el botón a la derecha */
-}
-
-.btn-select {
     background: none;
     border: none;
-    color: white;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 8px;
-    transition: color 0.2s ease;
+    padding: 0;
+    margin-left: 15px;
 }
 
-.btn-select:hover {
-    color: #d4af37; /* Color dorado al pasar el ratón */
+.close-btn-notif:hover {
+    color: #aaa;
+}
+
+/* --- LISTA DE NOTIFICACIONES --- */
+.notifications-list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* --- ITEM DE NOTIFICACIÓN --- */
+.notification-item {
+    padding: 20px 25px;
+    border-bottom: 1px solid #2a2a2a;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.notification-item:hover {
+    background-color: #242424;
+}
+
+.notification-item.unread {
+    background-color: rgba(184, 146, 58, 0.05);
+    border-left: 3px solid #B8923A;
+}
+
+.notification-item.unread::before {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background-color: #B8923A;
+    border-radius: 50%;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #ffffff;
+    margin: 0;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: #888;
+    white-space: nowrap;
+}
+
+.notification-message {
+    font-size: 0.85rem;
+    color: #ccc;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.notification-tipo {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+    text-transform: uppercase;
+}
+
+.notification-tipo.aprobada {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.notification-tipo.rechazada {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #F44336;
+}
+
+.notification-tipo.pendiente {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #FF9800;
+}
+
+.notification-tipo.cancelada {
+    background-color: rgba(158, 158, 158, 0.2);
+    color: #9E9E9E;
+}
+
+/* --- SIN NOTIFICACIONES --- */
+.no-notifications {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.no-notifications i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+.no-notifications p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* --- SCROLLBAR --- */
+.notifications-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-list::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.notifications-list::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+.notifications-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
