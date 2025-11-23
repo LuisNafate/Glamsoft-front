@@ -196,32 +196,201 @@ function resetSelections() {
     }
 }
 
+// ================== CARGAR HORARIOS (TIME SLOTS) DESDE LA API ==================
+async function loadTimeSlots() {
+    try {
+        console.log('🕒 Cargando horarios desde la API...');
+        const response = await HorariosService.getAll();
+        console.log('🕒 Horarios recibidos:', response);
+
+        // Extraer el array de horarios de la respuesta
+        const horarios = response.data || response;
+
+        const timeSlotsContainer = document.querySelector('.time-slots');
+        if (!timeSlotsContainer) return;
+
+        // Limpiar time slots actuales
+        timeSlotsContainer.innerHTML = '';
+
+        if (horarios && horarios.length > 0) {
+            // Tomar el primer horario disponible como referencia
+            const horario = horarios[0];
+            console.log('📋 Primer horario:', horario);
+
+            // Convertir horaInicio y horaFin a string si son objetos LocalTime
+            let horaInicio = horario.horaInicio;
+            let horaFin = horario.horaFin;
+
+            // Si horaInicio es un objeto (ej: {hour: 9, minute: 0, second: 0})
+            if (typeof horaInicio === 'object' && horaInicio !== null) {
+                horaInicio = `${String(horaInicio.hour || 9).padStart(2, '0')}:${String(horaInicio.minute || 0).padStart(2, '0')}:${String(horaInicio.second || 0).padStart(2, '0')}`;
+            }
+            if (typeof horaFin === 'object' && horaFin !== null) {
+                horaFin = `${String(horaFin.hour || 19).padStart(2, '0')}:${String(horaFin.minute || 0).padStart(2, '0')}:${String(horaFin.second || 0).padStart(2, '0')}`;
+            }
+
+            // Valores por defecto
+            horaInicio = horaInicio || '09:00:00';
+            horaFin = horaFin || '19:00:00';
+
+            console.log('⏰ Hora inicio:', horaInicio, '- Hora fin:', horaFin);
+
+            // Parsear horas
+            const [inicioHora] = String(horaInicio).split(':').map(Number);
+            const [finHora] = String(horaFin).split(':').map(Number);
+
+            // Generar time slots cada hora
+            for (let hora = inicioHora; hora < finHora; hora++) {
+                const timeSlot = document.createElement('button');
+                timeSlot.className = 'time-slot';
+
+                // Formatear hora a formato 12 horas con AM/PM
+                const hora12 = hora === 0 ? 12 : hora > 12 ? hora - 12 : hora;
+                const periodo = hora >= 12 ? 'PM' : 'AM';
+                timeSlot.textContent = `${hora12}:00 ${periodo}`;
+
+                // Agregar evento de click
+                timeSlot.addEventListener('click', function() {
+                    if (this.disabled) return;
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTime = this.textContent;
+                });
+
+                timeSlotsContainer.appendChild(timeSlot);
+            }
+        } else {
+            // Si no hay horarios, usar horarios por defecto
+            const defaultSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'];
+            defaultSlots.forEach(time => {
+                const timeSlot = document.createElement('button');
+                timeSlot.className = 'time-slot';
+                timeSlot.textContent = time;
+
+                timeSlot.addEventListener('click', function() {
+                    if (this.disabled) return;
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTime = this.textContent;
+                });
+
+                timeSlotsContainer.appendChild(timeSlot);
+            });
+        }
+
+        // Actualizar disponibilidad según fecha seleccionada
+        updateTimeSlots();
+
+    } catch (error) {
+        console.error('Error al cargar horarios:', error);
+        // En caso de error, usar horarios por defecto
+        const timeSlotsContainer = document.querySelector('.time-slots');
+        if (timeSlotsContainer) {
+            const defaultSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'];
+            timeSlotsContainer.innerHTML = '';
+            defaultSlots.forEach(time => {
+                const timeSlot = document.createElement('button');
+                timeSlot.className = 'time-slot';
+                timeSlot.textContent = time;
+
+                timeSlot.addEventListener('click', function() {
+                    if (this.disabled) return;
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTime = this.textContent;
+                });
+
+                timeSlotsContainer.appendChild(timeSlot);
+            });
+        }
+    }
+}
+
+// ================== CARGAR ESTILISTAS DESDE LA API ==================
+async function loadEstilistas() {
+    try {
+        console.log('👨‍💼 Cargando estilistas desde la API...');
+        const response = await EstilistasService.getAll();
+        console.log('👨‍💼 Estilistas recibidos:', response);
+
+        // Extraer el array de estilistas de la respuesta
+        const estilistas = response.data || response;
+
+        const stylistsGrid = document.querySelector('.stylists-grid');
+        if (!stylistsGrid) return;
+
+        // Limpiar la grid actual
+        stylistsGrid.innerHTML = '';
+
+        // Renderizar estilistas
+        if (estilistas && estilistas.length > 0) {
+            estilistas.forEach((estilista, index) => {
+                const card = document.createElement('div');
+                card.className = 'stylist-card';
+                card.dataset.idEstilista = estilista.idEstilista || estilista.idUsuario || index;
+
+                // Usar imagen del estilista o placeholder
+                const imagenUrl = estilista.urlImagen ||
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(estilista.nombre || 'Estilista')}&size=200&background=B8860B&color=fff`;
+
+                card.innerHTML = `
+                    <div class="stylist-image">
+                        <img src="${imagenUrl}" alt="${estilista.nombre || 'Estilista'}" onerror="this.src='https://ui-avatars.com/api/?name=E&size=200&background=B8860B&color=fff'">
+                    </div>
+                    <p class="stylist-name">${estilista.nombre || 'Sin nombre'}</p>
+                `;
+
+                // Agregar evento de click
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedStylist = this.dataset.idEstilista;
+                });
+
+                stylistsGrid.appendChild(card);
+            });
+        } else {
+            // Si no hay estilistas, mostrar mensaje
+            stylistsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No hay estilistas disponibles</p>';
+        }
+    } catch (error) {
+        console.error('Error al cargar estilistas:', error);
+        const stylistsGrid = document.querySelector('.stylists-grid');
+        if (stylistsGrid) {
+            stylistsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ff6b6b;">Error al cargar estilistas</p>';
+        }
+    }
+}
+
 // --- INICIALIZACIÓN DE LA PÁGINA ---
 
 document.addEventListener('DOMContentLoaded', function() {
-    
+
     // Forzar reinicialización del StateManager para cargar el usuario
     if (typeof StateManager !== 'undefined') {
         StateManager.init();
         console.log('StateManager reinicializado. Usuario:', StateManager.get('user'));
     }
-    
+
     // Verificar que el usuario esté logeado
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     console.log('Usuario logeado:', isLoggedIn);
-    
+
     if (!isLoggedIn) {
         console.warn('Usuario no está logeado, redirigiendo a login...');
         window.location.href = 'login.html';
         return;
     }
-    
+
     cargarModalCancelacion();
     cargarYConfigurarModal();
     cargarErrorModal();
     cargarSuccessModal();  // NUEVO
     cargarRejectModal();   // NUEVO
-    
+
+    loadTimeSlots(); // Cargar horarios desde la API
+    loadEstilistas(); // Cargar estilistas desde la API
+
     generateCalendar(currentMonth, currentYear);
 
     document.body.style.opacity = '0';
@@ -257,22 +426,8 @@ document.addEventListener('DOMContentLoaded', function() {
         generateCalendar(currentMonth, currentYear);
     });
 
-    document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.addEventListener('click', function() {
-            if (this.disabled) return;
-            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedTime = this.textContent;
-        });
-    });
-
-    document.querySelectorAll('.stylist-card').forEach((card, index) => {
-        card.addEventListener('click', function() {
-            document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedStylist = index; 
-        });
-    });
+    // Los event listeners de time-slot y stylist-card ahora se agregan dinámicamente
+    // cuando se cargan desde la API en loadTimeSlots() y loadEstilistas()
 
     document.querySelector('.btn-cancel').addEventListener('click', function() {
         openCancelModal();
@@ -511,48 +666,46 @@ async function cargarYConfigurarModal() {
                     hora24 = `${String(hours).padStart(2, '0')}:${minutes}:00`;
                 }
                 
-                // Formatear fecha y hora como LocalDateTime (formato ISO: 2025-11-29T09:00:00)
+                // Formatear fecha en formato YYYY-MM-DD
                 const fechaFormateada = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
-                const fechaHoraCita = `${fechaFormateada}T${hora24}`;
-                
-                // Fecha de solicitud = ahora
-                const fechaSolicitud = new Date().toISOString().slice(0, 19); // Formato: 2025-11-22T15:30:00
-                
+
                 // Obtener servicio seleccionado del localStorage
                 const servicioSeleccionado = localStorage.getItem('servicioSeleccionado');
                 const idServicio = servicioSeleccionado ? parseInt(servicioSeleccionado) : null;
-                
+
                 if (!idServicio) {
                     openErrorModal('Por favor, selecciona un servicio primero desde la página de servicios.');
                     setTimeout(() => window.location.href = 'servicios.html', 2000);
                     return;
                 }
 
-                // PASO CRÍTICO: Obtener o crear un horario válido
-                console.log('Obteniendo horario válido...');
+                // TEMPORAL: Obtener un horario válido hasta que el backend se actualice
+                console.log('⏰ Obteniendo horario (temporal hasta que backend se actualice)...');
                 let horario = null;
                 try {
                     horario = await HorariosService.getOrCreateDefault();
-                    console.log('Horario obtenido:', horario);
+                    console.log('✅ Horario obtenido:', horario);
                 } catch (error) {
-                    console.warn('No se pudo obtener horario, la cita necesita idHorario:', error);
-                    openErrorModal('Error al obtener horario. Por favor, contacta al administrador.');
+                    console.warn('⚠️ No se pudo obtener horario:', error);
+                    openErrorModal('No hay horarios configurados. Por favor, contacta al administrador.');
                     return;
                 }
 
-                if (!horario || !horario.idHorario) {
+                const idHorario = horario.idHorario || horario.id;
+                if (!idHorario) {
                     openErrorModal('No hay horarios disponibles. Por favor, contacta al administrador.');
                     return;
                 }
-                
-                // Datos de la cita - formato según API real (CitaController.java)
+
+                // Datos de la cita - formato según API
+                // NOTA: idHorario es temporal hasta que el backend lo haga opcional
                 const citaData = {
-                    estadoCita: 'PENDIENTE',
-                    fechaCita: fechaHoraCita, // LocalDateTime: 2025-11-29T09:00:00
-                    fechaSolicitudCita: fechaSolicitud, // LocalDateTime: fecha actual
+                    fecha: fechaFormateada, // "2024-07-15"
+                    hora: hora24, // "10:30:00"
+                    notas: formData.extra || '', // Opcional - campo "extra" del formulario
                     idCliente: idCliente,
-                    idEstilista: selectedStylist + 1,
-                    idHorario: horario.idHorario,
+                    idEstilista: parseInt(selectedStylist), // Usar el ID del estilista seleccionado
+                    idHorario: idHorario, // TEMPORAL: Se eliminará cuando el backend se actualice
                     servicios: [idServicio]
                 };
                 
@@ -561,8 +714,8 @@ async function cargarYConfigurarModal() {
                 console.log('=====================================');
                 
                 const response = await CitasService.create(citaData);
-                console.log('Cita creada:', response);
-                
+                console.log('✅ Cita creada exitosamente:', response);
+
                 openSuccessModal();
                 
                 // Resetear selecciones
@@ -576,8 +729,19 @@ async function cargarYConfigurarModal() {
                 }, 2000);
                 
             } catch (error) {
-                console.error('Error al crear cita:', error);
-                openErrorModal('No se pudo agendar la cita. Por favor intenta de nuevo.');
+                console.error('❌ Error al crear cita:', error);
+
+                let mensajeError = 'No se pudo agendar la cita. Por favor intenta de nuevo.';
+
+                // Detectar si el estilista no está disponible (error 400 del backend)
+                if (error.message && error.message.includes('no está disponible')) {
+                    mensajeError = 'El estilista seleccionado no está disponible en la fecha y hora elegidas. Por favor, selecciona otro horario o estilista.';
+                } else if (error.message) {
+                    // Usar el mensaje de error del backend si está disponible
+                    mensajeError = error.message;
+                }
+
+                openErrorModal(mensajeError);
             }
         }
 

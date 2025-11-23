@@ -45,10 +45,7 @@
 
             <!-- Time Slots -->
             <div class="time-slots">
-                <button class="time-slot">9:00 AM</button>
-                <button class="time-slot ">10:00 AM</button>
-                <button class="time-slot">11:00 AM</button>
-                <button class="time-slot">2:00 PM</button>
+                <!-- Los horarios se cargarán dinámicamente desde la API -->
             </div>
         </section>
 
@@ -56,24 +53,7 @@
         <section class="stylists-section">
             <h3>Estilistas</h3>
             <div class="stylists-grid">
-                <div class="stylist-card \">
-                    <div class="stylist-image">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" alt="Estilista">
-                    </div>
-                    <p class="stylist-name">Nombre</p>
-                </div>
-                <div class="stylist-card">
-                    <div class="stylist-image">
-                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200" alt="Estilista">
-                    </div>
-                    <p class="stylist-name">Nombre</p>
-                </div>
-                <div class="stylist-card">
-                    <div class="stylist-image">
-                        <img src="https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200" alt="Estilista">
-                    </div>
-                    <p class="stylist-name">Nombre</p>
-                </div>
+                <!-- Los estilistas se cargarán dinámicamente desde la API -->
             </div>
         </section>
 
@@ -97,7 +77,10 @@
 
    <script src="../config/api.config.js"></script>
    <script src="../services/http.service.js"></script>
+   <script src="../services/auth.service.js"></script>
+   <script src="../services/categorias.service.js"></script>
    <script src="../services/horarios.service.js"></script>
+   <script src="../services/estilistas.service.js"></script>
    <script src="../services/citas.service.js"></script>
    <script src="../utils/state-manager.js"></script>
    <script src="../js/header_footer.js"></script>

@@ -72,38 +72,32 @@ const HorariosService = {
         try {
             // Intentar obtener horarios existentes
             console.log('🔍 Buscando horarios disponibles...');
-            const horarios = await this.getAll();
-            
+            const response = await this.getAll();
+
+            // Extraer array de horarios de la respuesta
+            const horarios = response.data || response;
+
             if (horarios && horarios.length > 0) {
                 console.log('✓ Horarios encontrados:', horarios.length);
-                console.log('→ Usando primer horario:', horarios[0]);
-                return horarios[0]; // Retornar el primer horario disponible
-            }
-            
-            // Si no hay horarios, crear uno genérico que cubra toda la semana
-            console.log('⚠ No hay horarios, creando horario genérico de lunes...');
-            const horarioGenerico = {
-                horaInicio: '09:00:00',
-                horaFin: '19:00:00',
-                diaSemana: 'LUNES'
-            };
-            
-            const nuevoHorario = await this.create(horarioGenerico);
-            console.log('✓ Horario genérico creado:', nuevoHorario);
-            
-            // Crear horarios para el resto de la semana
-            const diasSemana = ['MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
-            for (const dia of diasSemana) {
-                try {
-                    await this.create({ ...horarioGenerico, diaSemana: dia });
-                    console.log(`✓ Horario ${dia} creado`);
-                } catch (error) {
-                    console.warn(`⚠ No se pudo crear horario para ${dia}:`, error.message);
+                console.log('📋 Todos los horarios disponibles:', horarios);
+
+                // Buscar un horario que tenga idHorario válido
+                const horarioValido = horarios.find(h => h.idHorario && h.idHorario > 0);
+
+                if (horarioValido) {
+                    console.log('→ Usando horario válido:', horarioValido);
+                    return horarioValido;
                 }
+
+                // Si ninguno tiene idHorario, usar el primero y esperar que funcione
+                console.warn('⚠️ Ningún horario tiene idHorario definido, usando el primero');
+                return horarios[0];
             }
-            
-            return nuevoHorario;
-            
+
+            console.log('⚠ No hay horarios disponibles.');
+            console.log('⚠ Para crear horarios, debe hacerse desde el panel de administración asignando horarios a estilistas.');
+            throw new Error('No hay horarios disponibles. Por favor, contacta al administrador para que configure los horarios de los estilistas.');
+
         } catch (error) {
             console.error('❌ Error al obtener/crear horario:', error);
             throw new Error('No se pudo obtener un horario válido. Contacta al administrador.');
