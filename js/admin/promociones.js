@@ -8,19 +8,11 @@ class PromocionesAdmin {
 
     async init() {
         try {
-            await this.checkAuth();
             this.setupEventListeners();
             await this.loadPromociones();
         } catch (error) {
             console.error('Error al inicializar:', error);
-            ErrorHandler.handle(error);
-        }
-    }
-
-    async checkAuth() {
-        const user = StateManager.getState('user');
-        if (!user || user.rol !== 'admin') {
-            window.location.href = '../login.html';
+            this.showNotification('Error al inicializar la aplicación', 'error');
         }
     }
 
@@ -48,14 +40,28 @@ class PromocionesAdmin {
         
         try {
             const response = await PromocionesService.getAll();
-            console.log('Respuesta de promociones:', response);
+            console.log('Respuesta completa de promociones:', response);
+            
             // La API devuelve {data: [...], message: "...", status: "success"}
-            this.promociones = response.data?.data || response.data || [];
+            // Probar ambas estructuras posibles
+            if (response.data) {
+                if (Array.isArray(response.data)) {
+                    this.promociones = response.data;
+                } else if (response.data.data && Array.isArray(response.data.data)) {
+                    this.promociones = response.data.data;
+                } else {
+                    this.promociones = [];
+                }
+            } else {
+                this.promociones = [];
+            }
+            
+            console.log('Promociones cargadas:', this.promociones.length);
             this.filteredPromociones = [...this.promociones];
             this.renderTable();
         } catch (error) {
             console.error('Error al cargar promociones:', error);
-            this.showNotification('Error al cargar promociones', 'error');
+            this.showNotification('Error al cargar promociones: ' + (error.message || 'Error desconocido'), 'error');
             this.promociones = [];
             this.filteredPromociones = [];
             this.renderTable();
@@ -224,7 +230,8 @@ class PromocionesAdmin {
         try {
             const response = await PromocionesService.delete(id);
             console.log('Respuesta delete:', response);
-            this.showNotification('Promoción eliminada correctamente', 'success');
+            const message = response?.data?.message || 'Promoción eliminada correctamente';
+            this.showNotification(message, 'success');
             await this.loadPromociones();
         } catch (error) {
             console.error('Error al eliminar promoción:', error);
@@ -257,14 +264,17 @@ class PromocionesAdmin {
         this.showLoader();
         
         try {
+            let response;
             if (promocionId) {
-                const response = await PromocionesService.update(promocionId, data);
+                response = await PromocionesService.update(promocionId, data);
                 console.log('Respuesta update:', response);
-                this.showNotification('Promoción actualizada correctamente', 'success');
+                const message = response?.data?.message || 'Promoción actualizada correctamente';
+                this.showNotification(message, 'success');
             } else {
-                const response = await PromocionesService.create(data);
+                response = await PromocionesService.create(data);
                 console.log('Respuesta create:', response);
-                this.showNotification('Promoción creada correctamente', 'success');
+                const message = response?.data?.message || 'Promoción creada correctamente';
+                this.showNotification(message, 'success');
             }
             
             closeModal();

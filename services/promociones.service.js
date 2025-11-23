@@ -8,8 +8,10 @@ const PromocionesService = {
     async getAll(params = {}) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PROMOCIONES.GET_ALL);
+            console.log('URL de petición:', url);
             const response = await httpService.get(url, params);
-            return response.data;
+            console.log('Respuesta HTTP completa:', response);
+            return response;
         } catch (error) {
             console.error('Error al obtener promociones:', error);
             throw error;
@@ -59,8 +61,11 @@ const PromocionesService = {
     async create(promocionData) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PROMOCIONES.CREATE);
+            console.log('URL de creación:', url);
+            console.log('Datos a enviar:', promocionData);
             const response = await httpService.post(url, promocionData);
-            return response.data;
+            console.log('Respuesta de creación:', response);
+            return response;
         } catch (error) {
             console.error('Error al crear promoción:', error);
             throw error;
@@ -97,8 +102,11 @@ const PromocionesService = {
                 API_CONFIG.ENDPOINTS.PROMOCIONES.UPDATE,
                 { id }
             );
+            console.log('URL de actualización:', url);
+            console.log('Datos a actualizar:', promocionData);
             const response = await httpService.put(url, promocionData);
-            return response.data;
+            console.log('Respuesta de actualización:', response);
+            return response;
         } catch (error) {
             console.error('Error al actualizar promoción:', error);
             throw error;
@@ -115,8 +123,10 @@ const PromocionesService = {
                 API_CONFIG.ENDPOINTS.PROMOCIONES.DELETE,
                 { id }
             );
+            console.log('URL de eliminación:', url);
             const response = await httpService.delete(url);
-            return response.data;
+            console.log('Respuesta de eliminación:', response);
+            return response;
         } catch (error) {
             console.error('Error al eliminar promoción:', error);
             throw error;
