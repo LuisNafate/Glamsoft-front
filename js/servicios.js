@@ -53,7 +53,7 @@ class ServiciosCliente {
 
         let serviciosFiltrados = this.servicios;
         if (this.categoriaActual !== 'todos') {
-            serviciosFiltrados = this.servicios.filter(s => 
+            serviciosFiltrados = this.servicios.filter(s =>
                 (s.categoria || '').toLowerCase().includes(this.categoriaActual.toLowerCase())
             );
         }

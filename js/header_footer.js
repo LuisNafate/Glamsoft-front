@@ -16,7 +16,7 @@ function loadHeaderFooter() {
             document.getElementById('footer-placeholder').appendChild(footerTemplate.content.cloneNode(true));
 
             initDropdowns();
-            initBellIcon(); 
+            initBellIcon();
         });
 }
 
