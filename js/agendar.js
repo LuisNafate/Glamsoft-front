@@ -412,8 +412,9 @@ async function cargarYConfigurarModal() {
             openCancelModal();
         });
 
-        modalForm.addEventListener('submit', function(e) {
+        modalForm.addEventListener('submit', async function(e) {
             e.preventDefault(); 
+            
             const formData = {
                 alergias: document.getElementById('pregunta-alergias').value,
                 condiciones: document.getElementById('pregunta-condiciones').value,
@@ -424,10 +425,71 @@ async function cargarYConfigurarModal() {
             
             closePreCitaModal();
             
-            // AQUÍ DECIDES SI MOSTRAR SUCCESS O REJECT
-            // Por defecto muestro success, pero puedes agregar lógica
-            openSuccessModal();  // O openRejectModal() según tu lógica
+            // Crear la cita en la API
+            await crearCitaEnAPI(formData);
         });
+        
+        // Función para crear cita en la API
+        async function crearCitaEnAPI(formData) {
+            try {
+                // Obtener usuario actual
+                const user = StateManager.get('user');
+                if (!user || !user.idCliente) {
+                    openErrorModal('Debes iniciar sesión para agendar una cita.');
+                    return;
+                }
+                
+                // Convertir hora de formato "9:00 AM" a "09:00:00"
+                let hora24 = selectedTime;
+                if (selectedTime.includes('AM') || selectedTime.includes('PM')) {
+                    const [time, period] = selectedTime.split(' ');
+                    let [hours, minutes] = time.split(':');
+                    hours = parseInt(hours);
+                    
+                    if (period === 'PM' && hours !== 12) {
+                        hours += 12;
+                    } else if (period === 'AM' && hours === 12) {
+                        hours = 0;
+                    }
+                    
+                    hora24 = `${String(hours).padStart(2, '0')}:${minutes}:00`;
+                }
+                
+                // Formatear fecha
+                const fechaFormateada = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+                
+                // Datos de la cita
+                const citaData = {
+                    idCliente: user.idCliente,
+                    idServicio: 1, // TODO: Obtener servicio seleccionado
+                    idEstilista: selectedStylist + 1, // selectedStylist es index 0-based
+                    fechaCita: fechaFormateada,
+                    horaCita: hora24,
+                    estadoCita: 'PENDIENTE'
+                };
+                
+                console.log('Creando cita:', citaData);
+                
+                const response = await CitasService.create(citaData);
+                console.log('Cita creada:', response);
+                
+                openSuccessModal();
+                
+                // Resetear selecciones
+                setTimeout(() => {
+                    selectedDate = null;
+                    selectedTime = null;
+                    selectedStylist = null;
+                    generateCalendar(currentMonth, currentYear);
+                    document.querySelector('.time-slot.selected')?.classList.remove('selected');
+                    document.querySelector('.stylist-card.selected')?.classList.remove('selected');
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error al crear cita:', error);
+                openErrorModal('No se pudo agendar la cita. Por favor intenta de nuevo.');
+            }
+        }
 
         document.querySelector('.btn-confirm').addEventListener('click', function() {
             
