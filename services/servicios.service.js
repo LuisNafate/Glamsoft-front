@@ -83,12 +83,13 @@ async getAll() {
      * @param {number|string} id - ID del servicio a actualizar
      * @param {Object} servicioData - Debe incluir todos los campos del servicio
      */
-    async update(servicioData) {
+ async update(id, servicioData) { 
         try {
             const url = API_CONFIG.buildUrl(
-                API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE, 
-                { id } // Pasamos el ID para que reemplace el :id en la URL
+                API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE,
+                { id } // Pasamos el ID para la URL
             );
+            // Cambiamos PATCH por PUT, que es lo que usa tu Java
             const response = await httpService.put(url, servicioData);
             return response.data;
         } catch (error) {

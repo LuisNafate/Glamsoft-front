@@ -21,7 +21,7 @@ const API_CONFIG = {
             GET_BY_CATEGORIA: '/servicios/categorias/:id',
             GET_NOMBRES: '/servicios/nombres',
             CREATE: '/servicios',
-            UPDATE: '/servicios',
+            UPDATE: '/servicios/:id',
             DELETE: '/servicios/:id'
         },
         
