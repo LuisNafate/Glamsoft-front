@@ -26,92 +26,84 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Login Logic
     if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); 
+   // Reemplaza el listener del submit en js/login.js con esto:
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            // Reset UI
-            if(msgDiv) msgDiv.style.display = 'none';
-            userInput.classList.remove('input-error');
-            passInput.classList.remove('input-error');
-            
-            // Loading State
-            const btnTextoOriginal = loginBtn.textContent;
-            loginBtn.disabled = true;
-            loginBtn.textContent = "Verificando...";
+        // Limpieza visual
+        if(msgDiv) msgDiv.style.display = 'none';
+        userInput.classList.remove('input-error');
+        passInput.classList.remove('input-error');
+        const btnTextoOriginal = loginBtn.textContent;
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Verificando...";
 
-            const valorUsuario = userInput.value.trim();
-            const password = passInput.value.trim();
+        const valorUsuario = userInput.value.trim();
+        const password = passInput.value.trim();
 
-            try {
-                let credenciales = {};
-                if (valorUsuario.includes('@')) {
-                    credenciales = { email: valorUsuario, password: password };
-                } else {
-                    credenciales = { telefono: valorUsuario, password: password };
-                }
-
-                const response = await AuthService.login(credenciales);
-                console.log("API Response:", response); // MIRA ESTO EN CONSOLA SI FALLA
-
-                if (response.status === 'success' || response.success || (response.data && response.data.token)) {
-                    
-                    const data = response.data || response;
-                    const token = data.token;
-                    const usuario = data.usuario || data.user;
-
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('auth_token', token);
-                    localStorage.setItem('user_data', JSON.stringify(usuario));
-                    
-                    // Guardar también en StateManager para que funcione con agendar.js
-                    if (typeof StateManager !== 'undefined') {
-                        StateManager.set('user', usuario);
-                        StateManager.set('isLoggedIn', true);
-                    }
-
-                    loginBtn.style.backgroundColor = '#4CAF50'; 
-                    loginBtn.textContent = "¡Éxito!";
-
-                    // --- DETECCIÓN DE ROL ---
-                    // Buscamos cualquier indicio del rol en el objeto
-                    const rol = usuario.rol || usuario.idRol || usuario.role;
-                    
-                    // Normalizamos a string minúscula para comparar fácil
-                    // '1', 1, 'Admin', 'ADMIN' -> todos pasan
-                    const rolStr = String(rol).toLowerCase();
-
-                    console.log("Rol detectado para redirección:", rolStr);
-
-                    setTimeout(() => {
-                        // Si es 1, 2, admin o estilista -> Dashboard
-                        if (rolStr === '1' || rolStr === '2' || rolStr.includes('admin') || rolStr.includes('estilista')) {
-                            window.location.href = 'admin/dashboard.html';
-                        } else {
-                           // window.location.href = '.html';
-                        }
-                    }, 800);
-
-                } else {
-                    throw new Error(response.message || 'Credenciales inválidas');
-                }
-
-            } catch (error) {
-                console.error("Login Error:", error);
-                loginBtn.disabled = false;
-                loginBtn.textContent = btnTextoOriginal;
-
-                let mensaje = "Error al iniciar sesión.";
-                if (error.response) {
-                    if (error.response.status === 404) mensaje = "Usuario no encontrado.";
-                    else if (error.response.status === 401) mensaje = "Contraseña incorrecta.";
-                    else if (error.response.data?.message) mensaje = error.response.data.message;
-                }
-
-                if(msgDiv) {
-                    msgDiv.textContent = mensaje;
-                    msgDiv.style.display = 'block';
-                }
+        try {
+            let credenciales = {};
+            if (valorUsuario.includes('@')) {
+                credenciales = { email: valorUsuario, password: password };
+            } else {
+                credenciales = { telefono: valorUsuario, password: password };
             }
-        });
+
+            const response = await AuthService.login(credenciales);
+            console.log("Respuesta API Cruda:", response);
+
+            // --- LÓGICA DE EXTRACCIÓN BLINDADA ---
+            // 1. Desempaquetamos la respuesta (a veces viene doblemente anidada)
+            const paquete1 = response.data || response;
+            const paquete2 = paquete1.data || paquete1; 
+            
+            // 2. Buscamos el usuario y token en cualquiera de los niveles
+            const usuario = paquete2.usuario || paquete2.user || paquete1.usuario;
+            const token = paquete2.token || paquete1.token;
+
+            if (usuario && token) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('auth_token', token);
+                localStorage.setItem('user_data', JSON.stringify(usuario));
+
+                loginBtn.style.backgroundColor = '#4CAF50'; 
+                loginBtn.textContent = "¡Éxito!";
+
+                // 3. DETECCIÓN DE ROL INTELIGENTE
+                const idRol = parseInt(usuario.idRol || usuario.id_rol || 0);
+                const nombreRol = String(usuario.rol || usuario.role || '').toUpperCase();
+
+                console.log(`Diagnóstico -> ID: ${idRol}, NOMBRE: ${nombreRol}`);
+
+                setTimeout(() => {
+                    // Es Admin si el ID es 1 o 2, O si el nombre dice 'ADMIN'/'ESTILISTA'
+                    if (idRol === 1 || idRol === 2 || nombreRol.includes('ADMIN') || nombreRol.includes('ESTILISTA')) {
+                        window.location.href = 'admin/dashboard.html';
+                    } else {
+                        window.location.href = 'inicio.html';
+                    }
+                }, 800);
+
+            } else {
+                throw new Error(paquete1.message || 'No se pudo iniciar sesión');
+            }
+
+        } catch (error) {
+            console.error("Error Login:", error);
+            loginBtn.disabled = false;
+            loginBtn.textContent = btnTextoOriginal;
+
+            let mensaje = "Error al iniciar sesión.";
+            if (error.response) {
+                if (error.response.status === 404) mensaje = "Usuario no encontrado.";
+                else if (error.response.status === 401) mensaje = "Contraseña incorrecta.";
+                else if (error.response.data?.message) mensaje = error.response.data.message;
+            }
+            if(msgDiv) {
+                msgDiv.textContent = mensaje;
+                msgDiv.style.display = 'block';
+            }
+        }
+    });
     }
 });

@@ -61,19 +61,19 @@ class HttpService {
      * Realiza una petición HTTP genérica
      */
     async request(url, options = {}) {
-        try {
-            // Configuración por defecto
-            let config = {
-                url,
-                method: options.method || 'GET',
-                headers: {
-                    ...this.config.DEFAULT_HEADERS,
-                    ...options.headers
-                },
-                body: options.body,
-                timeout: options.timeout || this.config.TIMEOUT
-            };
+        // Guardamos la configuración inicial para tener acceso a la URL en caso de error
+        let config = {
+            url,
+            method: options.method || 'GET',
+            headers: {
+                ...this.config.DEFAULT_HEADERS,
+                ...options.headers
+            },
+            body: options.body,
+            timeout: options.timeout || this.config.TIMEOUT
+        };
 
+        try {
             // Aplicar interceptores de petición
             config = await this.applyRequestInterceptors(config);
 
@@ -114,7 +114,8 @@ class HttpService {
                 statusText: response.statusText,
                 headers: response.headers,
                 data: data,
-                ok: response.ok
+                ok: response.ok,
+                url: config.url // ✅ AGREGADO: Guardamos la URL para identificar la petición
             };
 
             // Si la respuesta no es exitosa, lanzar error
@@ -133,12 +134,13 @@ class HttpService {
                 error.message = 'La petición ha excedido el tiempo de espera';
             }
 
-            // Manejar errores de red
+            // Manejar errores de red (donde no hay respuesta del servidor)
             if (!error.response) {
                 error.response = {
                     status: 0,
                     statusText: 'Error de red',
-                    data: { message: error.message }
+                    data: { message: error.message },
+                    url: config.url // ✅ AGREGADO: Guardamos la URL también aquí
                 };
             }
 
@@ -239,7 +241,7 @@ httpService.addRequestInterceptor(async (config) => {
     return config;
 });
 
-// Interceptor de respuesta exitosa: log en desarrollo
+// Interceptor de respuesta exitosa y errores
 httpService.addResponseInterceptor(
     async (response) => {
         console.log('✅ Respuesta exitosa:', response);
@@ -248,18 +250,27 @@ httpService.addResponseInterceptor(
     async (error) => {
         console.error('❌ Error en petición:', error);
         
-        // Si el error es 401 (no autorizado), limpiar sesión y redirigir a login
+        // Si el error es 401 (no autorizado)
         if (error.response && error.response.status === API_CONFIG.HTTP_STATUS.UNAUTHORIZED) {
-            localStorage.removeItem(API_CONFIG.AUTH.TOKEN_KEY);
-            localStorage.removeItem(API_CONFIG.AUTH.USER_KEY);
-            localStorage.setItem('isLoggedIn', 'false');
             
-            // Mostrar mensaje al usuario
-            console.warn('Sesión expirada. Por favor, inicia sesión nuevamente.');
+            // ✅ CORRECCIÓN CRÍTICA: Verificar si la petición era un Login
+            // Si es login, NO redirigimos (es solo contraseña incorrecta)
+            const isLoginRequest = error.response.url && (error.response.url.includes('/login') || error.response.url.includes('login'));
             
-            // Redirigir a login si no estamos ya ahí
-            if (!window.location.pathname.includes('login')) {
-                window.location.href = 'login.html';
+            if (!isLoginRequest) {
+                // Si NO es login (ej. expiró token en perfil), entonces sí limpiamos y sacamos al usuario
+                localStorage.removeItem(API_CONFIG.AUTH.TOKEN_KEY);
+                localStorage.removeItem(API_CONFIG.AUTH.USER_KEY);
+                localStorage.setItem('isLoggedIn', 'false');
+                
+                console.warn('Sesión expirada o token inválido. Redirigiendo a login...');
+                
+                // Redirigir a login si no estamos ya ahí
+                if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('inicio.html')) {
+                    window.location.href = 'login.html';
+                }
+            } else {
+                console.warn('Fallo de autenticación en login (Contraseña incorrecta). No se fuerza redirección.');
             }
         }
         

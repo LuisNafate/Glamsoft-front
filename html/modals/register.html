@@ -44,27 +44,29 @@
             <p class="switch-auth">¿Ya tienes una cuenta? <a href="#" id="showLogin">Iniciar sesión</a></p>
         </div>
 
-        <div id="loginView" style="display: none;">
-            <h2>Iniciar Sesión</h2>
-            <form id="modalLoginForm"> 
-                <div class="input-group">
-                    <label for="modal-login-input">Usuario</label>
-                    <input type="text" id="modal-login-input" placeholder="Correo o Teléfono" required>
-                </div>
-                <div class="input-group">
-                    <label for="modal-login-password">Contraseña</label>
-                    <div style="position: relative;">
-                        <input type="password" id="modal-login-password" placeholder="Contraseña" required style="width: 100%; padding-right: 40px;">
-                        <i class="fas fa-eye toggle-password" id="toggleModalLoginPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10; color: #333;"></i>
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit">ENTRAR</button>
-            </form>
-            
-            <div id="modalLoginMessage" style="display: none; color: #ff4444; margin-top: 10px; font-weight: bold;"></div>
-
-            <p class="switch-auth">¿No tienes cuenta? <a href="#" id="showRegister">Crear una cuenta</a></p>
+ <div id="loginView" style="display: none;">
+    <h2>Iniciar Sesión</h2>
+    
+    <form id="modalLoginForm"> 
+        <div class="input-group">
+            <label for="modal-login-input">Usuario</label>
+            <input type="text" id="modal-login-input" placeholder="Correo o Teléfono" required>
         </div>
+        <div class="input-group">
+            <label for="modal-login-password">Contraseña</label>
+            <div style="position: relative;">
+                <input type="password" id="modal-login-password" placeholder="Contraseña" required style="width: 100%; padding-right: 40px;">
+                <i class="fas fa-eye toggle-password" id="toggleModalLoginPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10; color: #333;"></i>
+            </div>
+        </div>
+        
+        <div id="modalLoginMessage" style="display: none; color: #ff4444; margin-top: 10px; font-weight: bold;"></div>
+
+        <button type="submit" class="btn-submit">ENTRAR</button>
+    </form>
+
+    <p class="switch-auth">¿No tienes cuenta? <a href="#" id="showRegister">Crear una cuenta</a></p>
+</div>
 
     </div>
 </div>
