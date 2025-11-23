@@ -2,6 +2,8 @@
 class CalendarioAdmin {
     constructor() {
         this.currentWeekStart = this.getMonday(new Date());
+        this.currentDate = new Date();
+        this.viewMode = 'week'; // 'day', 'week', 'month'
         this.citas = [];
         this.currentCita = null;
         this.init();
@@ -32,17 +34,42 @@ class CalendarioAdmin {
     }
 
     setupEventListeners() {
-        document.getElementById('prevWeek')?.addEventListener('click', () => {
-            this.changeWeek(-1);
+        // Navegación de período (semana/mes según vista)
+        document.getElementById('prevPeriod')?.addEventListener('click', () => {
+            this.changePeriod(-1);
         });
         
-        document.getElementById('nextWeek')?.addEventListener('click', () => {
-            this.changeWeek(1);
+        document.getElementById('nextPeriod')?.addEventListener('click', () => {
+            this.changePeriod(1);
         });
         
+        // Navegación de día
+        document.getElementById('prevDay')?.addEventListener('click', () => {
+            this.changeDay(-1);
+        });
+        
+        document.getElementById('nextDay')?.addEventListener('click', () => {
+            this.changeDay(1);
+        });
+        
+        // Botón "Hoy"
         document.getElementById('todayBtn')?.addEventListener('click', () => {
+            this.currentDate = new Date();
             this.currentWeekStart = this.getMonday(new Date());
             this.renderCalendar();
+        });
+        
+        // Cambio de vista
+        document.getElementById('viewDay')?.addEventListener('click', () => {
+            this.changeView('day');
+        });
+        
+        document.getElementById('viewWeek')?.addEventListener('click', () => {
+            this.changeView('week');
+        });
+        
+        document.getElementById('viewMonth')?.addEventListener('click', () => {
+            this.changeView('month');
         });
         
         document.getElementById('btnNuevaCita')?.addEventListener('click', () => {
@@ -58,6 +85,41 @@ class CalendarioAdmin {
             this.updateEstadoCita('cancelada');
         });
     }
+    
+    changeView(mode) {
+        this.viewMode = mode;
+        
+        // Actualizar botones activos
+        document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`view${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
+        
+        this.renderCalendar();
+    }
+    
+    changePeriod(direction) {
+        if (this.viewMode === 'week') {
+            const newDate = new Date(this.currentWeekStart);
+            newDate.setDate(newDate.getDate() + (direction * 7));
+            this.currentWeekStart = newDate;
+        } else if (this.viewMode === 'month') {
+            const newDate = new Date(this.currentDate);
+            newDate.setMonth(newDate.getMonth() + direction);
+            this.currentDate = newDate;
+            this.currentWeekStart = this.getMonday(newDate);
+        } else if (this.viewMode === 'day') {
+            this.changeDay(direction);
+            return;
+        }
+        this.renderCalendar();
+    }
+    
+    changeDay(direction) {
+        const newDate = new Date(this.currentDate);
+        newDate.setDate(newDate.getDate() + direction);
+        this.currentDate = newDate;
+        this.currentWeekStart = this.getMonday(newDate);
+        this.renderCalendar();
+    }
 
     getMonday(date) {
         const d = new Date(date);
@@ -66,27 +128,76 @@ class CalendarioAdmin {
         return new Date(d.setDate(diff));
     }
 
-    changeWeek(direction) {
-        const newDate = new Date(this.currentWeekStart);
-        newDate.setDate(newDate.getDate() + (direction * 7));
-        this.currentWeekStart = newDate;
-        this.renderCalendar();
-    }
-
-    async loadCitas() {
-        try {
-            const response = await CitasService.getAll();
-            console.log('loadCitas - Response:', response);
-            // Manejar estructura: {data: [...], message: "...", status: "success"}
-            this.citas = response.data?.data || response.data || [];
-            console.log('Citas cargadas:', this.citas.length);
-        } catch (error) {
-            console.error('Error al cargar citas:', error);
-            this.citas = [];
+    renderCalendar() {
+        if (this.viewMode === 'day') {
+            this.renderDayView();
+        } else if (this.viewMode === 'week') {
+            this.renderWeekView();
+        } else if (this.viewMode === 'month') {
+            this.renderMonthView();
         }
     }
-
-    renderCalendar() {
+    
+    renderDayView() {
+        // Actualizar título
+        const dateStr = this.currentDate.toLocaleDateString('es-ES', { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+        document.getElementById('calendarTitle').textContent = 
+            dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+        
+        // Renderizar grid para un solo día
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+        
+        const horas = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+        
+        let html = '<div class="calendar-header-cell">Hora</div>';
+        html += `<div class="calendar-header-cell">${this.currentDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' })}</div>`;
+        
+        const dateStr2 = this.formatDateForAPI(this.currentDate);
+        
+        horas.forEach(hora => {
+            html += `<div class="calendar-time-cell">${hora}</div>`;
+            
+            const citasDelSlot = this.citas.filter(cita => {
+                const citaFecha = Array.isArray(cita.fechaCita) 
+                    ? `${cita.fechaCita[0]}-${String(cita.fechaCita[1]).padStart(2, '0')}-${String(cita.fechaCita[2]).padStart(2, '0')}`
+                    : cita.fechaCita;
+                
+                const citaHora = Array.isArray(cita.horaCita)
+                    ? `${String(cita.horaCita[0]).padStart(2, '0')}:${String(cita.horaCita[1]).padStart(2, '0')}`
+                    : cita.horaCita;
+                
+                return citaFecha === dateStr2 && citaHora.startsWith(hora.substring(0, 2));
+            });
+            
+            html += `<div class="calendar-cell" data-date="${dateStr2}" data-hora="${hora}">`;
+            
+            citasDelSlot.forEach(cita => {
+                const estadoClass = (cita.estadoCita || cita.estado || 'pendiente').toLowerCase();
+                const clienteNombre = cita.cliente?.nombre || cita.cliente_nombre || 'Cliente';
+                const servicioNombre = cita.servicio?.nombre || cita.servicio_nombre || '';
+                const citaId = cita.idCita || cita.id;
+                
+                html += `
+                    <div class="appointment-card ${estadoClass}" onclick="calendarioAdmin.showCitaDetail(${citaId})">
+                        <div class="appointment-client">${clienteNombre}</div>
+                        <div class="appointment-service">${servicioNombre}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+        });
+        
+        grid.innerHTML = html;
+    }
+    
+    renderWeekView() {
         // Actualizar título
         const weekEnd = new Date(this.currentWeekStart);
         weekEnd.setDate(weekEnd.getDate() + 6);
@@ -160,6 +271,46 @@ class CalendarioAdmin {
         });
         
         grid.innerHTML = html;
+    }
+    
+    renderMonthView() {
+        const monthName = this.currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        document.getElementById('calendarTitle').textContent = 
+            monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        
+        // TODO: Implementar vista mensual (calendario estilo mes)
+        // Por ahora mostramos la semana actual del mes seleccionado
+        this.renderWeekView();
+    }
+
+    changeWeek(direction) {
+        const newDate = new Date(this.currentWeekStart);
+        newDate.setDate(newDate.getDate() + (direction * 7));
+        this.currentWeekStart = newDate;
+        this.renderCalendar();
+    }
+
+    async loadCitas() {
+        try {
+            const response = await CitasService.getAll();
+            console.log('loadCitas - Response:', response);
+            // Manejar estructura: {data: [...], message: "...", status: "success"}
+            this.citas = response.data?.data || response.data || [];
+            console.log('Citas cargadas:', this.citas.length);
+        } catch (error) {
+            console.error('Error al cargar citas:', error);
+            this.citas = [];
+        }
+    }
+
+    renderCalendar() {
+        if (this.viewMode === 'day') {
+            this.renderDayView();
+        } else if (this.viewMode === 'week') {
+            this.renderWeekView();
+        } else if (this.viewMode === 'month') {
+            this.renderMonthView();
+        }
     }
 
     formatShortDate(date) {

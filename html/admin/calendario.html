@@ -23,12 +23,15 @@
             padding: 20px;
             background: white;
             border-radius: 12px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .calendar-nav {
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .calendar-nav button {
@@ -40,12 +43,55 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-nav button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(83, 109, 254, 0.3);
         }
         
         .calendar-title {
             font-size: 24px;
             font-weight: 700;
             color: var(--admin-primary);
+            min-width: 300px;
+            text-align: center;
+        }
+        
+        .view-switcher {
+            display: flex;
+            gap: 5px;
+            background: #f0f0f0;
+            padding: 4px;
+            border-radius: 8px;
+        }
+        
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        
+        .view-btn.active {
+            background: var(--admin-accent);
+            color: white;
+        }
+        
+        .view-btn:hover:not(.active) {
+            background: rgba(83, 109, 254, 0.1);
+            color: var(--admin-accent);
+        }
+        
+        .calendar-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
         
         .calendar-grid {
@@ -172,11 +218,31 @@
             <!-- Navegación del Calendario -->
             <div class="calendar-header">
                 <div class="calendar-nav">
-                    <button id="prevWeek"><i class="fas fa-chevron-left"></i></button>
+                    <button id="prevPeriod" title="Período anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="prevDay" title="Día anterior" style="width: auto; padding: 0 15px;">
+                        <i class="fas fa-angle-left"></i> Día
+                    </button>
                     <h2 class="calendar-title" id="calendarTitle">Semana del 21 - 27 Nov 2025</h2>
-                    <button id="nextWeek"><i class="fas fa-chevron-right"></i></button>
+                    <button id="nextDay" title="Día siguiente" style="width: auto; padding: 0 15px;">
+                        Día <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button id="nextPeriod" title="Período siguiente">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-                <button class="btn btn-secondary" id="todayBtn">Hoy</button>
+                
+                <div class="calendar-actions">
+                    <div class="view-switcher">
+                        <button class="view-btn" id="viewDay">Día</button>
+                        <button class="view-btn active" id="viewWeek">Semana</button>
+                        <button class="view-btn" id="viewMonth">Mes</button>
+                    </div>
+                    <button class="btn btn-secondary" id="todayBtn">
+                        <i class="fas fa-calendar-day"></i> Hoy
+                    </button>
+                </div>
             </div>
             
             <!-- Grid del Calendario -->
