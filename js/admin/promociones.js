@@ -48,7 +48,9 @@ class PromocionesAdmin {
         
         try {
             const response = await PromocionesService.getAll();
-            this.promociones = response.data || [];
+            console.log('Respuesta de promociones:', response);
+            // La API devuelve {data: [...], message: "...", status: "success"}
+            this.promociones = response.data?.data || response.data || [];
             this.filteredPromociones = [...this.promociones];
             this.renderTable();
         } catch (error) {
@@ -67,7 +69,7 @@ class PromocionesAdmin {
         const estadoFilter = document.getElementById('filterEstado').value;
         
         this.filteredPromociones = this.promociones.filter(promo => {
-            const matchesSearch = promo.titulo.toLowerCase().includes(searchTerm) ||
+            const matchesSearch = (promo.nombre || '').toLowerCase().includes(searchTerm) ||
                                 (promo.descripcion || '').toLowerCase().includes(searchTerm);
             
             const estado = this.getEstadoPromocion(promo);
@@ -81,8 +83,22 @@ class PromocionesAdmin {
 
     getEstadoPromocion(promo) {
         const hoy = new Date();
-        const inicio = new Date(promo.fecha_inicio);
-        const fin = new Date(promo.fecha_fin);
+        
+        // La API devuelve fechas como [año, mes, día]
+        let inicio, fin;
+        if (Array.isArray(promo.fechaInicio)) {
+            const [year, month, day] = promo.fechaInicio;
+            inicio = new Date(year, month - 1, day);
+        } else {
+            inicio = new Date(promo.fechaInicio);
+        }
+        
+        if (Array.isArray(promo.fechaFin)) {
+            const [year, month, day] = promo.fechaFin;
+            fin = new Date(year, month - 1, day);
+        } else {
+            fin = new Date(promo.fechaFin);
+        }
         
         if (hoy < inicio) return 'proxima';
         if (hoy > fin) return 'expirada';
@@ -111,13 +127,15 @@ class PromocionesAdmin {
                 'expirada': 'Expirada'
             };
             
+            const descuento = promo.porcentajeDescuento || promo.descuento || 0;
+            
             return `
                 <tr>
-                    <td><strong>${promo.titulo}</strong></td>
-                    <td style="max-width: 300px;">${promo.descripcion}</td>
-                    <td><span class="discount-tag">${promo.descuento}%</span></td>
-                    <td>${this.formatFecha(promo.fecha_inicio)}</td>
-                    <td>${this.formatFecha(promo.fecha_fin)}</td>
+                    <td><strong>${promo.nombre || 'Sin título'}</strong></td>
+                    <td style="max-width: 300px;">${promo.descripcion || 'Descuento del ' + descuento + '%'}</td>
+                    <td><span class="discount-tag">${descuento}%</span></td>
+                    <td>${this.formatFecha(promo.fechaInicio)}</td>
+                    <td>${this.formatFecha(promo.fechaFin)}</td>
                     <td>
                         <span class="promo-badge ${estado}">
                             ${estadoText[estado]}
@@ -125,10 +143,10 @@ class PromocionesAdmin {
                     </td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-icon edit" onclick="promocionesAdmin.editPromocion(${promo.id})" title="Editar">
+                            <button class="btn-icon edit" onclick="promocionesAdmin.editPromocion(${promo.idPromocion})" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn-icon delete" onclick="promocionesAdmin.deletePromocion(${promo.id})" title="Eliminar">
+                            <button class="btn-icon delete" onclick="promocionesAdmin.deletePromocion(${promo.idPromocion})" title="Eliminar">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -139,6 +157,12 @@ class PromocionesAdmin {
     }
 
     formatFecha(fecha) {
+        // La API devuelve fechas como [año, mes, día]
+        if (Array.isArray(fecha)) {
+            const [year, month, day] = fecha;
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+        }
+        // Si viene como string o Date
         const date = new Date(fecha);
         return date.toLocaleDateString('es-ES', { 
             day: '2-digit', 
@@ -154,27 +178,37 @@ class PromocionesAdmin {
         
         if (promo) {
             modalTitle.textContent = 'Editar Promoción';
-            document.getElementById('promocionId').value = promo.id;
-            document.getElementById('tituloPromocion').value = promo.titulo;
-            document.getElementById('descripcionPromocion').value = promo.descripcion;
-            document.getElementById('descuentoPromocion').value = promo.descuento;
-            document.getElementById('codigoPromocion').value = promo.codigo || '';
-            document.getElementById('fechaInicio').value = promo.fecha_inicio;
-            document.getElementById('fechaFin').value = promo.fecha_fin;
-            document.getElementById('imagenPromocion').value = promo.imagen || '';
-            document.getElementById('activaPromocion').checked = promo.activa !== false;
+            document.getElementById('promocionId').value = promo.idPromocion;
+            document.getElementById('tituloPromocion').value = promo.nombre;
+            document.getElementById('tipoDescuento').value = 'PORCENTAJE';
+            document.getElementById('descuentoPromocion').value = promo.porcentajeDescuento || promo.descuento || '';
+            
+            // Convertir fecha de array a string YYYY-MM-DD
+            if (Array.isArray(promo.fechaInicio)) {
+                const [year, month, day] = promo.fechaInicio;
+                document.getElementById('fechaInicio').value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } else {
+                document.getElementById('fechaInicio').value = promo.fechaInicio;
+            }
+            
+            if (Array.isArray(promo.fechaFin)) {
+                const [year, month, day] = promo.fechaFin;
+                document.getElementById('fechaFin').value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } else {
+                document.getElementById('fechaFin').value = promo.fechaFin;
+            }
         } else {
             modalTitle.textContent = 'Nueva Promoción';
             form.reset();
             document.getElementById('promocionId').value = '';
-            document.getElementById('activaPromocion').checked = true;
+            document.getElementById('tipoDescuento').value = 'PORCENTAJE';
         }
         
         modal.classList.add('active');
     }
 
     editPromocion(id) {
-        const promo = this.promociones.find(p => p.id === id);
+        const promo = this.promociones.find(p => p.idPromocion === id);
         if (promo) {
             this.openModal(promo);
         }
@@ -203,18 +237,16 @@ class PromocionesAdmin {
         const promocionId = document.getElementById('promocionId').value;
         
         const data = {
-            titulo: document.getElementById('tituloPromocion').value,
-            descripcion: document.getElementById('descripcionPromocion').value,
-            descuento: parseInt(document.getElementById('descuentoPromocion').value),
-            codigo: document.getElementById('codigoPromocion').value,
-            fecha_inicio: document.getElementById('fechaInicio').value,
-            fecha_fin: document.getElementById('fechaFin').value,
-            imagen: document.getElementById('imagenPromocion').value,
-            activa: document.getElementById('activaPromocion').checked
+            nombrePromocion: document.getElementById('tituloPromocion').value,
+            tipoDescuento: document.getElementById('tipoDescuento').value,
+            descuento: parseFloat(document.getElementById('descuentoPromocion').value),
+            fechaInicio: document.getElementById('fechaInicio').value,
+            fechaFin: document.getElementById('fechaFin').value,
+            idServicio: null
         };
         
         // Validación
-        if (new Date(data.fecha_fin) < new Date(data.fecha_inicio)) {
+        if (new Date(data.fechaFin) < new Date(data.fechaInicio)) {
             this.showNotification('La fecha de fin debe ser posterior a la fecha de inicio', 'error');
             return;
         }

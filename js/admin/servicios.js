@@ -1,4 +1,4 @@
-// Gestión de Servicios Admin - CORREGIDO PARA API JAVA
+// Gestión de Servicios Admin - CONEXIÓN DEFINITIVA
 class ServiciosAdmin {
     constructor() {
         this.servicios = [];
@@ -13,18 +13,15 @@ class ServiciosAdmin {
             await this.loadServicios();
         } catch (error) {
             console.error('Error al inicializar:', error);
-            ErrorHandler.handle(error);
         }
     }
-
-    // Comentamos la auth temporalmente para probar
-    /* async checkAuth() { ... } */
 
     setupEventListeners() {
         document.getElementById('btnNuevoServicio')?.addEventListener('click', () => this.openModal());
         document.getElementById('searchInput')?.addEventListener('input', () => this.filterServicios());
         document.getElementById('filterCategoria')?.addEventListener('change', () => this.filterServicios());
-        
+
+        // PREVENIR RECARGA AL ENVIAR EL FORMULARIO
         document.getElementById('formServicio')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveServicio();
@@ -64,6 +61,7 @@ class ServiciosAdmin {
 
             this.filteredServicios = [...this.servicios];
             this.renderTable();
+
         } catch (error) {
             console.error('❌ Error al cargar servicios:', error);
             this.showNotification('Error al cargar servicios', 'error');
@@ -126,11 +124,11 @@ class ServiciosAdmin {
                 </td>
                 <td>
                     <div class="table-actions">
-                        <button class="btn-icon edit" onclick="serviciosAdmin.editServicio(${servicio.idServicio})" title="Editar">
-                            <i class="fas fa-edit"></i>
+                        <button class="btn-icon edit" onclick="serviciosAdmin.editServicio(${servicio.idServicio})" type="button">
+                            <i class="ph ph-pencil-simple"></i>
                         </button>
-                        <button class="btn-icon delete" onclick="serviciosAdmin.deleteServicio(${servicio.idServicio})" title="Eliminar">
-                            <i class="fas fa-trash"></i>
+                        <button class="btn-icon delete" onclick="serviciosAdmin.deleteServicio(${servicio.idServicio})" type="button">
+                            <i class="ph ph-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -138,16 +136,16 @@ class ServiciosAdmin {
         `).join('');
     }
 
-
     openModal(servicio = null) {
         const modal = document.getElementById('modalServicio');
         const modalTitle = document.getElementById('modalTitle');
         const form = document.getElementById('formServicio');
 
         if (servicio) {
+            // MODO EDICIÓN
             modalTitle.textContent = 'Editar Servicio';
             document.getElementById('servicioId').value = servicio.idServicio;
-            document.getElementById('nombreServicio').value = servicio.nombre;
+            document.getElementById('nombre').value = servicio.nombre;
 
             // Mapear nombre de categoría a ID para el select
             const categoriaMap = {
@@ -164,6 +162,7 @@ class ServiciosAdmin {
             document.getElementById('imagenServicio').value = '';
             document.getElementById('activoServicio').checked = servicio.activo;
         } else {
+            // MODO CREACIÓN
             modalTitle.textContent = 'Nuevo Servicio';
             form.reset();
             document.getElementById('servicioId').value = '';
@@ -174,16 +173,13 @@ class ServiciosAdmin {
     }
 
     editServicio(id) {
-        // Buscar por idServicio
         const servicio = this.servicios.find(s => s.idServicio === id);
-        if (servicio) {
-            this.openModal(servicio);
-        }
+        if (servicio) this.openModal(servicio);
     }
 
     async deleteServicio(id) {
         if (!confirm('¿Estás seguro de eliminar este servicio?')) return;
-        
+
         this.showLoader();
         try {
             await ServiciosService.delete(id);
@@ -202,7 +198,7 @@ class ServiciosAdmin {
 
         // Crear el objeto con los nombres que espera la API Java
         const data = {
-            nombreServicio: document.getElementById('nombreServicio').value,
+            nombreServicio: document.getElementById('nombre').value,
             idCategoria: parseInt(document.getElementById('categoriaServicio').value) || 1,
             descripcion: document.getElementById('descripcionServicio').value,
             precio: parseFloat(document.getElementById('precioServicio').value),
@@ -219,10 +215,10 @@ class ServiciosAdmin {
         try {
             if (servicioId) {
                 await ServiciosService.update(parseInt(servicioId), data);
-                this.showNotification('Servicio actualizado', 'success');
+                this.showNotification('Servicio actualizado correctamente', 'success');
             } else {
                 await ServiciosService.create(data);
-                this.showNotification('Servicio creado', 'success');
+                this.showNotification('Servicio creado exitosamente', 'success');
             }
 
             document.getElementById('modalServicio').classList.remove('active');
@@ -230,7 +226,8 @@ class ServiciosAdmin {
 
         } catch (error) {
             console.error('Error:', error);
-            this.showNotification('Error al guardar servicio', 'error');
+            const msg = error.response?.data?.message || 'Error al procesar la solicitud.';
+            this.showNotification(msg, 'error');
         } finally {
             this.hideLoader();
         }
@@ -244,6 +241,7 @@ class ServiciosAdmin {
             position: fixed; top: 20px; right: 20px; padding: 15px 20px;
             border-radius: 8px; background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
             color: white; z-index: 10000; animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
