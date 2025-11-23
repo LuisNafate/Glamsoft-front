@@ -143,6 +143,14 @@ const API_CONFIG = {
         EMPLEADOS: {
             GET_BY_ROL: '/empleados/rol/:id',
             GET_BY_ID: '/empleados/:id'
+        },
+
+        // Notificaciones
+        NOTIFICACIONES: {
+            GET_ALL: '/notificaciones',
+            GET_UNREAD: '/notificaciones/no-leidas',
+            MARK_AS_READ: '/notificaciones/:id/marcar-leida',
+            DELETE: '/notificaciones/:id'
         }
     },
     

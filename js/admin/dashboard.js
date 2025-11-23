@@ -4,39 +4,38 @@ class Dashboard {
         this.init();
     }
 
-   /* async init() {
+    async init() {
         try {
-            // Verificar autenticación
-            await this.checkAuth();
-            
+            // Verificar autenticación (comentado temporalmente para desarrollo)
+            // await this.checkAuth();
+
             // Cargar datos iniciales
             await this.loadAllData();
-            
+
             // Configurar actualizaciones periódicas
             this.setupAutoRefresh();
-            
+
         } catch (error) {
             console.error('Error al inicializar dashboard:', error);
-            ErrorHandler.handle(error);
+            // ErrorHandler.handle(error);
         }
     }
-*/
-  /*  async checkAuth() {
+
+    async checkAuth() {
         try {
             const user = StateManager.getState('user');
             if (!user || user.rol !== 'admin') {
                 window.location.href = '../login.html';
                 return;
             }
-            
+
             // Actualizar nombre del usuario
             document.getElementById('userName').textContent = user.nombre || 'Administrador';
-            
+
         } catch (error) {
             window.location.href = '../login.html';
         }
     }
-*/
     async loadAllData() {
         this.showLoader();
         
@@ -147,50 +146,41 @@ class Dashboard {
         const container = document.getElementById('activitiesContainer');
         if (!container) return;
 
-        // Crear actividades de ejemplo basadas en datos reales
-        const activities = this.generateActivities();
-        
-        if (activities.length === 0) {
+        try {
+            // Cargar notificaciones reales
+            const response = await NotificacionesService.getAll();
+            const notificaciones = response.data || [];
+
+            // Ordenar por fecha más reciente y tomar las últimas 5
+            const recentNotifications = notificaciones
+                .sort((a, b) => new Date(b.fecha_creacion || b.createdAt) - new Date(a.fecha_creacion || a.createdAt))
+                .slice(0, 5);
+
+            if (recentNotifications.length === 0) {
+                container.innerHTML = `
+                    <div class="activity-item">
+                        <div class="activity-text">No hay notificaciones recientes</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = recentNotifications.map(notif => `
+                <div class="activity-item">
+                    <div class="activity-time">${this.formatTime(new Date(notif.fecha_creacion || notif.createdAt))}</div>
+                    <div class="activity-text">${notif.mensaje || notif.titulo || 'Notificación'}</div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error al cargar notificaciones:', error);
             container.innerHTML = `
                 <div class="activity-item">
-                    <div class="activity-text">No hay actividades recientes</div>
+                    <div class="activity-text">No hay notificaciones recientes</div>
                 </div>
             `;
-            return;
         }
-
-        const html = activities.map(activity => `
-            <div class="activity-item">
-                <div class="activity-time">${activity.time}</div>
-                <div class="activity-text">${activity.text}</div>
-            </div>
-        `).join('');
-        
-        container.innerHTML = html;
-    }
-
-    generateActivities() {
-        const activities = [];
-        const now = new Date();
-        
-        // Simulación de actividades recientes
-        const templates = [
-            'Nueva cita agendada por {cliente}',
-            'Servicio {servicio} actualizado',
-            'Comentario nuevo de {cliente}',
-            'Promoción {promocion} activada',
-            'Estilista {estilista} agregado'
-        ];
-        
-        for (let i = 0; i < 5; i++) {
-            const time = new Date(now - (i * 3600000)); // Cada hora hacia atrás
-            activities.push({
-                time: this.formatTime(time),
-                text: templates[i] || 'Actividad registrada'
-            });
-        }
-        
-        return activities;
     }
 
     formatTime(date) {
