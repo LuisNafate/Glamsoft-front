@@ -3,13 +3,14 @@
 */
 .auth-menu-modal {
     display: none; /* Oculto por defecto */
-    position: absolute;
+    /* ✅ CAMBIO CRÍTICO: De absolute a fixed para que no se mueva al hacer scroll */
+    position: fixed;
     top: 70px; /* Ajusta esto según la altura de tu header */
     right: 20px; /* Ajusta esto para alinearlo con tu icono de usuario */
     background-color: #1a1a1a; /* Color oscuro como en tu imagen */
     border: 1px solid #cda45e; /* Borde dorado */
     border-radius: 4px;
-    z-index: 1001;
+    z-index: 2000; /* Por encima de todo */
     min-width: 180px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }

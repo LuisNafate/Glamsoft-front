@@ -16,8 +16,7 @@ function loadHeaderFooter() {
             document.getElementById('footer-placeholder').appendChild(footerTemplate.content.cloneNode(true));
 
             initDropdowns();
-            initBellIcon();
-            loadCategorias(); // Cargar categorías desde la API
+            initBellIcon(); 
         });
 }
 
@@ -30,54 +29,6 @@ function initDropdowns() {
         link.addEventListener('mouseleave', () => menu.classList.remove('visible'));
         dropdown.addEventListener('mouseleave', () => menu.classList.remove('visible'));
     });
-}
-
-// ================== Cargar Categorías desde la API ==================
-async function loadCategorias() {
-    try {
-        const categorias = await CategoriasService.getAll();
-        console.log('📂 Categorías recibidas:', categorias);
-
-        const categoriasMenu = document.getElementById('categorias-menu');
-        if (!categoriasMenu) return;
-
-        // Limpiar el menú actual
-        categoriasMenu.innerHTML = '';
-
-        // Renderizar categorías
-        if (categorias && categorias.length > 0) {
-            categorias.forEach(categoria => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-
-                // Usar el campo que devuelve la API (puede ser 'nombre' o 'nombreCategoria')
-                const nombreCategoria = categoria.nombre || categoria.nombreCategoria || 'Sin nombre';
-                a.textContent = nombreCategoria.toUpperCase();
-
-                // Redirigir a servicios con el ID de la categoría como parámetro
-                a.href = `servicios.html?categoria=${categoria.idCategoria || categoria.id}`;
-
-                li.appendChild(a);
-                categoriasMenu.appendChild(li);
-            });
-        } else {
-            // Si no hay categorías, mostrar un mensaje
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.textContent = 'No hay categorías disponibles';
-            a.href = '#';
-            a.style.color = '#999';
-            li.appendChild(a);
-            categoriasMenu.appendChild(li);
-        }
-    } catch (error) {
-        console.error('Error al cargar categorías:', error);
-        // En caso de error, dejar el menú con un mensaje de error
-        const categoriasMenu = document.getElementById('categorias-menu');
-        if (categoriasMenu) {
-            categoriasMenu.innerHTML = '<li><a href="#" style="color: #ff6b6b;">Error al cargar categorías</a></li>';
-        }
-    }
 }
 
 // ================== Modales Carga ==================
@@ -107,7 +58,6 @@ function loadModalProfileMenu() {
             modalPlaceholder.insertAdjacentHTML('beforeend', html);
             
             initProfileMenuEvents();
-            // ✅ NUEVO: Actualizar nombre del usuario
             updateUserProfileName();
 
             return fetch('modals/logout_confirm.html');
@@ -122,7 +72,6 @@ function loadModalProfileMenu() {
         });
 }
 
-// ✅ FUNCIÓN PARA MOSTRAR NOMBRE REAL EN MENÚ CLIENTE
 function updateUserProfileName() {
     try {
         const userData = localStorage.getItem('user_data');

@@ -10,6 +10,15 @@ class Dashboard {
             this.setupProfileMenu();
             await this.loadAllData();
             this.setupAutoRefresh();
+            
+            // ✅ NUEVO: Cerrar menú al hacer scroll
+            window.addEventListener('scroll', () => {
+                const menu = document.getElementById('profileMenuModal');
+                if (menu && menu.style.display === 'block') {
+                    menu.style.display = 'none';
+                }
+            });
+
         } catch (error) {
             console.error('Error al inicializar dashboard:', error);
         }
@@ -17,22 +26,18 @@ class Dashboard {
 
     async checkAuth() {
         try {
-            // Obtener datos del usuario
             const user = StateManager.getState('user') || JSON.parse(localStorage.getItem('user_data'));
             
-            // Verificación de rol (Opcional: descomentar para seguridad)
+            // Validación de rol
             // if (!user || (user.idRol !== 1 && user.idRol !== 2 && user.rol !== 'admin')) {
             //     window.location.href = '../login.html';
             // }
 
-            // ✅ ACTUALIZAR EL NOMBRE EN LA INTERFAZ
             const nombreReal = user ? user.nombre : 'Administrador';
             
-            // Poner nombre en el título "Bienvenido..."
             const headerName = document.getElementById('userName');
             if (headerName) headerName.textContent = nombreReal;
             
-            // Poner nombre en el menú desplegable
             const menuName = document.getElementById('menuUserName');
             if (menuName) menuName.textContent = nombreReal;
 
@@ -41,13 +46,11 @@ class Dashboard {
         }
     }
 
-    // Configura el menú desplegable del header
     setupProfileMenu() {
         const userIcon = document.getElementById('adminUserIcon');
         const profileMenu = document.getElementById('profileMenuModal');
         const logoutBtn = document.getElementById('headerLogoutBtn');
 
-        // Toggle del menú
         if (userIcon && profileMenu) {
             userIcon.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -59,7 +62,6 @@ class Dashboard {
             });
         }
 
-        // Cerrar al hacer clic fuera
         document.addEventListener('click', (e) => {
             if (profileMenu && profileMenu.style.display === 'block') {
                 if (!profileMenu.contains(e.target) && !userIcon.contains(e.target)) {
@@ -68,13 +70,12 @@ class Dashboard {
             }
         });
 
-        // Cerrar Sesión
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
                     await AuthService.logout();
-                    window.location.href = '../inicio.html';
+                    window.location.href = '../login.html';
                 }
             });
         }
@@ -99,7 +100,9 @@ class Dashboard {
         }
     }
 
-    // ... (El resto de funciones de carga de datos se mantienen igual) ...
+    // ... (Resto de métodos loadCitas, etc. sin cambios) ...
+    // Mantén el resto del archivo igual que el anterior.
+    
     async loadCitas() {
         try {
             const response = await CitasService.getAll();

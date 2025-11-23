@@ -2,17 +2,21 @@
 
 .profile-menu-modal {
     display: none; /* Oculto por defecto */
-    position: absolute;
+    /* ✅ Posición fija para que no se mueva al hacer scroll */
+    position: fixed;
     top: 60px; /* Ajusta esto según la altura de tu header */
     right: 20px; /* Ajusta esto para alinearlo con el icono de usuario */
     background-color: #1a1a1a; /* Fondo oscuro */
     color: #f0f0f0;
-    border-radius: 8px;
+    border: 1px; /* Bordes redondeados */
     width: 220px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-    z-index: 1001; /* Encima del contenido, pero no necesariamente de otros modales */
+    z-index: 2000; /* Aumentado para estar sobre todo */
     padding: 1.25rem;
     box-sizing: border-box;
+    
+    /* ✅ CAMBIO AQUÍ: Borde blanco de 2px */
+    border: 2px solid white;
 }
 
 .profile-menu-header {
@@ -20,7 +24,7 @@
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #333; /* Línea divisoria sutil */
+    border-bottom: 1px solid #333; /* Línea divisoria sutil interna */
 }
 
 .profile-menu-avatar {
@@ -35,6 +39,10 @@
     font-family: 'Lato', sans-serif;
     font-size: 1.1rem;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
 }
 
 .profile-menu-nav ul {
@@ -58,8 +66,9 @@
     font-size: 0.95rem;
     font-weight: 300;
     transition: color 0.2s ease;
+    display: block; /* Para mejor área de clic */
 }
 
 .profile-menu-nav a:hover {
-    color: #aaa; /* Un hover sutil */
+    color: #B8860B; /* Dorado al hover */
 }
