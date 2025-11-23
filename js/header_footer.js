@@ -91,14 +91,7 @@ function updateUserProfileName() {
     }
 }
 
-function loadModalAgendar() {
-    fetch('modals/agendar_servicios.html')
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById('modal-placeholder').insertAdjacentHTML('beforeend', html);
-            initAgendarModal();
-        });
-}
+// Removido: loadModalAgendar() - ya no se usa porque el botón AGENDAR redirige directamente a agendar.html
 
 // ================== LOGICA DE AUTH (LOGIN/REGISTRO) ==================
 function initializeModalEvents() {
@@ -340,22 +333,7 @@ function initLogoutModalEvents() {
     if (closeBtn) closeBtn.addEventListener('click', () => logoutModal.style.display = 'none');
 }
 
-function initAgendarModal() {
-    const modal = document.getElementById('agendarModal');
-    if (!modal) return;
-    const closeBtn = modal.querySelector('.close-btn-agendar');
-    const cancelBtn = modal.querySelector('.btn-agendar-cancel');
-    const form = modal.querySelector('#agendarForm');
-
-    const closeModal = () => modal.style.display = 'none';
-    closeBtn?.addEventListener('click', closeModal);
-    cancelBtn?.addEventListener('click', closeModal);
-    
-    form?.addEventListener('submit', e => {
-        e.preventDefault();
-        window.location.href = 'servicios.html';
-    });
-}
+// Removido: initAgendarModal() - ya no se usa
 
 function initBellIcon() {
     const bellIcon = document.querySelector('.fa-bell');
@@ -397,12 +375,7 @@ function toggleProfileMenu() {
 document.addEventListener('click', e => {
     const target = e.target;
 
-    if (target.closest('.btn-agendar')) {
-        e.preventDefault();
-        const modal = document.getElementById('agendarModal');
-        if (modal) modal.style.display = 'flex';
-        return;
-    }
+    // Removido: el botón .btn-agendar ahora redirige directamente a agendar.html
 
     const authTrigger = target.closest('.auth-trigger');
     if (authTrigger) {
@@ -429,7 +402,6 @@ document.addEventListener('click', e => {
 document.addEventListener('DOMContentLoaded', () => {
     loadHeaderFooter();
     loadModalNotificaciones();
-    loadModalAgendar();
     loadModalAuth();
     loadModalProfileMenu();
 });

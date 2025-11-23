@@ -4,7 +4,9 @@ let currentMonth = today.getMonth();
 let currentYear = today.getFullYear();
 let selectedDate = null;
 let selectedTime = null;
+let selectedService = null;
 let selectedStylist = null;
+let todosLosEstilistas = []; // Cache de todos los estilistas
 
 const months = [
     'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
@@ -51,9 +53,52 @@ function closeErrorModal() {
 
 // --- FUNCIONES DEL MODAL DE ÉXITO ---
 
-function openSuccessModal() {
+function openSuccessModal(citaData = {}) {
     const successModal = document.getElementById('success-modal');
     if (successModal) {
+        // Actualizar los datos del resumen en el modal
+        if (citaData.fecha) {
+            const fechaElement = document.getElementById('cita-fecha');
+            if (fechaElement) {
+                // Formatear fecha a formato legible (DD/MM/YYYY)
+                const [year, month, day] = citaData.fecha.split('-');
+                fechaElement.textContent = `${day}/${month}/${year}`;
+            }
+        }
+
+        if (citaData.hora) {
+            const horaElement = document.getElementById('cita-hora');
+            if (horaElement) {
+                // Convertir de formato 24h a 12h con AM/PM
+                const [hours, minutes] = citaData.hora.split(':');
+                const horaNum = parseInt(hours);
+                const hora12 = horaNum === 0 ? 12 : horaNum > 12 ? horaNum - 12 : horaNum;
+                const periodo = horaNum >= 12 ? 'PM' : 'AM';
+                horaElement.textContent = `${hora12}:${minutes} ${periodo}`;
+            }
+        }
+
+        if (citaData.estilista) {
+            const estilistaElement = document.getElementById('cita-estilista');
+            if (estilistaElement) {
+                estilistaElement.textContent = citaData.estilista;
+            }
+        }
+
+        if (citaData.servicio) {
+            const servicioElement = document.getElementById('cita-servicio');
+            if (servicioElement) {
+                servicioElement.textContent = citaData.servicio;
+            }
+        }
+
+        if (citaData.precio !== undefined && citaData.precio !== null) {
+            const precioElement = document.getElementById('cita-precio');
+            if (precioElement) {
+                precioElement.textContent = `$${Number(citaData.precio).toLocaleString('es-CO')}`;
+            }
+        }
+
         successModal.classList.add('visible');
     }
 }
@@ -180,20 +225,25 @@ function updateTimeSlots() {
 function resetSelections() {
     selectedDate = null;
     selectedTime = null;
+    selectedService = null;
     selectedStylist = null;
-    
+
     const now = new Date();
     currentMonth = now.getMonth();
     currentYear = now.getFullYear();
     generateCalendar(currentMonth, currentYear);
 
     document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
     document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
-    
+
     const modalForm = document.getElementById('pre-cita-form');
     if (modalForm) {
         modalForm.reset();
     }
+
+    // Recargar todos los estilistas
+    renderizarEstilistas(todosLosEstilistas);
 }
 
 // ================== CARGAR HORARIOS (TIME SLOTS) DESDE LA API ==================
@@ -306,6 +356,103 @@ async function loadTimeSlots() {
     }
 }
 
+// ================== CARGAR SERVICIOS DESDE LA API ==================
+let todosLosServicios = [];
+let serviciosOrdenados = [];
+let mostrandoTodosLosServicios = false;
+
+async function loadServicios() {
+    try {
+        console.log('🛍️ Cargando servicios desde la API...');
+        const response = await ServiciosService.getAll();
+        console.log('🛍️ Servicios recibidos:', response);
+
+        const servicios = response.data || response;
+        todosLosServicios = servicios;
+
+        if (servicios && servicios.length > 0) {
+            // Ordenar servicios por popularidad/valoración (asumiendo que hay un campo de rating o veces solicitado)
+            serviciosOrdenados = [...servicios].sort((a, b) => {
+                // Primero intentar ordenar por rating/valoración
+                const ratingA = a.rating || a.valoracion || a.vecesSolicitado || 0;
+                const ratingB = b.rating || b.valoracion || b.vecesSolicitado || 0;
+                return ratingB - ratingA;
+            });
+
+            // Mostrar solo los primeros 3
+            renderizarServicios(serviciosOrdenados.slice(0, 3));
+
+            // Mostrar botón "Mostrar más" si hay más de 3 servicios
+            const btnMostrarMas = document.getElementById('mostrar-mas-servicios');
+            if (btnMostrarMas && servicios.length > 3) {
+                btnMostrarMas.style.display = 'block';
+                btnMostrarMas.onclick = function() {
+                    if (!mostrandoTodosLosServicios) {
+                        renderizarServicios(serviciosOrdenados);
+                        btnMostrarMas.textContent = 'Mostrar menos';
+                        mostrandoTodosLosServicios = true;
+                    } else {
+                        renderizarServicios(serviciosOrdenados.slice(0, 3));
+                        btnMostrarMas.textContent = 'Mostrar más servicios';
+                        mostrandoTodosLosServicios = false;
+                    }
+                };
+            }
+        } else {
+            const servicesGrid = document.querySelector('.services-grid');
+            if (servicesGrid) {
+                servicesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No hay servicios disponibles</p>';
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar servicios:', error);
+        const servicesGrid = document.querySelector('.services-grid');
+        if (servicesGrid) {
+            servicesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ff6b6b;">Error al cargar servicios</p>';
+        }
+    }
+}
+
+function renderizarServicios(servicios) {
+    const servicesGrid = document.querySelector('.services-grid');
+    if (!servicesGrid) return;
+
+    servicesGrid.innerHTML = '';
+
+    servicios.forEach((servicio) => {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.dataset.idServicio = servicio.idServicio || servicio.id;
+
+        const precio = servicio.precio || 0;
+        const duracion = servicio.duracion || servicio.tiempoAproximado || '60 min';
+        const descripcion = servicio.descripcion || '';
+
+        card.innerHTML = `
+            <div class="service-name">${servicio.nombre || servicio.nombreServicio || 'Servicio'}</div>
+            ${descripcion ? `<div class="service-description">${descripcion}</div>` : ''}
+            <div class="service-price">$${Number(precio).toLocaleString('es-CO')}</div>
+            <div class="service-duration">${duracion}</div>
+        `;
+
+        // IMPORTANTE: Agregar evento de click para filtrar estilistas
+        card.addEventListener('click', async function() {
+            // Limpiar selección previa
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+
+            // Guardar servicio seleccionado
+            selectedService = this.dataset.idServicio;
+            console.log('🎯 Servicio seleccionado:', selectedService);
+
+            // Filtrar estilistas por servicio
+            await filtrarEstilistasPorServicio(selectedService);
+        });
+
+        servicesGrid.appendChild(card);
+    });
+}
+
 // ================== CARGAR ESTILISTAS DESDE LA API ==================
 async function loadEstilistas() {
     try {
@@ -316,49 +463,82 @@ async function loadEstilistas() {
         // Extraer el array de estilistas de la respuesta
         const estilistas = response.data || response;
 
-        const stylistsGrid = document.querySelector('.stylists-grid');
-        if (!stylistsGrid) return;
+        // Guardar en cache para filtrar después
+        todosLosEstilistas = estilistas;
 
-        // Limpiar la grid actual
-        stylistsGrid.innerHTML = '';
-
-        // Renderizar estilistas
-        if (estilistas && estilistas.length > 0) {
-            estilistas.forEach((estilista, index) => {
-                const card = document.createElement('div');
-                card.className = 'stylist-card';
-                card.dataset.idEstilista = estilista.idEstilista || estilista.idUsuario || index;
-
-                // Usar imagen del estilista o placeholder
-                const imagenUrl = estilista.urlImagen ||
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(estilista.nombre || 'Estilista')}&size=200&background=B8860B&color=fff`;
-
-                card.innerHTML = `
-                    <div class="stylist-image">
-                        <img src="${imagenUrl}" alt="${estilista.nombre || 'Estilista'}" onerror="this.src='https://ui-avatars.com/api/?name=E&size=200&background=B8860B&color=fff'">
-                    </div>
-                    <p class="stylist-name">${estilista.nombre || 'Sin nombre'}</p>
-                `;
-
-                // Agregar evento de click
-                card.addEventListener('click', function() {
-                    document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedStylist = this.dataset.idEstilista;
-                });
-
-                stylistsGrid.appendChild(card);
-            });
-        } else {
-            // Si no hay estilistas, mostrar mensaje
-            stylistsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No hay estilistas disponibles</p>';
-        }
+        renderizarEstilistas(estilistas);
     } catch (error) {
         console.error('Error al cargar estilistas:', error);
         const stylistsGrid = document.querySelector('.stylists-grid');
         if (stylistsGrid) {
             stylistsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ff6b6b;">Error al cargar estilistas</p>';
         }
+    }
+}
+
+// ================== RENDERIZAR ESTILISTAS ==================
+function renderizarEstilistas(estilistas) {
+    const stylistsGrid = document.querySelector('.stylists-grid');
+    if (!stylistsGrid) return;
+
+    // Limpiar la grid actual
+    stylistsGrid.innerHTML = '';
+
+    // Renderizar estilistas
+    if (estilistas && estilistas.length > 0) {
+        estilistas.forEach((estilista, index) => {
+            const card = document.createElement('div');
+            card.className = 'stylist-card';
+            card.dataset.idEstilista = estilista.idEstilista || estilista.idUsuario || index;
+
+            // Usar imagen del estilista o placeholder
+            const imagenUrl = estilista.urlImagen ||
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(estilista.nombre || 'Estilista')}&size=200&background=B8860B&color=fff`;
+
+            card.innerHTML = `
+                <div class="stylist-image">
+                    <img src="${imagenUrl}" alt="${estilista.nombre || 'Estilista'}" onerror="this.src='https://ui-avatars.com/api/?name=E&size=200&background=B8860B&color=fff'">
+                </div>
+                <p class="stylist-name">${estilista.nombre || 'Sin nombre'}</p>
+            `;
+
+            // Agregar evento de click
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedStylist = this.dataset.idEstilista;
+            });
+
+            stylistsGrid.appendChild(card);
+        });
+    } else {
+        // Si no hay estilistas, mostrar mensaje
+        stylistsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No hay estilistas disponibles para este servicio</p>';
+    }
+}
+
+// ================== FILTRAR ESTILISTAS POR SERVICIO ==================
+async function filtrarEstilistasPorServicio(idServicio) {
+    try {
+        console.log('🔍 Filtrando estilistas por servicio:', idServicio);
+
+        // Usar el endpoint de estilistas por servicio
+        const response = await EstilistasService.getByServicio(idServicio);
+        const estilistasFiltrados = response.data || response;
+
+        console.log('✅ Estilistas que ofrecen este servicio:', estilistasFiltrados);
+
+        // Limpiar selección actual de estilista
+        selectedStylist = null;
+
+        // Renderizar estilistas filtrados
+        renderizarEstilistas(estilistasFiltrados);
+
+    } catch (error) {
+        console.error('Error al filtrar estilistas:', error);
+        // Si no hay endpoint específico, filtrar localmente (fallback)
+        console.warn('Usando todos los estilistas como fallback');
+        renderizarEstilistas(todosLosEstilistas);
     }
 }
 
@@ -389,6 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarRejectModal();   // NUEVO
 
     loadTimeSlots(); // Cargar horarios desde la API
+    loadServicios(); // Cargar servicios disponibles
     loadEstilistas(); // Cargar estilistas desde la API
 
     generateCalendar(currentMonth, currentYear);
@@ -669,13 +850,11 @@ async function cargarYConfigurarModal() {
                 // Formatear fecha en formato YYYY-MM-DD
                 const fechaFormateada = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
 
-                // Obtener servicio seleccionado del localStorage
-                const servicioSeleccionado = localStorage.getItem('servicioSeleccionado');
-                const idServicio = servicioSeleccionado ? parseInt(servicioSeleccionado) : null;
+                // Usar el servicio seleccionado de la página
+                const idServicio = selectedService ? parseInt(selectedService) : null;
 
                 if (!idServicio) {
-                    openErrorModal('Por favor, selecciona un servicio primero desde la página de servicios.');
-                    setTimeout(() => window.location.href = 'servicios.html', 2000);
+                    openErrorModal('Por favor, selecciona un servicio.');
                     return;
                 }
 
@@ -716,16 +895,53 @@ async function cargarYConfigurarModal() {
                 const response = await CitasService.create(citaData);
                 console.log('✅ Cita creada exitosamente:', response);
 
-                openSuccessModal();
-                
+                // Obtener nombres del servicio y estilista para el resumen
+                let nombreServicio = 'Servicio';
+                let precioServicio = 0;
+                let nombreEstilista = 'Estilista';
+
+                try {
+                    // Obtener nombre y precio del servicio
+                    const servicioResponse = await ServiciosService.getById(idServicio);
+                    const servicio = servicioResponse.data || servicioResponse;
+                    nombreServicio = servicio.nombre || servicio.nombreServicio || 'Servicio';
+                    precioServicio = servicio.precio || 0;
+                } catch (error) {
+                    console.warn('No se pudo obtener el nombre del servicio:', error);
+                }
+
+                try {
+                    // Obtener nombre del estilista
+                    const estilistas = await EstilistasService.getAll();
+                    const estilistasArray = estilistas.data || estilistas;
+                    const estilista = estilistasArray.find(e =>
+                        (e.idEstilista || e.idUsuario) == selectedStylist
+                    );
+                    nombreEstilista = estilista?.nombre || 'Estilista';
+                } catch (error) {
+                    console.warn('No se pudo obtener el nombre del estilista:', error);
+                }
+
+                // Mostrar modal de éxito con resumen de la cita
+                openSuccessModal({
+                    fecha: fechaFormateada,
+                    hora: hora24,
+                    estilista: nombreEstilista,
+                    servicio: nombreServicio,
+                    precio: precioServicio
+                });
+
                 // Resetear selecciones
                 setTimeout(() => {
                     selectedDate = null;
                     selectedTime = null;
+                    selectedService = null;
                     selectedStylist = null;
                     generateCalendar(currentMonth, currentYear);
                     document.querySelector('.time-slot.selected')?.classList.remove('selected');
+                    document.querySelector('.service-card.selected')?.classList.remove('selected');
                     document.querySelector('.stylist-card.selected')?.classList.remove('selected');
+                    renderizarEstilistas(todosLosEstilistas);
                 }, 2000);
                 
             } catch (error) {
@@ -746,15 +962,16 @@ async function cargarYConfigurarModal() {
         }
 
         document.querySelector('.btn-confirm').addEventListener('click', function() {
-            
-            if (!selectedDate || !selectedTime || selectedStylist === null) {
+
+            if (!selectedDate || !selectedTime || !selectedService || selectedStylist === null) {
                 let errorMessage = 'Por favor, completa lo siguiente:';
                 if (!selectedDate) errorMessage += '\n- Selecciona una fecha';
                 if (!selectedTime) errorMessage += '\n- Selecciona un horario';
+                if (!selectedService) errorMessage += '\n- Selecciona un servicio';
                 if (selectedStylist === null) errorMessage += '\n- Selecciona un estilista';
-                
+
                 openErrorModal(errorMessage);
-                return; 
+                return;
             }
 
             const selectedDateObj = new Date(currentYear, currentMonth, selectedDate);

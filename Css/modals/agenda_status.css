@@ -42,8 +42,53 @@
     font-family: 'GFS Didot', serif;
     font-size: 28px;
     color: #FFFFFF;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     letter-spacing: 1px;
+}
+
+/* Resumen de la cita */
+.cita-resumen {
+    background: rgba(184, 146, 58, 0.1);
+    border: 1px solid #B8923A;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(184, 146, 58, 0.2);
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+}
+
+.resumen-label {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: #B8923A;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.resumen-valor {
+    font-family: 'Lato', sans-serif;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+.email-enviado-texto {
+    font-family: 'Lato', sans-serif;
+    color: #B8923A;
+    font-size: 14px;
+    margin-bottom: 25px;
+    font-style: italic;
 }
 
 .success-accept-btn {

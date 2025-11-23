@@ -45,15 +45,26 @@
 
             <!-- Time Slots -->
             <div class="time-slots">
-                <!-- Los horarios se cargarán dinámicamente desde la API -->
+                <!-- Los horarios se cargarán dinámicamente según disponibilidad -->
             </div>
+        </section>
+
+        <!-- Services Section -->
+        <section class="services-section">
+            <h3>Servicios</h3>
+            <div class="services-grid">
+                <!-- Los 3 servicios más populares se mostrarán aquí -->
+            </div>
+            <button id="mostrar-mas-servicios" class="btn-mostrar-mas" style="display: none;">
+                Mostrar más servicios
+            </button>
         </section>
 
         <!-- Stylists Section -->
         <section class="stylists-section">
             <h3>Estilistas</h3>
             <div class="stylists-grid">
-                <!-- Los estilistas se cargarán dinámicamente desde la API -->
+                <!-- Los estilistas se filtrarán según el servicio seleccionado -->
             </div>
         </section>
 
@@ -81,6 +92,7 @@
    <script src="../services/categorias.service.js"></script>
    <script src="../services/horarios.service.js"></script>
    <script src="../services/estilistas.service.js"></script>
+   <script src="../services/servicios.service.js"></script>
    <script src="../services/citas.service.js"></script>
    <script src="../utils/state-manager.js"></script>
    <script src="../js/header_footer.js"></script>
