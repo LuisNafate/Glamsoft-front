@@ -48,7 +48,7 @@
         .quick-action-icon {
             width: 60px;
             height: 60px;
-            background: var(--admin-accent);
+            background: black;
             color: white;
             border-radius: 50%;
             display: flex;
@@ -128,44 +128,44 @@
                             <div class="stat-value" id="totalCitas">0</div>
                             <div class="stat-label">Citas Hoy</div>
                         </div>
-                        <div class="stat-icon blue">
-                            <i class="fas fa-calendar-check"></i>
+                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
+                            <i class="ph ph-calendar-check"></i>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="citasPendientes">0</div>
                             <div class="stat-label">Pendientes</div>
                         </div>
-                        <div class="stat-icon orange">
-                            <i class="fas fa-clock"></i>
+                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
+                            <i class="ph ph-clock"></i>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="totalServicios">0</div>
                             <div class="stat-label">Servicios Activos</div>
                         </div>
-                        <div class="stat-icon green">
-                            <i class="fas fa-concierge-bell"></i>
+                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
+                            <i class="ph ph-scissors"></i>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="totalEstilistas">0</div>
                             <div class="stat-label">Estilistas</div>
                         </div>
-                        <div class="stat-icon red">
-                            <i class="fas fa-users"></i>
+                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
+                            <i class="ph ph-users-three"></i>
                         </div>
                     </div>
                 </div>
@@ -184,23 +184,23 @@
                         </div>
                         <div class="quick-action-title">Nuevo Servicio</div>
                     </div>
-                    
+
                     <div class="quick-action-card" onclick="window.location.href='estilistas.html'">
-                        <div class="quick-action-icon" style="background: var(--admin-success)">
+                        <div class="quick-action-icon">
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <div class="quick-action-title">Agregar Estilista</div>
                     </div>
-                    
+
                     <div class="quick-action-card" onclick="window.location.href='promociones.html'">
-                        <div class="quick-action-icon" style="background: var(--admin-warning)">
+                        <div class="quick-action-icon">
                             <i class="fas fa-tag"></i>
                         </div>
                         <div class="quick-action-title">Nueva Promoción</div>
                     </div>
-                    
+
                     <div class="quick-action-card" onclick="window.location.href='calendario.html'">
-                        <div class="quick-action-icon" style="background: var(--admin-danger)">
+                        <div class="quick-action-icon">
                             <i class="fas fa-calendar-plus"></i>
                         </div>
                         <div class="quick-action-title">Agendar Cita</div>
@@ -232,6 +232,7 @@
     <script src="../../services/citas.service.js"></script>
     <script src="../../services/servicios.service.js"></script>
     <script src="../../services/estilistas.service.js"></script>
+    <script src="../../services/notificaciones.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
     <script src="../../js/admin/dashboard.js"></script>

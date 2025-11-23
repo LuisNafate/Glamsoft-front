@@ -219,7 +219,7 @@ class ServiciosAdmin {
 
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = admin-notification ${type};
+        notification.className = admin-notification ;{type};
         notification.textContent = message;
         notification.style.cssText = `
             position: fixed; top: 20px; right: 20px; padding: 15px 20px;
