@@ -14,7 +14,6 @@ async getAll() {
             throw error;
         }
     },
-
     /**
      * Obtener servicio por ID
      * @param {number|string} id 
@@ -69,7 +68,7 @@ async getAll() {
      * Crear nuevo servicio
      * @param {Object} servicioData - Ver JSON ejemplo en documentación
      */
-  async create(servicioData) {
+    async create(servicioData) {
         try {
             const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.SERVICIOS.CREATE);
             const response = await httpService.post(url, servicioData);
@@ -79,13 +78,12 @@ async getAll() {
             throw error;
         }
     },
-
     /**
      * Actualizar servicio
      * @param {number|string} id - ID del servicio a actualizar
      * @param {Object} servicioData - Debe incluir todos los campos del servicio
      */
-async update(id, servicioData) {
+    async update(servicioData) {
         try {
             const url = API_CONFIG.buildUrl(
                 API_CONFIG.ENDPOINTS.SERVICIOS.UPDATE, 
@@ -98,12 +96,11 @@ async update(id, servicioData) {
             throw error;
         }
     },
-
     /**
      * Eliminar servicio
      * @param {number|string} id 
      */
-    async delete(id) {
+  async delete(id) {
         try {
             const url = API_CONFIG.buildUrl(
                 API_CONFIG.ENDPOINTS.SERVICIOS.DELETE,

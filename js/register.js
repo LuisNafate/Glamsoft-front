@@ -1,17 +1,16 @@
+// js/register.js
+
 document.addEventListener('DOMContentLoaded', async () => {
     const modalPlaceholder = document.getElementById('modal-placeholder');
     let isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-    // 1️⃣ Cargar modal dinámicamente
+    // 1. Cargar el modal
     try {
         const response = await fetch("modals/register.html");
         const html = await response.text();
         modalPlaceholder.innerHTML = html;
-
-        // 2️⃣ Inicializar eventos del modal
+        
         initializeModalEvents();
-
-        // 3️⃣ Inicializar triggers que abren el modal
         attachAuthTriggers();
     } catch (err) {
         console.error('Error al cargar el modal:', err);
@@ -19,111 +18,104 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function initializeModalEvents() {
         const modal = document.getElementById('authModal');
-        if (!modal) return console.error('Modal no encontrado en el DOM');
+        if (!modal) return;
 
-        const closeBtn = modal.querySelector('.close-btn');
+        // Referencias
+        const closeBtn = modal.querySelector('.close-btn-auth');
         const showLoginBtn = document.getElementById('showLogin');
         const showRegisterBtn = document.getElementById('showRegister');
         const registerView = document.getElementById('registerView');
         const loginView = document.getElementById('loginView');
-        const loginForm = document.getElementById('loginForm');
+        
+        // Formularios
         const registerForm = document.getElementById('registerForm');
-        const userButton = document.getElementById('userButton');
-
-        // Abrir modal al hacer clic en el icono de usuario
-        if (userButton) {
-            userButton.addEventListener('click', e => {
-                e.preventDefault();
-                modal.style.display = 'flex';
-            });
-        }
+        const modalLoginForm = document.getElementById('modalLoginForm');
 
         // Cerrar modal
-        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        closeBtn?.addEventListener('click', () => modal.style.display = 'none');
         window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
 
-        // Alternar vistas login/registro
-        showLoginBtn.addEventListener('click', e => {
+        // Cambiar entre Login y Registro
+        showLoginBtn?.addEventListener('click', e => {
             e.preventDefault();
             registerView.style.display = 'none';
             loginView.style.display = 'block';
         });
-        showRegisterBtn.addEventListener('click', e => {
+        showRegisterBtn?.addEventListener('click', e => {
             e.preventDefault();
             loginView.style.display = 'none';
             registerView.style.display = 'block';
         });
 
-        // Registro con API
-        registerForm.addEventListener('submit', async e => {
+        // ==========================================
+        // LÓGICA DE REGISTRO (CORREGIDA)
+        // ==========================================
+        registerForm?.addEventListener('submit', async e => {
             e.preventDefault();
-            const email = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-password').value;
+
+            // Construimos el objeto EXACTO que pide tu Backend
+            const userData = {
+                nombre: document.getElementById('reg-nombre').value,
+                email: document.getElementById('reg-email').value,
+                telefono: document.getElementById('reg-telefono').value,
+                password: document.getElementById('reg-password').value,
+                idRol: 3,    // 3 = Cliente (Según tu script SQL)
+                activo: true // Obligatorio según tu modelo
+            };
+
+            console.log("Enviando datos de registro:", userData); // Para depurar
 
             try {
-                const response = await AuthService.register({ 
-                    email, 
-                    password, 
-                    idRol: 3 // Rol de cliente por defecto
-                });
+                const response = await AuthService.register(userData);
 
-                if (response.success) {
+                if (response.status === 'success' || response.success) {
                     alert('¡Cuenta creada con éxito! Por favor, inicia sesión.');
                     registerView.style.display = 'none';
                     loginView.style.display = 'block';
                     registerForm.reset();
                 } else {
-                    alert('Error al crear cuenta: ' + (response.message || 'Intenta de nuevo'));
+                    alert('Error: ' + (response.message || 'No se pudo registrar'));
                 }
             } catch (error) {
                 console.error('Error en registro:', error);
-                alert('Error al crear cuenta. Verifica tus datos.');
+                // Mostrar mensaje detallado si el backend lo envía
+                const msg = error.response && error.response.data ? error.response.data.message : 'Error al crear cuenta. Verifica tus datos.';
+                alert(msg);
             }
         });
 
-        // Login con API
-        loginForm.addEventListener('submit', async e => {
+        // ==========================================
+        // LÓGICA DE LOGIN EN MODAL (CORREGIDA)
+        // ==========================================
+        modalLoginForm?.addEventListener('submit', async e => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+            
+            const telefono = document.getElementById('modal-login-telefono').value;
+            const password = document.getElementById('modal-login-password').value;
 
             try {
-                const response = await AuthService.login({ email, password });
+                // Usamos teléfono porque el backend así lo requiere
+                const response = await AuthService.login({ telefono, password });
 
-                if (response.success) {
-                    isUserLoggedIn = true;
+                if (response.status === 'success' || response.success) {
+                    const token = response.data ? response.data.token : response.token;
+                    const usuario = response.data ? response.data.usuario : response.usuario;
+
                     localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('auth_token', response.token);
-                    localStorage.setItem('user_data', JSON.stringify({
-                        userId: response.userID,
-                        email: email,
-                        idRol: response.idRol || response.rol || 3
-                    }));
+                    localStorage.setItem('auth_token', token);
+                    localStorage.setItem('user_data', JSON.stringify(usuario));
 
                     modal.style.display = 'none';
+                    alert(`¡Bienvenido ${usuario.nombre}!`);
                     
-                    // Redirigir según el rol
-                    const userRole = response.idRol || response.rol;
-                    const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
-                    
-                    if (redirectUrl) {
-                        window.location.href = redirectUrl;
-                        sessionStorage.removeItem('redirectAfterAuth');
-                    } else {
-                        // Rol 1 o 2 (Admin/Empleado) → Panel admin
-                        if (userRole === 1 || userRole === '1' || userRole === 2 || userRole === '2') {
-                            window.location.href = 'admin/dashboard.html';
-                        } else {
-                            alert('¡Autenticación exitosa!');
-                            location.reload();
-                        }
-                    }
+                    // Recargar para actualizar la UI
+                    window.location.reload();
                 } else {
-                    alert('Error: ' + (response.message || 'Credenciales incorrectas'));
+                    alert('Credenciales incorrectas');
                 }
             } catch (error) {
-                console.error('Error en login:', error);
-                alert('Error al iniciar sesión. Verifica tus credenciales.');
+                console.error('Error login:', error);
+                alert('Error de conexión o datos incorrectos');
             }
         });
     }
@@ -132,16 +124,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('.auth-trigger').forEach(trigger => {
             trigger.addEventListener('click', e => {
                 e.preventDefault();
-                const targetUrl = trigger.getAttribute('data-target');
                 const modal = document.getElementById('authModal');
-                if (!modal) return; // Aquí ya no mostrará error porque modal ya debe existir
-
-                if (isUserLoggedIn) {
-                    window.location.href = targetUrl;
-                } else {
-                    modal.style.display = 'flex';
-                    sessionStorage.setItem('redirectAfterAuth', targetUrl);
-                }
+                if (modal) modal.style.display = 'flex';
             });
         });
     }

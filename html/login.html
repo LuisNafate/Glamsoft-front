@@ -12,22 +12,16 @@
             <h2>Ingresar</h2>
             <form id="loginForm">
                 <div class="input-group">
-                    <input type="email" id="login-email" placeholder="Correo electrónico" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="login-password" placeholder="Contraseña" required>
-                </div>
-                <button type="submit" class="login-btn">Entrar</button>
+    <input type="tel" id="login-telefono" placeholder="Teléfono" required>
+</div>
+<div class="input-group">
+    <input type="password" id="login-password" placeholder="Contraseña" required>
+    <i class="fas fa-eye toggle-password" id="toggleLoginPass"></i>
+</div>
+                <button type="submit" class="login-btn">sal</button>
             </form>
             <div id="message" class="message"></div>
         </div>
     </div>
-    
-    <!-- Scripts necesarios -->
-    <script src="../config/api.config.js"></script>
-    <script src="../services/http.service.js"></script>
-    <script src="../services/auth.service.js"></script>
-    <script src="../utils/error-handler.js"></script>
-    <script src="../js/login.js"></script>
-</body>
+    </body>
 </html>

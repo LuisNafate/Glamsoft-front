@@ -1,4 +1,4 @@
-// Gestión de Servicios Admin - CONEXIÓN DEFINITIVA
+// Gestión de Servicios Admin - VERSIÓN FINAL CONECTADA
 class ServiciosAdmin {
     constructor() {
         this.servicios = [];
@@ -21,27 +21,25 @@ class ServiciosAdmin {
         document.getElementById('searchInput')?.addEventListener('input', () => this.filterServicios());
         document.getElementById('filterCategoria')?.addEventListener('change', () => this.filterServicios());
         
-        // PREVENIR RECARGA AL ENVIAR EL FORMULARIO
+        // IMPORTANTE: Prevenir recarga del formulario
         document.getElementById('formServicio')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveServicio();
         });
     }
 
+    // --- LECTURA (GET) ---
     async loadServicios() {
         this.showLoader();
         try {
-            // Petición GET: Devuelve DTOs (nombre, duracion, etc.)
             const response = await ServiciosService.getAll();
-            
-            // Tu API devuelve { status: "success", data: [...] }
+            // Tu API devuelve un DTO: { idServicio, nombre, descripcion, precio, duracion, categoria... }
             this.servicios = response.data || [];
             this.filteredServicios = [...this.servicios];
             this.renderTable();
-            
         } catch (error) {
-            console.error('Error al cargar:', error);
-            // this.showNotification('Error al cargar servicios', 'error');
+            console.error('Error:', error);
+            this.showNotification('Error al cargar servicios', 'error');
         } finally {
             this.hideLoader();
         }
@@ -52,15 +50,15 @@ class ServiciosAdmin {
         const categoriaFilter = document.getElementById('filterCategoria').value;
         
         this.filteredServicios = this.servicios.filter(servicio => {
-            // LEER: Usamos nombres del DTO (que viene del GET)
-            const nombre = servicio.nombre || ''; 
+            // DTO usa 'nombre'
+            const nombre = servicio.nombre || '';
             const descripcion = servicio.descripcion || '';
-            const categoria = servicio.categoria || ''; 
+            // DTO usa 'categoria' (el nombre, ej: "Corte")
+            const categoria = servicio.categoria || '';
             
             const matchesSearch = nombre.toLowerCase().includes(searchTerm) ||
                                 descripcion.toLowerCase().includes(searchTerm);
             
-            // Filtro de categoría (por texto porque el DTO trae el nombre)
             const matchesCategoria = !categoriaFilter || categoria.includes(categoriaFilter);
             
             return matchesSearch && matchesCategoria;
@@ -86,7 +84,7 @@ class ServiciosAdmin {
         tbody.innerHTML = this.filteredServicios.map(servicio => `
             <tr>
                 <td>
-                    <div class="service-image" style="background: #ecf0f1; display: flex; align-items: center; justify-content: center;">
+                   <div class="service-image" style="background: #ecf0f1; display: flex; align-items: center; justify-content: center;">
                         <i class="ph ph-scissors" style="font-size: 24px; color: #bdc3c7;"></i>
                     </div>
                 </td>
@@ -101,10 +99,10 @@ class ServiciosAdmin {
                 </td>
                 <td>
                     <div class="table-actions">
-                        <button class="btn-icon edit" onclick="serviciosAdmin.editServicio(${servicio.idServicio})" type="button">
+                        <button class="btn-icon edit" type="button" onclick="serviciosAdmin.editServicio(${servicio.idServicio})">
                             <i class="ph ph-pencil-simple"></i>
                         </button>
-                        <button class="btn-icon delete" onclick="serviciosAdmin.deleteServicio(${servicio.idServicio})" type="button">
+                        <button class="btn-icon delete" type="button" onclick="serviciosAdmin.deleteServicio(${servicio.idServicio})">
                             <i class="ph ph-trash"></i>
                         </button>
                     </div>
@@ -113,29 +111,27 @@ class ServiciosAdmin {
         `).join('');
     }
 
+    // --- EDICIÓN (Mapeo DTO -> Formulario) ---
     openModal(servicio = null) {
         const modal = document.getElementById('modalServicio');
         const modalTitle = document.getElementById('modalTitle');
         const form = document.getElementById('formServicio');
         
         if (servicio) {
-            // MODO EDICIÓN
             modalTitle.textContent = 'Editar Servicio';
-            
-            // Llenar inputs (HTML) con datos del DTO
             document.getElementById('servicioId').value = servicio.idServicio;
-            document.getElementById('nombreServicio').value = servicio.nombre;
+            
+            // Mapeamos DTO (Lectura) a Inputs
+            document.getElementById('nombreServicio').value = servicio.nombre; // DTO: nombre
             document.getElementById('descripcionServicio').value = servicio.descripcion || '';
             document.getElementById('precioServicio').value = servicio.precio;
-            document.getElementById('duracionServicio').value = servicio.duracion;
+            document.getElementById('duracionServicio').value = servicio.duracion; // DTO: duracion
+            
+            // NOTA: El select de categoría quedará vacío si no coincide el valor (ID vs Nombre)
+            // El usuario debe volver a seleccionar la categoría al editar.
+            
             document.getElementById('activoServicio').checked = servicio.activo;
-            
-            // Nota: El select de categoría podría no seleccionarse automáticamente 
-            // si el DTO solo trae el nombre ("Corte") y el select espera ID ("1").
-            // El usuario tendrá que volver a seleccionarla al editar.
-            
         } else {
-            // MODO CREACIÓN
             modalTitle.textContent = 'Nuevo Servicio';
             form.reset();
             document.getElementById('servicioId').value = '';
@@ -166,11 +162,11 @@ class ServiciosAdmin {
         }
     }
 
-    // --- ESTA ES LA PARTE CLAVE QUE PEDISTE ---
+    // --- GUARDADO (POST/PUT - Aquí ocurre la TRADUCCIÓN CLAVE) ---
     async saveServicio() {
         const servicioId = document.getElementById('servicioId').value;
         
-        // 1. Obtener valores del formulario
+        // 1. Recoger datos del HTML
         const nombreInput = document.getElementById('nombreServicio').value;
         const categoriaInput = document.getElementById('categoriaServicio').value;
         const precioInput = document.getElementById('precioServicio').value;
@@ -179,38 +175,43 @@ class ServiciosAdmin {
         const imagenInput = document.getElementById('imagenServicio').value;
         const activoInput = document.getElementById('activoServicio').checked;
 
-        // 2. Construir el objeto JSON EXACTO como lo mostraste
+        // Validación simple
+        if (!nombreInput || !precioInput || !duracionInput) {
+            this.showNotification('Completa los campos obligatorios', 'error');
+            return;
+        }
+
+        // 2. TRADUCCIÓN: Convertir al formato EXACTO que exige Java (Servicio.java)
         const data = {
-            imagenURL: imagenInput || "", // Cadena vacía si no hay imagen
-            nombreServicio: nombreInput,
-            duracionMinutos: parseInt(duracionInput), // Entero
-            precio: parseFloat(precioInput),          // Decimal
+            nombreServicio: nombreInput,                  // Java: nombreServicio
+            duracionMinutos: parseInt(duracionInput),     // Java: duracionMinutos (int)
+            idCategoria: parseInt(categoriaInput) || 1,   // Java: idCategoria (int)
+            precio: parseFloat(precioInput),              // Java: precio (double)
             descripcion: descripcionInput,
-            idCategoria: parseInt(categoriaInput) || 1, // Entero (Default 1 si falla)
-            idFormulario: null,                       // Nulo explícito
-            activo: activoInput                       // Booleano
+            imagenURL: imagenInput || "",                 // Java: imagenURL
+            idFormulario: null,                           // Java: idFormulario
+            activo: activoInput                           // Java: activo
         };
         
         this.showLoader();
         
         try {
             if (servicioId) {
-                // UPDATE (PUT)
+                // EDITAR
                 await ServiciosService.update(parseInt(servicioId), data);
-                this.showNotification('Servicio actualizado correctamente', 'success');
+                this.showNotification('Servicio actualizado', 'success');
             } else {
-                // CREATE (POST)
+                // CREAR
                 await ServiciosService.create(data);
-                this.showNotification('Servicio creado exitosamente', 'success');
+                this.showNotification('Servicio creado', 'success');
             }
-            
             
             document.getElementById('modalServicio').classList.remove('active');
             await this.loadServicios();
             
         } catch (error) {
             console.error('Error:', error);
-            const msg = error.response?.data?.message || 'Error al procesar la solicitud.';
+            const msg = error.response?.data?.message || 'Error al guardar. Verifica los datos.';
             this.showNotification(msg, 'error');
         } finally {
             this.hideLoader();
@@ -219,13 +220,12 @@ class ServiciosAdmin {
 
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = admin-notification ;{type};
+        notification.className = `admin-notification ${type}`;
         notification.textContent = message;
         notification.style.cssText = `
             position: fixed; top: 20px; right: 20px; padding: 15px 20px;
             border-radius: 8px; background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
             color: white; z-index: 10000; animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
