@@ -323,34 +323,75 @@
     <div class="admin-loader" id="loader" style="display: none;">
         <div class="loader-spinner"></div>
     </div>
-    
-    <!-- Scripts -->
     <script src="../../config/api.config.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
+    <script src="../../services/empleados.service.js"></script>
+    <script src="../../services/estilistas.service.js"></script>
     <script src="../../services/horarios.service.js"></script>
     <script src="../../services/citas.service.js"></script>
     <script src="../../services/notificaciones.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
     <script src="../../utils/custom-modal.js"></script>
-    <script src="../../js/admin/calendario.js"></script>
+    <script src="../../js/estilista/calendario.js"></script>
     
     <script>
-        fetch('_sidebar.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('sidebarContainer').innerHTML = html;
-            });
-            
+        // 1. Definir funciones globales primero (para que el HTML pueda acceder a ellas)
         function closeModal() {
             document.getElementById('modalCita').classList.remove('active');
         }
 
         function closeModalReagendar() {
-            document.getElementById('modalReagendar').classList.remove('active');
+            const modalReagendar = document.getElementById('modalReagendar');
+            if (modalReagendar) modalReagendar.classList.remove('active');
         }
+
+        // 2. Cargar el sidebar y ejecutar su lógica
+        fetch('_sidebar.html')
+            .then(response => response.text())
+            .then(html => { 
+                document.getElementById('sidebarContainer').innerHTML = html; 
+
+                // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
+                const sidebarLogoutBtn = document.getElementById('logoutBtn');
+                
+                if (sidebarLogoutBtn) {
+                    sidebarLogoutBtn.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        
+                        // Verificar que las librerías estén cargadas
+                        if (typeof customConfirm !== 'undefined' && typeof AuthService !== 'undefined') {
+                            const confirmed = await customConfirm(
+                                '¿Estás seguro de que deseas cerrar sesión?', 
+                                'Cerrar Sesión', 
+                                { icon: 'ph-sign-out' }
+                            );
+
+                            if (confirmed) {
+                                await AuthService.logout();
+                                window.location.href = '../login.html';
+                            }
+                        } else {
+                            // Fallback si falla la carga de scripts
+                            if(confirm('¿Cerrar sesión?')) {
+                                window.location.href = '../login.html';
+                            }
+                        }
+                    });
+                }
+
+                // Marcar activo el ítem del menú actual
+                const path = window.location.pathname;
+                const page = path.split('/').pop().replace('.html', '') || 'dashboard';
+                
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    if (item.getAttribute('data-page') === page) {
+                        item.classList.add('active');
+                    }
+                });
+            })
+            .catch(error => console.error('Error cargando el sidebar:', error));
     </script>
-    
 </body>
 </html>

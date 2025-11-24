@@ -253,13 +253,42 @@
     <script src="../../utils/state-manager.js"></script>
     <script src="../../js/estilista/comentarios.js"></script>
     
-    <script>
-        fetch('_sidebar.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('sidebarContainer').innerHTML = html;
+  <script>
+    fetch('_sidebar.html')
+        .then(response => response.text())
+        .then(html => { 
+            document.getElementById('sidebarContainer').innerHTML = html; 
+
+            // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
+            const sidebarLogoutBtn = document.getElementById('logoutBtn');
+            
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    const confirmed = await customConfirm(
+                        '¿Estás seguro de que deseas cerrar sesión?', 
+                        'Cerrar Sesión', 
+                        { icon: 'ph-sign-out' }
+                    );
+
+                    if (confirmed) {
+                        await AuthService.logout();
+                        window.location.href = '../login.html';
+                    }
+                });
+            }
+
+            // Marcar activo el menú actual
+            const path = window.location.pathname;
+            const page = path.split('/').pop().replace('.html', '') || 'dashboard';
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.getAttribute('data-page') === page) {
+                    item.classList.add('active');
+                }
             });
-    </script>
+        });
+</script>
     
 </body>
 </html>

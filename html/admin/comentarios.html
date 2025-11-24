@@ -251,13 +251,51 @@
     <script src="../../utils/custom-modal.js"></script>
     <script src="../../js/admin/comentarios.js"></script>
     
-    <script>
-        fetch('_sidebar.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('sidebarContainer').innerHTML = html;
+   <script>
+    // Función para cargar el sidebar y activar el botón de cerrar sesión
+    fetch('_sidebar.html')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('sidebarContainer').innerHTML = html;
+            
+            // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
+            const sidebarLogoutBtn = document.getElementById('logoutBtn'); // ID que está en _sidebar.html
+            
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    // Usamos el mismo modal personalizado que en el header
+                    const confirmed = await customConfirm(
+                        '¿Estás seguro de que deseas cerrar sesión?', 
+                        'Cerrar Sesión', 
+                        { icon: 'ph-sign-out' }
+                    );
+
+                    if (confirmed) {
+                        await AuthService.logout();
+                        window.location.href = '../login.html';
+                    }
+                });
+            }
+            
+            // Marcar activo el item del menú actual (Lógica visual)
+            const path = window.location.pathname;
+            const page = path.split('/').pop().replace('.html', '') || 'dashboard';
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                if (item.getAttribute('data-page') === page) {
+                    item.classList.add('active');
+                }
             });
-    </script>
+        });
+
+    // Funciones globales de modales (si las necesitas aquí)
+    function closeModal() {
+        const modal = document.querySelector('.modal-overlay.active');
+        if(modal) modal.classList.remove('active');
+    }
+</script>
     
 </body>
 </html>
