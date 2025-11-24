@@ -45,7 +45,8 @@ async checkAuth() {
         
         // 1. Abrir selector de archivos
         uploadZone?.addEventListener('click', () => fileInput.click());
-        document.getElementById('btnNuevaImagen')?.addEventListener('click', () => this.openModal());
+        // Botón "Nueva Imagen" eliminado - solo gestión por álbumes
+        // document.getElementById('btnNuevaImagen')?.addEventListener('click', () => this.openModal());
 
         // 2. Manejar selección de archivo (Input) - MÚLTIPLES ARCHIVOS
         fileInput?.addEventListener('change', (e) => {
