@@ -123,6 +123,7 @@ class DashboardEstilista {
                 this.loadNotificaciones()
             ]);
             this.updateStats(citas);
+            await this.loadConfirmaciones(citas.todas);
             await this.loadActivities();
         } catch (error) {
             console.error('Error al cargar datos:', error);
@@ -222,6 +223,68 @@ class DashboardEstilista {
         document.getElementById('citasPendientes').textContent = citas.pendientes;
     }
 
+    async loadConfirmaciones(todasCitas) {
+        const table = document.getElementById('confirmacionesTable');
+        if (!table) return;
+
+        try {
+            // Filtrar solo citas pendientes de confirmación
+            const pendientes = todasCitas.filter(c => 
+                (c.estadoCita || c.estado) === 'pendiente'
+            ).slice(0, 5); // Mostrar máximo 5
+
+            if (pendientes.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                            No tienes confirmaciones pendientes
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            table.innerHTML = pendientes.map(cita => {
+                const fecha = cita.fechaCita || cita.fecha || '';
+                const hora = cita.horaCita || cita.hora || '';
+                const cliente = cita.nombreCliente || cita.cliente || 'Sin nombre';
+                const servicio = cita.nombreServicio || cita.servicio || 'Sin servicio';
+                
+                return `
+                    <tr>
+                        <td>${cliente}</td>
+                        <td>${servicio}</td>
+                        <td>${fecha}</td>
+                        <td>${hora}</td>
+                        <td>
+                            <span class="badge badge-warning">Pendiente</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="confirmarCita(${cita.idCita})" title="Confirmar">
+                                <i class="ph ph-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="rechazarCita(${cita.idCita})" title="Rechazar">
+                                <i class="ph ph-x"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="verDetalle(${cita.idCita})" title="Ver detalle">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error al cargar confirmaciones:', error);
+            table.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
+                        Error al cargar confirmaciones
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
     async loadActivities() {
         const container = document.getElementById('activitiesContainer');
         if (!container) return;
@@ -250,3 +313,47 @@ class DashboardEstilista {
 }
 
 document.addEventListener('DOMContentLoaded', () => { new DashboardEstilista(); });
+
+// Funciones globales para las acciones de confirmación
+async function confirmarCita(idCita) {
+    if (!confirm('¿Confirmar esta cita?')) return;
+    
+    try {
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'flex';
+        
+        await CitasService.aprobar(idCita);
+        alert('Cita confirmada exitosamente');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error al confirmar cita:', error);
+        alert('Error al confirmar la cita');
+    } finally {
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'none';
+    }
+}
+
+async function rechazarCita(idCita) {
+    const motivo = prompt('¿Motivo del rechazo?');
+    if (!motivo) return;
+    
+    try {
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'flex';
+        
+        await CitasService.rechazar(idCita, motivo);
+        alert('Cita rechazada');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error al rechazar cita:', error);
+        alert('Error al rechazar la cita');
+    } finally {
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'none';
+    }
+}
+
+function verDetalle(idCita) {
+    window.location.href = `calendario.html?cita=${idCita}`;
+}

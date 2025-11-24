@@ -27,6 +27,23 @@
         .activity-text { font-size: 14px; color: var(--admin-text); }
         /* Ajuste menú */
         .profile-menu-modal { top: 90px !important; right: 30px !important; border: 1px solid white; }
+        
+        /* Tabla de confirmaciones */
+        .table-container { overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: var(--admin-primary); border-bottom: 2px solid #dee2e6; }
+        .data-table td { padding: 12px; border-bottom: 1px solid #dee2e6; }
+        .data-table tbody tr:hover { background: #f8f9fa; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; margin: 0 2px; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #229954; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
     </style>
 </head>
 <body class="admin-page">
@@ -92,7 +109,34 @@
                 </div>
             </div>
             
-            <div class="recent-activities">
+            <div class="content-card" style="margin-top: 30px;">
+                <div class="card-header">
+                    <h2 class="card-title">Confirmaciones Pendientes</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Servicio</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="confirmacionesTable">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                                    Cargando confirmaciones...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="recent-activities" style="margin-top: 30px;">
                 <h2 class="card-title" style="margin-bottom: 20px">Actividades Recientes</h2>
                 <div id="activitiesContainer"></div>
             </div>
