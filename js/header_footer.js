@@ -525,7 +525,7 @@ document.addEventListener('click', e => {
     // ✅ MODIFICADO: Ahora redirige a servicios.html en lugar de abrir modal
     if (target.closest('.btn-agendar')) {
         e.preventDefault();
-        window.location.href = 'servicios.html'; // Redirección directa
+        window.location.href = 'agendar.html'; // Redirigir al flujo de agendar
         return;
     }
 

@@ -37,9 +37,7 @@ class ServiciosCliente {
             const serviciosActivos = (response.data || response || []).filter(s => s.activo);
             console.log('Servicios activos encontrados:', serviciosActivos.length);
 
-            // DEBUG: Ver datos de imagen de cada servicio
-            if (serviciosActivos.length > 0) {
-                console.log('========== DEBUG IMÁGENES ==========');
+            === DEBUG IMÁGENES========== DEBUG IMÁGENES ==========');
                 serviciosActivos.forEach((s, index) => {
                     console.log(`Servicio ${index + 1} - ${s.nombre}:`);
                     console.log('  - Todos los campos:', Object.keys(s));
@@ -133,34 +131,20 @@ class ServiciosCliente {
             return;
         }
 
-        console.log('Servicio seleccionado:', servicio);
-        
-        // Guardar ID del servicio en localStorage
-        localStorage.setItem('servicioSeleccionado', idServicio.toString());
-        
-        // También guardar el servicio completo para mostrar información
-        localStorage.setItem('servicioSeleccionadoData', JSON.stringify(servicio));
-        
-        console.log('Datos guardados en localStorage:', {
-            id: localStorage.getItem('servicioSeleccionado'),
-            data: localStorage.getItem('servicioSeleccionadoData')
-        });
-        
-        console.log('Redirigiendo a agendar.html...');
-        
-        // Mostrar notificación antes de redirigir
-        this.showNotification('Redirigiendo...', 'success');
-        
-        // Pequeño delay para que se vea la notificación
-        setTimeout(() => {
-            // Redirigir a la página de agendar
-            try {
-                window.location.href = 'agendar.html';
-            } catch (error) {
-                console.error('Error al redirigir:', error);
-                this.showNotification('Error al redirigir. Intenta de nuevo.', 'error');
+        // Guardar selección y redirigir a agendar
+        try {
+            localStorage.setItem('servicioSeleccionado', idServicio.toString());
+            localStorage.setItem('servicioSeleccionadoData', JSON.stringify(servicio));
+            window.location.href = 'agendar.html';
+        } catch (error) {
+            // Mostrar error amable si falla la redirección/almacenamiento
+            const modalErr = document.getElementById('error-modal');
+            if (modalErr && typeof openErrorModal === 'function') {
+                openErrorModal('No se pudo continuar al agendado. Intenta nuevamente.');
+            } else {
+                this.showNotification('No se pudo continuar al agendado. Intenta nuevamente.', 'error');
             }
-        }, 300);
+        }
     }
 
     showNotification(message, type = 'info') {

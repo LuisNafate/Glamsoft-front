@@ -138,7 +138,7 @@ const API_CONFIG = {
         PREGUNTAS: {
             GET_ALL: '/preguntas',
             GET_BY_ID: '/preguntas/:id',
-            GET_BY_SERVICIO: '/preguntas/servicios/:id',
+            GET_BY_SERVICIO: '/servicios/:id/preguntas',
             GET_BY_FORMULARIO: '/preguntas/formularios/:id',
             CREATE: '/preguntas',
             UPDATE: '/preguntas/:id',

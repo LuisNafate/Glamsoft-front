@@ -95,7 +95,7 @@ const PreguntasService = {
                 API_CONFIG.ENDPOINTS.PREGUNTAS.UPDATE,
                 { id }
             );
-            const response = await httpService.patch(url, preguntaData);
+            const response = await httpService.put(url, preguntaData);
             return response.data;
         } catch (error) {
             console.error('Error al actualizar pregunta:', error);

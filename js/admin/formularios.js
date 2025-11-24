@@ -1,364 +1,290 @@
-// Gestión de Formularios Admin
-class FormulariosAdmin {
-    constructor() {
-        this.formularios = [];
-        this.filteredFormularios = [];
-        this.currentFormulario = null;
-        this.init();
+// Admin: Gestión de Preguntas por Servicio (sin entidad formulario)
+class PreguntasPorServicioAdmin {
+  constructor() {
+    this.servicios = [];
+    this.servicioSeleccionado = null;
+    this.preguntas = [];
+    this.editingPregunta = null;
+    this.init();
+  }
+
+  async init() {
+    try {
+      this.cacheDom();
+      this.bindEvents();
+      await this.loadServicios();
+      this.setUIState();
+    } catch (err) {
+      console.error(err);
+      this.notify('Error al inicializar', 'error');
+    }
+  }
+
+  cacheDom() {
+    this.$servicesList = document.getElementById('servicesList');
+    this.$searchServicios = document.getElementById('searchServicios');
+
+    this.$questionsHeader = document.getElementById('questionsHeader');
+    this.$questionsList = document.getElementById('questionsList');
+    this.$emptyQuestions = document.getElementById('emptyQuestions');
+
+    this.$btnAddQuestion = document.getElementById('btnAddQuestion');
+
+    this.$modalPregunta = document.getElementById('modalPregunta');
+    this.$btnGuardarPregunta = document.getElementById('btnGuardarPregunta');
+  }
+
+  bindEvents() {
+    this.$searchServicios?.addEventListener('input', () => this.renderServicios());
+    this.$btnAddQuestion?.addEventListener('click', () => this.showPreguntaModal());
+    this.$btnGuardarPregunta?.addEventListener('click', () => this.guardarPregunta());
+  }
+
+  setUIState() {
+    const hasService = !!this.servicioSeleccionado;
+    if (!hasService) {
+      this.$questionsHeader.textContent = 'Selecciona un servicio para gestionar sus preguntas.';
+    }
+    if (this.$btnAddQuestion) this.$btnAddQuestion.disabled = !hasService;
+  }
+
+  async loadServicios() {
+    this.showLoader();
+    try {
+      const resp = await ServiciosService.getAll();
+      const list = resp.data || resp || [];
+      this.servicios = list.filter(s => s.activo !== false);
+      this.renderServicios();
+    } catch (e) {
+      console.error(e);
+      this.notify('Error al cargar servicios', 'error');
+    } finally { this.hideLoader(); }
+  }
+
+  getServiciosFiltrados() {
+    const q = (this.$searchServicios?.value || '').toLowerCase();
+    if (!q) return this.servicios;
+    return this.servicios.filter(s =>
+      (s.nombre || '').toLowerCase().includes(q) || (s.categoria || '').toLowerCase().includes(q)
+    );
+  }
+
+  renderServicios() {
+    const servicios = this.getServiciosFiltrados();
+    this.$servicesList.innerHTML = servicios.map(s => `
+      <div class="service-item ${this.servicioSeleccionado?.idServicio === s.idServicio ? 'active' : ''}" data-id="${s.idServicio}">
+        <div class="name">${s.nombre}</div>
+        <div class="category">${s.categoria || 'General'}</div>
+      </div>
+    `).join('');
+
+    this.$servicesList.querySelectorAll('.service-item').forEach(el => {
+      el.addEventListener('click', async () => {
+        const id = parseInt(el.dataset.id);
+        this.servicioSeleccionado = this.servicios.find(s => s.idServicio === id) || null;
+        this.setUIState();
+        await this.loadPreguntas();
+      });
+    });
+  }
+
+  async loadPreguntas() {
+    this.preguntas = [];
+    if (!this.servicioSeleccionado) { this.renderPreguntas(); return; }
+    this.showLoader();
+    try {
+      const resp = await PreguntasService.getByServicio(this.servicioSeleccionado.idServicio);
+      this.preguntas = resp?.data || resp || [];
+      this.$questionsHeader.textContent = `Preguntas del servicio: ${this.servicioSeleccionado.nombre}`;
+    } catch (e) {
+      console.error(e);
+      this.notify('Error al cargar preguntas del servicio', 'error');
+    } finally {
+      this.hideLoader();
+      this.renderPreguntas();
+    }
+  }
+
+  renderPreguntas() {
+    if (!this.servicioSeleccionado) {
+      this.$questionsList.innerHTML = '';
+      this.$emptyQuestions.style.display = 'block';
+      return;
     }
 
-    async init() {
-        try {
-            // await this.checkAuth(); // Deshabilitado temporalmente
-            this.setupEventListeners();
-            await this.loadFormularios();
-        } catch (error) {
-            console.error('Error al inicializar:', error);
-            // ErrorHandler.handle(error);
-            this.showNotification('Error al inicializar: ' + error.message, 'error');
-        }
+    if (!this.preguntas || this.preguntas.length === 0) {
+      this.$questionsList.innerHTML = '';
+      this.$emptyQuestions.style.display = 'block';
+      return;
     }
 
-    async checkAuth() {
-        // Autenticación deshabilitada temporalmente para pruebas
-        // const user = StateManager.getState('user');
-        // if (!user || user.rol !== 'admin') {
-        //     window.location.href = '../login.html';
-        // }
-    }
+    this.$emptyQuestions.style.display = 'none';
+    const sorted = [...this.preguntas].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
 
-    setupEventListeners() {
-        document.getElementById('searchInput')?.addEventListener('input', () => {
-            this.filterFormularios();
+    this.$questionsList.innerHTML = sorted.map((p, idx) => `
+      <div class="question-item">
+        <div class="small muted">#${p.orden ?? idx} • ${p.tipoRespuesta}</div>
+        <div><strong>${p.pregunta || ''}</strong></div>
+        ${p.opciones && p.opciones.length ? `<div class="small muted">Opciones: ${(Array.isArray(p.opciones) ? p.opciones : (p.opciones || '')).toString()}</div>` : ''}
+        <div class="question-actions">
+          <button class="btn btn-secondary" data-act="up" data-id="${p.idPregunta}"><i class="fas fa-arrow-up"></i></button>
+          <button class="btn btn-secondary" data-act="down" data-id="${p.idPregunta}"><i class="fas fa-arrow-down"></i></button>
+          <button class="btn btn-primary" data-act="edit" data-id="${p.idPregunta}"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger" data-act="del" data-id="${p.idPregunta}"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    `).join('');
+
+    this.$questionsList.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', (e) => this.handleQuestionAction(e));
+    });
+  }
+
+  handleQuestionAction(e) {
+    const act = e.currentTarget.dataset.act;
+    const id = parseInt(e.currentTarget.dataset.id);
+    const idx = this.preguntas.findIndex(p => p.idPregunta === id);
+    if (idx === -1) return;
+
+    if (act === 'up') {
+      this.moveQuestion(idx, -1);
+    } else if (act === 'down') {
+      this.moveQuestion(idx, +1);
+    } else if (act === 'edit') {
+      this.showPreguntaModal(this.preguntas[idx]);
+    } else if (act === 'del') {
+      this.eliminarPregunta(this.preguntas[idx]);
+    }
+  }
+
+  async moveQuestion(idx, delta) {
+    const newIdx = idx + delta;
+    if (newIdx < 0 || newIdx >= this.preguntas.length) return;
+
+    // Intercambiar en memoria
+    const a = this.preguntas[idx];
+    const b = this.preguntas[newIdx];
+    const ordenA = a.orden ?? idx;
+    const ordenB = b.orden ?? newIdx;
+
+    // Persistir nuevo orden en backend
+    try {
+      this.showLoader();
+      await Promise.all([
+        PreguntasService.update(a.idPregunta, {
+          idServicio: this.servicioSeleccionado.idServicio,
+          pregunta: a.pregunta,
+          tipoRespuesta: a.tipoRespuesta,
+          opciones: a.opciones || [],
+          obligatoria: a.obligatoria !== false,
+          orden: ordenB,
+          activo: a.activo !== false
+        }),
+        PreguntasService.update(b.idPregunta, {
+          idServicio: this.servicioSeleccionado.idServicio,
+          pregunta: b.pregunta,
+          tipoRespuesta: b.tipoRespuesta,
+          opciones: b.opciones || [],
+          obligatoria: b.obligatoria !== false,
+          orden: ordenA,
+          activo: b.activo !== false
+        })
+      ]);
+      await this.loadPreguntas();
+    } catch (e) {
+      console.error(e);
+      this.notify('No se pudo reordenar', 'error');
+    } finally {
+      this.hideLoader();
+    }
+  }
+
+  showPreguntaModal(pregunta = null) {
+    this.editingPregunta = pregunta;
+    document.getElementById('preguntaModalTitle').textContent = pregunta ? 'Editar Pregunta' : 'Nueva Pregunta';
+    document.getElementById('textoPregunta').value = pregunta?.pregunta || '';
+    document.getElementById('tipoPregunta').value = pregunta?.tipoRespuesta || '';
+    const opts = Array.isArray(pregunta?.opciones) ? pregunta.opciones.join('\n') : (pregunta?.opciones || '');
+    document.getElementById('opcionesPregunta').value = opts;
+    this.toggleOpciones();
+    this.$modalPregunta.classList.add('active');
+
+    document.getElementById('tipoPregunta').onchange = () => this.toggleOpciones();
+  }
+
+  toggleOpciones() {
+    const tipo = (document.getElementById('tipoPregunta').value || '').toLowerCase();
+    const show = ['opcion_multiple'].includes(tipo);
+    document.getElementById('opcionesContainer').style.display = show ? 'block' : 'none';
+  }
+
+  async guardarPregunta() {
+    if (!this.servicioSeleccionado) return;
+    const preguntaTxt = document.getElementById('textoPregunta').value.trim();
+    const tipoRespuesta = document.getElementById('tipoPregunta').value;
+    const opcionesRaw = document.getElementById('opcionesPregunta').value.trim();
+    const opciones = opcionesRaw ? opcionesRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+    if (!preguntaTxt || !tipoRespuesta) { this.notify('Completa los campos requeridos', 'error'); return; }
+
+    // Orden por defecto al final
+    const orden = (this.preguntas?.length || 0);
+
+    const payload = {
+      idServicio: this.servicioSeleccionado.idServicio,
+      pregunta: preguntaTxt,
+      tipoRespuesta,
+      opciones,
+      obligatoria: true,
+      orden,
+      activo: true
+    };
+
+    this.showLoader();
+    try {
+      if (this.editingPregunta?.idPregunta) {
+        await PreguntasService.update(this.editingPregunta.idPregunta, {
+          ...payload,
+          orden: this.editingPregunta.orden ?? orden
         });
-        
-        document.getElementById('filterEstado')?.addEventListener('change', () => {
-            this.filterFormularios();
-        });
-        
-        // Botón para crear nuevo formulario
-        const btnNuevo = document.getElementById('btnNuevoFormulario');
-        if (btnNuevo) {
-            btnNuevo.addEventListener('click', () => this.showFormularioModal());
-        }
-        
-        document.getElementById('btnGuardarFormulario')?.addEventListener('click', () => {
-            this.saveFormulario();
-        });
-        
-        document.getElementById('btnEliminar')?.addEventListener('click', () => {
-            this.deleteFormulario();
-        });
-    }
+        this.notify('Pregunta actualizada', 'success');
+      } else {
+        await PreguntasService.create(payload);
+        this.notify('Pregunta creada', 'success');
+      }
+      this.$modalPregunta.classList.remove('active');
+      await this.loadPreguntas();
+    } catch (e) {
+      console.error(e);
+      this.notify('No se pudo guardar la pregunta', 'error');
+    } finally { this.hideLoader(); }
+  }
 
-    async loadFormularios() {
-        this.showLoader();
-        
-        try {
-            const response = await FormulariosService.getAll();
-            console.log('Respuesta API:', response);
-            
-            // La API devuelve: { status, message, data: [...] }
-            this.formularios = response.data || response || [];
-            this.filteredFormularios = [...this.formularios];
-            this.renderTable();
-        } catch (error) {
-            console.error('Error al cargar formularios:', error);
-            this.showNotification('Error al cargar formularios: ' + error.message, 'error');
-            this.formularios = [];
-            this.filteredFormularios = [];
-            this.renderTable();
-        } finally {
-            this.hideLoader();
-        }
-    }
+  async eliminarPregunta(p) {
+    if (!confirm('¿Eliminar esta pregunta?')) return;
+    this.showLoader();
+    try {
+      await PreguntasService.delete(p.idPregunta);
+      this.notify('Pregunta eliminada', 'success');
+      await this.loadPreguntas();
+    } catch (e) {
+      console.error(e);
+      this.notify('No se pudo eliminar', 'error');
+    } finally { this.hideLoader(); }
+  }
 
-    filterFormularios() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const estadoFilter = document.getElementById('filterEstado').value;
-        
-        this.filteredFormularios = this.formularios.filter(form => {
-            const matchesSearch = form.nombreFormulario.toLowerCase().includes(searchTerm) ||
-                                (form.descripcion && form.descripcion.toLowerCase().includes(searchTerm));
-            
-            let matchesEstado = true;
-            if (estadoFilter === 'activo') {
-                matchesEstado = form.activo === true;
-            } else if (estadoFilter === 'inactivo') {
-                matchesEstado = form.activo === false;
-            }
-            
-            return matchesSearch && matchesEstado;
-        });
-        
-        this.renderTable();
-    }
-
-    renderTable() {
-        const tbody = document.getElementById('formulariosTableBody');
-        const emptyState = document.getElementById('emptyState');
-        
-        if (!tbody) return;
-        
-        if (this.filteredFormularios.length === 0) {
-            tbody.innerHTML = '';
-            if (emptyState) emptyState.style.display = 'block';
-            return;
-        }
-        
-        if (emptyState) emptyState.style.display = 'none';
-        
-        tbody.innerHTML = this.filteredFormularios.map(form => `
-            <tr>
-                <td><strong>${form.idFormulario}</strong></td>
-                <td>${form.nombreFormulario}</td>
-                <td>${form.descripcion || 'Sin descripción'}</td>
-                <td>
-                    <span class="form-status ${form.activo ? 'leido' : 'nuevo'}">
-                        ${form.activo ? 'Activo' : 'Inactivo'}
-                    </span>
-                </td>
-                <td>
-                    <div class="table-actions">
-                        <button class="btn-icon" style="background: #9b59b6; color: white;" 
-                                onclick="formulariosAdmin.showDetalle(${form.idFormulario})" title="Ver">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" style="background: #3498db; color: white;" 
-                                onclick="formulariosAdmin.editFormulario(${form.idFormulario})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon" style="background: #e74c3c; color: white;" 
-                                onclick="formulariosAdmin.confirmDelete(${form.idFormulario})" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    showDetalle(id) {
-        const formulario = this.formularios.find(f => f.idFormulario === id);
-        if (!formulario) return;
-        
-        this.currentFormulario = formulario;
-        const modal = document.getElementById('modalFormulario');
-        const detalle = document.getElementById('formularioDetalle');
-        
-        detalle.innerHTML = `
-            <div style="padding: 20px 0;">
-                <div style="display: grid; gap: 20px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <strong style="color: #7f8c8d;">ID:</strong><br>
-                            <span style="font-size: 16px;">${formulario.idFormulario}</span>
-                        </div>
-                        <div>
-                            <strong style="color: #7f8c8d;">Estado:</strong><br>
-                            <span class="form-status ${formulario.activo ? 'leido' : 'nuevo'}">
-                                ${formulario.activo ? 'Activo' : 'Inactivo'}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <strong style="color: #7f8c8d;">Nombre del Formulario:</strong><br>
-                        <span style="font-size: 18px; font-weight: 600; color: var(--admin-primary);">
-                            ${formulario.nombreFormulario}
-                        </span>
-                    </div>
-                    
-                    <div>
-                        <strong style="color: #7f8c8d;">Descripción:</strong><br>
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; line-height: 1.6;">
-                            ${formulario.descripcion || 'Sin descripción'}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Ocultar botones de edición en modo detalle
-        const btnGuardar = document.getElementById('btnGuardarFormulario');
-        if (btnGuardar) btnGuardar.style.display = 'none';
-        
-        modal.classList.add('active');
-    }
-
-    showFormularioModal(formulario = null) {
-        const modal = document.getElementById('modalFormulario');
-        const detalle = document.getElementById('formularioDetalle');
-        const title = modal.querySelector('.modal-title');
-        
-        this.currentFormulario = formulario;
-        
-        if (formulario) {
-            title.textContent = 'Editar Formulario';
-        } else {
-            title.textContent = 'Nuevo Formulario';
-        }
-        
-        detalle.innerHTML = `
-            <div style="padding: 20px 0;">
-                <div style="display: grid; gap: 20px;">
-                    <div class="form-group">
-                        <label for="nombreFormulario" style="display: block; margin-bottom: 8px; font-weight: 600;">
-                            Nombre del Formulario *
-                        </label>
-                        <input type="text" 
-                               id="nombreFormulario" 
-                               class="search-input" 
-                               style="width: 100%;"
-                               value="${formulario ? formulario.nombreFormulario : ''}"
-                               placeholder="Ej: Encuesta de Satisfacción"
-                               required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="descripcionFormulario" style="display: block; margin-bottom: 8px; font-weight: 600;">
-                            Descripción
-                        </label>
-                        <textarea id="descripcionFormulario" 
-                                  class="search-input" 
-                                  style="width: 100%; min-height: 100px; resize: vertical;"
-                                  placeholder="Descripción del formulario...">${formulario && formulario.descripcion ? formulario.descripcion : ''}</textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" 
-                                   id="activoFormulario"
-                                   ${!formulario || formulario.activo ? 'checked' : ''}>
-                            <span style="font-weight: 600;">Formulario Activo</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Mostrar botón de guardar
-        const btnGuardar = document.getElementById('btnGuardarFormulario');
-        if (btnGuardar) btnGuardar.style.display = 'inline-flex';
-        
-        // Ocultar botón de eliminar en modo creación
-        const btnEliminar = document.getElementById('btnEliminar');
-        if (btnEliminar) {
-            btnEliminar.style.display = formulario ? 'inline-flex' : 'none';
-        }
-        
-        modal.classList.add('active');
-    }
-
-    editFormulario(id) {
-        const formulario = this.formularios.find(f => f.idFormulario === id);
-        if (formulario) {
-            this.showFormularioModal(formulario);
-        }
-    }
-
-    async saveFormulario() {
-        const nombre = document.getElementById('nombreFormulario')?.value.trim();
-        const descripcion = document.getElementById('descripcionFormulario')?.value.trim();
-        const activo = document.getElementById('activoFormulario')?.checked;
-        
-        if (!nombre) {
-            this.showNotification('El nombre del formulario es requerido', 'error');
-            return;
-        }
-        
-        this.showLoader();
-        
-        try {
-            const formularioData = {
-                nombreFormulario: nombre,
-                descripcion: descripcion || '',
-                activo: activo
-            };
-            
-            if (this.currentFormulario) {
-                // Actualizar
-                await FormulariosService.update(this.currentFormulario.idFormulario, formularioData);
-                this.showNotification('Formulario actualizado correctamente', 'success');
-            } else {
-                // Crear
-                await FormulariosService.create(formularioData);
-                this.showNotification('Formulario creado correctamente', 'success');
-            }
-            
-            closeModal();
-            await this.loadFormularios();
-        } catch (error) {
-            console.error('Error al guardar formulario:', error);
-            this.showNotification('Error al guardar el formulario: ' + error.message, 'error');
-        } finally {
-            this.hideLoader();
-        }
-    }
-
-    confirmDelete(id) {
-        const formulario = this.formularios.find(f => f.idFormulario === id);
-        if (!formulario) return;
-        
-        this.currentFormulario = formulario;
-        
-        if (!confirm(`¿Estás seguro de eliminar el formulario "${formulario.nombreFormulario}"?`)) {
-            return;
-        }
-        
-        this.deleteFormulario();
-    }
-
-    async deleteFormulario() {
-        if (!this.currentFormulario) return;
-        
-        this.showLoader();
-        
-        try {
-            await FormulariosService.delete(this.currentFormulario.idFormulario);
-            this.showNotification('Formulario eliminado correctamente', 'success');
-            closeModal();
-            await this.loadFormularios();
-        } catch (error) {
-            console.error('Error al eliminar formulario:', error);
-            this.showNotification('Error al eliminar el formulario: ' + error.message, 'error');
-        } finally {
-            this.hideLoader();
-        }
-    }
-
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db'};
-            color: white;
-            z-index: 10000;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        `;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 3000);
-    }
-
-    showLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'flex';
-    }
-
-    hideLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'none';
-    }
+  // Utilidades UI
+  showLoader() { const l = document.getElementById('loader'); if (l) l.style.display = 'flex'; }
+  hideLoader() { const l = document.getElementById('loader'); if (l) l.style.display = 'none'; }
+  notify(msg, type='info') {
+    const el = document.createElement('div');
+    el.style.cssText = `position:fixed;top:20px;right:20px;padding:10px 14px;border-radius:8px;background:${type==='success'?'#27ae60':type==='error'?'#e74c3c':'#3498db'};color:#fff;z-index:9999;`;
+    el.textContent = msg; document.body.appendChild(el); setTimeout(()=>el.remove(),3000);
+  }
 }
 
 let formulariosAdmin;
 
 document.addEventListener('DOMContentLoaded', () => {
-    formulariosAdmin = new FormulariosAdmin();
+  formulariosAdmin = new PreguntasPorServicioAdmin();
 });

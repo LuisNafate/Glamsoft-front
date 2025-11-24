@@ -623,6 +623,23 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.btn-cancel').addEventListener('click', function() {
         openCancelModal();
     });
+
+    // Servicio preseleccionado al venir desde servicios.html
+    try {
+        const preselected = localStorage.getItem('servicioSeleccionado');
+        if (preselected) {
+            selectedService = parseInt(preselected);
+            localStorage.removeItem('servicioSeleccionado');
+            const servicesSection = document.querySelector('.services-section');
+            if (servicesSection) servicesSection.style.display = 'none';
+            const btnMostrarMas = document.getElementById('mostrar-mas-servicios');
+            if (btnMostrarMas) btnMostrarMas.style.display = 'none';
+            // Cargar sólo estilistas que dan este servicio
+            filtrarEstilistasPorServicio(selectedService).catch(err => console.warn('Error filtrando estilistas:', err));
+        }
+    } catch (e) {
+        console.warn('No se pudo aplicar servicio preseleccionado:', e);
+    }
 });
 
 async function cargarModalCancelacion() {
@@ -802,26 +819,28 @@ function initFormularioCitaModal() {
 async function mostrarFormularioPersonalizado() {
     try {
         console.log('🔍 Cargando preguntas para servicio:', selectedService);
-
-        // Obtener preguntas del servicio
-        const response = await PreguntasFormularioService.getByServicio(selectedService);
-        const preguntas = response.data || response;
-
-        console.log('📋 Preguntas recibidas:', preguntas);
-
-        // Renderizar preguntas en el formulario
-        renderizarPreguntasFormulario(preguntas);
-
-        // Mostrar modal
-        const modal = document.getElementById('formulario-cita-modal');
-        if (modal) {
-            modal.style.display = 'flex';
+        if (!selectedService) {
+            console.warn('No hay servicio seleccionado');
+            await enviarCitaConFormulario();
+            return;
         }
+        // Llamada directa al backend según nueva lógica
+        const url = `${API_CONFIG.BASE_URL}/servicios/${selectedService}/preguntas`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const result = await res.json().catch(() => ({}));
+        const preguntas = (result && Array.isArray(result.data)) ? result.data : (Array.isArray(result) ? result : []);
 
+        if (preguntas && preguntas.length > 0) {
+            console.log('📋 Preguntas recibidas:', preguntas);
+            renderizarPreguntasFormulario(preguntas);
+            const modal = document.getElementById('formulario-cita-modal');
+            if (modal) modal.style.display = 'flex';
+        } else {
+            console.warn('No hay preguntas configuradas para este servicio, creando cita directamente...');
+            await enviarCitaConFormulario();
+        }
     } catch (error) {
-        console.error('Error al cargar preguntas del formulario:', error);
-        // Si no hay preguntas o hay error, proceder directamente a crear la cita sin formulario
-        console.warn('No hay preguntas configuradas para este servicio, creando cita directamente...');
+        console.error('Error al obtener preguntas del servicio:', error);
         await enviarCitaConFormulario();
     }
 }
@@ -859,7 +878,7 @@ function renderizarPreguntasFormulario(preguntas) {
 
         let inputElement;
 
-        switch (pregunta.tipoRespuesta) {
+        switch ((pregunta.tipoRespuesta || '').toLowerCase()) {
             case 'texto':
                 inputElement = document.createElement('input');
                 inputElement.type = 'text';
@@ -867,6 +886,7 @@ function renderizarPreguntasFormulario(preguntas) {
                 inputElement.required = pregunta.obligatoria;
                 break;
 
+            case 'texto_largo':
             case 'textarea':
                 inputElement = document.createElement('textarea');
                 inputElement.className = 'form-input';
