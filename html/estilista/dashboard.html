@@ -3,34 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Estilista</title>
-    
+    <title>Inicio - Panel de Estilista</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
     <link rel="stylesheet" href="../../Css/modals/profile_menu.css">
-    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* Ajustes visuales específicos */
-        .profile-menu-modal { top: 90px !important; right: 30px !important; border: 1px solid white; }
-        .notification-menu { right: 70px !important; } /* Alineado a la campana */
-        .user-profile-icon { cursor: pointer; }
-        
-        /* Cards de acciones rápidas */
+        /* Estilos específicos del dashboard */
         .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; }
-        .quick-action-card { background: white; padding: 25px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .quick-action-card:hover { border-color: #B8860B; transform: translateY(-5px); box-shadow: 0 5px 20px rgba(184, 134, 11, 0.2); }
-        .quick-action-icon { width: 60px; height: 60px; background: black; color: #B8860B; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; }
-        .quick-action-title { font-size: 16px; font-weight: 600; color: #333; }
-        
-        /* Estadísticas */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .stat-header { display: flex; justify-content: space-between; align-items: center; }
-        .stat-value { font-size: 32px; font-weight: 700; color: #000; }
-        .stat-label { font-size: 14px; color: #7f8c8d; }
-        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid #B8860B; color: #000; background: transparent; }
+        .quick-action-card { background: white; padding: 25px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid white; }
+        .quick-action-card:hover { border-color: #B8860B; transform: translateY(-5px); box-shadow: 0 5px 20px rgba(52,152,219,0.2); }
+        .quick-action-icon { width: 60px; height: 60px; background: black; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; }
+        .quick-action-title { font-size: 16px; font-weight: 600; color: var(--admin-primary); }
+        .recent-activities { background: white; border-radius: 12px; padding: 25px; margin-top: 30px; }
+        .activity-item { padding: 15px; border-left: 3px solid #B8860B; margin-bottom: 15px; background: #f9f9f9; border-radius: 8px; }
+        .activity-time { font-size: 12px; color: #7f8c8d; margin-bottom: 5px; }
+        .activity-text { font-size: 14px; color: var(--admin-text); }
+        /* Ajuste menú */
+        .profile-menu-modal { top: 90px !important; right: 30px !important; border: 1px solid white; }
     </style>
 </head>
 <body class="admin-page">
@@ -41,97 +31,72 @@
         
         <header class="admin-header">
             <div class="header-title">
-                <h1>Hola, <span id="userName" style="font-weight: 300;">Estilista</span></h1>
+                <h1>Bienvenido <span id="userName" style="font-weight: 300;">Cargando...</span></h1>
             </div>
             
             <div class="header-actions">
                 <div class="notification-icon" id="notificationIcon" style="cursor: pointer;">
                     <i class="ph ph-bell"></i>
-                    <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                    <span class="notification-badge" id="notificationCount">0</span>
                 </div>
                 
-                <div class="user-profile-icon" id="stylistUserIcon">
+                <div class="user-profile-icon" id="adminUserIcon">
                     <i class="ph ph-user"></i>
                 </div>
             </div>
         </header>
         
         <main class="main-content">
-            
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
-                            <div class="stat-value" id="citasHoy">0</div>
-                            <div class="stat-label">Mis Citas Hoy</div>
+                            <div class="stat-value" id="totalCitas">0</div>
+                            <div class="stat-label">Citas Hoy</div>
                         </div>
-                        <div class="stat-icon">
-                            <i class="ph ph-calendar-check"></i>
-                        </div>
+                        <div class="stat-icon"> <i class="ph ph-calendar-check"></i> </div>
                     </div>
                 </div>
-
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="citasPendientes">0</div>
                             <div class="stat-label">Pendientes</div>
                         </div>
-                        <div class="stat-icon">
-                            <i class="ph ph-clock-countdown"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-value" id="totalComentarios">0</div>
-                            <div class="stat-label">Mis Reseñas</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="ph ph-star"></i>
-                        </div>
+                        <div class="stat-icon"> <i class="ph ph-clock"></i> </div>
                     </div>
                 </div>
             </div>
             
             <div class="content-card">
-                <div class="card-header">
-                    <h2 class="card-title">Acciones Rápidas</h2>
-                </div>
-                
+                <div class="card-header"><h2 class="card-title">Acciones Rápidas</h2></div>
                 <div class="quick-actions">
                     <div class="quick-action-card" onclick="window.location.href='calendario.html'">
-                        <div class="quick-action-icon">
-                            <i class="ph ph-calendar"></i>
-                        </div>
-                        <div class="quick-action-title">Ver Mi Agenda</div>
+                        <div class="quick-action-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="quick-action-title">Mi Agenda</div>
                     </div>
-
                     <div class="quick-action-card" onclick="window.location.href='portafolio.html'">
-                        <div class="quick-action-icon">
-                            <i class="ph ph-camera"></i>
-                        </div>
-                        <div class="quick-action-title">Subir Trabajo</div>
+                        <div class="quick-action-icon"><i class="fas fa-briefcase"></i></div>
+                        <div class="quick-action-title">Mi Portafolio</div>
+                    </div>
+                    <div class="quick-action-card" onclick="window.location.href='comentarios.html'">
+                        <div class="quick-action-icon"><i class="fas fa-star"></i></div>
+                        <div class="quick-action-title">Mis Reseñas</div>
                     </div>
                 </div>
             </div>
             
             <div class="recent-activities">
-                <h2 class="card-title" style="margin-bottom: 20px">Próximas Citas Confirmadas</h2>
-                <div id="upcomingAppointments">
-                    <p style="color: #aaa; padding: 20px; text-align: center;">Cargando...</p>
-                </div>
+                <h2 class="card-title" style="margin-bottom: 20px">Actividades Recientes</h2>
+                <div id="activitiesContainer"></div>
             </div>
-            
         </main>
     </div>
 
     <div id="notificationMenu" class="profile-menu-modal notification-menu" style="display: none;">
         <div class="profile-menu-header">
-            <span class="profile-menu-name" style="font-size: 14px; color: #fff;">Notificaciones</span>
-            <a href="notificaciones.html" style="font-size: 12px; color: #B8860B; text-decoration: none; font-weight: 600;">Ver todas</a>
+            <span class="profile-menu-name" style="font-size: 14px; color: #333;">Notificaciones</span>
+            <a href="notificaciones.html" style="font-size: 7px; color: #B8860B; text-decoration: none; font-weight: 600;">Ver todas</a>
         </div>
         <div class="notification-list" id="notificationList">
             <div class="empty-notif">Cargando...</div>
@@ -141,39 +106,30 @@
     <div id="profileMenuModal" class="profile-menu-modal">
         <div class="profile-menu-header">
             <div class="profile-menu-avatar"></div>
-            <span class="profile-menu-name" id="menuUserName">Estilista</span>
+            <span class="profile-menu-name" id="menuUserName">Cargando...</span>
         </div>
         <nav class="profile-menu-nav">
             <ul>
-                <li><a href="../perfil.html">Mi Perfil</a></li>
                 <li><a href="#" id="headerLogoutBtn" style="color: #ff6b6b;">Cerrar sesión</a></li>
             </ul>
         </nav>
     </div>
     
-    <div class="admin-loader" id="loader" style="display: none;">
-        <div class="loader-spinner"></div>
-    </div>
+    <div class="admin-loader" id="loader" style="display: none;"><div class="loader-spinner"></div></div>
     
     <script src="../../config/api.config.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
     <script src="../../services/citas.service.js"></script>
     <script src="../../services/notificaciones.service.js"></script>
-    <script src="../../services/comentarios.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
-    
     <script src="../../js/estilista/dashboard.js"></script>
     
     <script>
-        // Cargar sidebar específico de estilista
         fetch('_sidebar.html')
             .then(response => response.text())
-            .then(html => {
-                document.getElementById('sidebarContainer').innerHTML = html;
-            });
+            .then(html => { document.getElementById('sidebarContainer').innerHTML = html; });
     </script>
-    
 </body>
 </html>
