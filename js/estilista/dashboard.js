@@ -1,27 +1,37 @@
-// js/estilista/dashboard.js
-
+// Dashboard Estilista - Lógica Principal
 class DashboardEstilista {
     constructor() {
+        this.notificacionesData = [];
         this.init();
     }
 
     async init() {
         try {
             await this.checkAuth();
-            this.setupProfileMenu();
+            this.setupMenus(); // Configura ambos menús
             await this.loadMyData();
-            
-            // Actualización automática cada minuto
             this.setupAutoRefresh();
+            
+            // Cerrar menús al hacer scroll
+            window.addEventListener('scroll', () => {
+                this.closeMenus();
+            });
         } catch (error) {
             console.error('Error al inicializar dashboard:', error);
         }
     }
 
-    /*async checkAuth() {
+    async checkAuth() {
         try {
             // 1. Obtener Usuario
-            const user = StateManager.getState('user') || JSON.parse(localStorage.getItem('user_data'));
+            let user = null;
+            if (typeof StateManager !== 'undefined') {
+                user = StateManager.get('user');
+            }
+            if (!user) {
+                const userStr = localStorage.getItem('user_data');
+                if (userStr) user = JSON.parse(userStr);
+            }
             
             // 2. Validar Rol (1=Admin, 2=Estilista)
             const rol = user ? parseInt(user.idRol || user.rol) : 0;
@@ -47,8 +57,10 @@ class DashboardEstilista {
             window.location.href = '../inicio.html';
         }
     }
-*/
-    setupProfileMenu() {
+
+    // ✅ CONFIGURACIÓN DE MENÚS (PERFIL + NOTIFICACIONES)
+    setupMenus() {
+        // A. Menú Perfil
         const userIcon = document.getElementById('stylistUserIcon');
         const profileMenu = document.getElementById('profileMenuModal');
         const logoutBtn = document.getElementById('headerLogoutBtn');
@@ -56,22 +68,30 @@ class DashboardEstilista {
         if (userIcon && profileMenu) {
             userIcon.addEventListener('click', (e) => {
                 e.stopPropagation();
-                profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+                this.toggleMenu('profile');
             });
         }
 
-        // Cerrar al hacer clic fuera
+        // B. Menú Notificaciones
+        const notifIcon = document.getElementById('notificationIcon');
+        const notifMenu = document.getElementById('notificationMenu');
+
+        if (notifIcon && notifMenu) {
+            notifIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMenu('notification');
+            });
+        }
+
+        // Clic fuera cierra todo
         document.addEventListener('click', (e) => {
-            if (profileMenu && profileMenu.style.display === 'block') {
-                if (!profileMenu.contains(e.target) && !userIcon.contains(e.target)) {
-                    profileMenu.style.display = 'none';
-                }
+            const target = e.target;
+            if (profileMenu && profileMenu.style.display === 'block' && !profileMenu.contains(target) && !userIcon.contains(target)) {
+                profileMenu.style.display = 'none';
             }
-        });
-        
-        // Cerrar al hacer scroll
-        window.addEventListener('scroll', () => {
-             if (profileMenu) profileMenu.style.display = 'none';
+            if (notifMenu && notifMenu.style.display === 'block' && !notifMenu.contains(target) && !notifIcon.contains(target)) {
+                notifMenu.style.display = 'none';
+            }
         });
 
         // Logout
@@ -80,82 +100,149 @@ class DashboardEstilista {
                 e.preventDefault();
                 if (confirm('¿Cerrar sesión?')) {
                     await AuthService.logout();
-                    window.location.href = '../login.html';
+                    window.location.href = '../inicio.html';
                 }
             });
         }
     }
 
+    toggleMenu(type) {
+        const profileMenu = document.getElementById('profileMenuModal');
+        const notifMenu = document.getElementById('notificationMenu');
+
+        if (type === 'profile') {
+            if (notifMenu) notifMenu.style.display = 'none'; 
+            if (profileMenu) profileMenu.style.display = (profileMenu.style.display === 'block') ? 'none' : 'block';
+        } else if (type === 'notification') {
+            if (profileMenu) profileMenu.style.display = 'none'; 
+            if (notifMenu) notifMenu.style.display = (notifMenu.style.display === 'block') ? 'none' : 'block';
+        }
+    }
+
+    closeMenus() {
+        const profileMenu = document.getElementById('profileMenuModal');
+        const notifMenu = document.getElementById('notificationMenu');
+        if (profileMenu) profileMenu.style.display = 'none';
+        if (notifMenu) notifMenu.style.display = 'none';
+    }
+
     async loadMyData() {
         this.showLoader();
         try {
-            // A. CARGAR CITAS
-            const citasResponse = await CitasService.getAll(); 
-            // Manejo flexible de la respuesta
-            const todasLasCitas = citasResponse.data || citasResponse || [];
-            
-            // B. FILTRAR MIS CITAS
-            // Comparamos el ID del estilista de la cita con el ID del usuario logueado
-            const misCitas = todasLasCitas.filter(cita => {
-                const idEstilistaCita = cita.idEstilista || (cita.estilista ? cita.estilista.id : 0);
-                return idEstilistaCita == this.currentUserId;
-            });
-
-            console.log(`Citas cargadas: ${todasLasCitas.length}, Mis Citas: ${misCitas.length}`);
-
-            // C. CALCULAR ESTADÍSTICAS
-            const hoyStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-            
-            // Citas de Hoy
-            const citasHoy = misCitas.filter(c => {
-                const fecha = c.fecha || (c.fechaHoraCita ? c.fechaHoraCita.split('T')[0] : '');
-                return fecha === hoyStr;
-            });
-            
-            // Citas Pendientes
-            const pendientes = misCitas.filter(c => {
-                const estado = (c.estado || c.estadoCita || '').toLowerCase();
-                return estado === 'pendiente';
-            });
-
-            // Actualizar números en pantalla
-            document.getElementById('citasHoy').textContent = citasHoy.length;
-            document.getElementById('citasPendientes').textContent = pendientes.length;
-
-            // D. CARGAR RESEÑAS (Opcional: Filtro manual si no hay endpoint)
-            // Por ahora ponemos 0 o implementamos lógica similar a citas
-            this.loadMyReviews(); 
-
-            // E. RENDERIZAR LISTA
-            this.renderUpcomingAppointments(misCitas);
-
+            await Promise.all([
+                this.loadCitas(),
+                this.loadNotificaciones() // Cargar notificaciones junto con citas
+            ]);
         } catch (error) {
-            console.error('Error al cargar datos del dashboard:', error);
+            console.error('Error al cargar datos:', error);
         } finally {
             this.hideLoader();
         }
     }
 
-    async loadMyReviews() {
-        // Intento simple de cargar comentarios para estadísticas
+    async loadCitas() {
         try {
-            const response = await ComentariosService.getAll();
-            const todosComentarios = response.data || response || [];
-            // Aquí necesitaríamos lógica compleja para vincular comentario -> cita -> estilista
-            // Por simplicidad visual, mostramos el total general o 0 si no se puede filtrar
-            document.getElementById('totalComentarios').textContent = todosComentarios.length > 0 ? "?" : "0";
-        } catch (e) {
-            document.getElementById('totalComentarios').textContent = "-";
+            const citasResponse = await CitasService.getAll(); 
+            const todasLasCitas = citasResponse.data || citasResponse || [];
+            
+            // FILTRAR SOLO CITAS DE ESTE ESTILISTA
+            const misCitas = todasLasCitas.filter(cita => {
+                const cIdEstilista = cita.idEstilista || (cita.estilista ? cita.estilista.id : 0);
+                return cIdEstilista == this.currentUserId;
+            });
+
+            // Estadísticas
+            const hoy = new Date().toISOString().split('T')[0];
+            const citasHoy = misCitas.filter(c => {
+                const fecha = c.fecha || (c.fechaHoraCita ? c.fechaHoraCita.split('T')[0] : '');
+                return fecha === hoy;
+            });
+            
+            const pendientes = misCitas.filter(c => (c.estado || c.estadoCita || '').toLowerCase() === 'pendiente');
+
+            document.getElementById('citasHoy').textContent = citasHoy.length;
+            document.getElementById('citasPendientes').textContent = pendientes.length;
+            
+            // Renderizar lista
+            this.renderUpcomingAppointments(misCitas);
+
+        } catch (error) {
+            console.error('Error cargando citas:', error);
         }
+    }
+
+    // ✅ CARGAR Y FILTRAR NOTIFICACIONES DEL USUARIO
+    async loadNotificaciones() {
+        try {
+            const response = await NotificacionesService.getAll();
+            const todas = response.data || response || [];
+            
+            // Filtrar solo las que pertenecen a este usuario (Estilista)
+            // Asumimos que la notificación tiene 'idUsuario' o 'id_usuario'
+            this.notificacionesData = todas.filter(n => 
+                n.idUsuario == this.currentUserId || n.id_usuario == this.currentUserId
+            );
+            
+            // Ordenar
+            this.notificacionesData.sort((a, b) => {
+                if (a.leida === b.leida) return new Date(b.fecha) - new Date(a.fecha);
+                return a.leida ? 1 : -1;
+            });
+
+            const noLeidas = this.notificacionesData.filter(n => !n.leida);
+            
+            // Badge
+            const badge = document.getElementById('notificationCount');
+            if (badge) {
+                badge.textContent = noLeidas.length;
+                badge.style.display = noLeidas.length > 0 ? 'flex' : 'none';
+            }
+
+            // Renderizar
+            this.renderNotificationList();
+
+        } catch (error) {
+            console.error('Error al cargar notificaciones:', error);
+        }
+    }
+
+    renderNotificationList() {
+        const listContainer = document.getElementById('notificationList');
+        if (!listContainer) return;
+
+        if (this.notificacionesData.length === 0) {
+            listContainer.innerHTML = '<div class="empty-notif">No tienes notificaciones</div>';
+            return;
+        }
+
+        const toShow = this.notificacionesData.slice(0, 8);
+
+        listContainer.innerHTML = toShow.map(notif => {
+            const tipo = notif.tipo ? notif.tipo.toLowerCase() : 'info';
+            const iconClass = { 'cita': 'ph-calendar', 'sistema': 'ph-gear', 'usuario': 'ph-user' }[tipo] || 'ph-bell';
+            const stateClass = { 'cita': 'success', 'sistema': 'warning', 'error': 'error' }[tipo] || 'info';
+
+            return `
+                <div class="notification-item ${!notif.leida ? 'unread' : ''}">
+                    <div class="notif-icon-box ${stateClass}">
+                        <i class="ph ${iconClass}"></i>
+                    </div>
+                    <div class="notif-info">
+                        <div class="notif-header">
+                            <span class="notif-title">${notif.titulo}</span>
+                            <span class="notif-time">${this.formatTimeShort(notif.fecha)}</span>
+                        </div>
+                        <div class="notif-desc">${notif.mensaje}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     renderUpcomingAppointments(citas) {
         const container = document.getElementById('upcomingAppointments');
         if (!container) return;
 
-        // 1. Filtrar confirmadas y futuras
-        // 2. Ordenar por fecha
-        // 3. Tomar las primeras 5
         const futuras = citas
             .filter(c => {
                 const estado = (c.estado || c.estadoCita || '').toLowerCase();
@@ -178,26 +265,21 @@ class DashboardEstilista {
         }
 
         container.innerHTML = futuras.map(cita => {
-            // Normalizar datos
             let fecha = 'S/F';
             let hora = '--:--';
-            
             if (cita.fechaHoraCita) {
                 const partes = cita.fechaHoraCita.split('T');
-                fecha = partes[0]; // YYYY-MM-DD
-                hora = partes[1].substring(0, 5); // HH:MM
+                fecha = partes[0];
+                hora = partes[1].substring(0, 5);
             } else if (cita.fecha) {
                 fecha = cita.fecha;
                 hora = cita.hora ? cita.hora.substring(0, 5) : '';
             }
 
-            // Convertir fecha a formato legible (DD/MM)
             const fechaObj = new Date(fecha);
             const fechaLegible = fechaObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-
             const cliente = cita.clienteNombre || (cita.cliente ? cita.cliente.nombre : 'Cliente');
             
-            // Servicio
             let servicio = 'Servicio General';
             if (cita.servicios && Array.isArray(cita.servicios) && cita.servicios.length > 0) {
                 servicio = cita.servicios[0].nombre || cita.servicios[0];
@@ -226,8 +308,19 @@ class DashboardEstilista {
         }).join('');
     }
 
+    formatTimeShort(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMins = Math.floor((now - date) / 60000);
+        if (diffMins < 1) return 'Ahora';
+        if (diffMins < 60) return `${diffMins}m`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours}h`;
+        return `${date.getDate()}/${date.getMonth()+1}`;
+    }
+
     setupAutoRefresh() {
-        setInterval(() => this.loadMyData(), 60000); 
+        setInterval(() => this.loadMyData(), 60000);
     }
 
     showLoader() { 
