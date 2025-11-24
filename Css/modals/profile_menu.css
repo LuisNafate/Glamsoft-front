@@ -2,21 +2,17 @@
 
 .profile-menu-modal {
     display: none; /* Oculto por defecto */
-    /* ✅ Posición fija para que no se mueva al hacer scroll */
     position: fixed;
-    top: 60px; /* Ajusta esto según la altura de tu header */
-    right: 20px; /* Ajusta esto para alinearlo con el icono de usuario */
-    background-color: #1a1a1a; /* Fondo oscuro */
-    color: #f0f0f0;
-    border: 1px; /* Bordes redondeados */
+    top: 60px;
+    right: 20px;
+    background-color: #0d0d0d;
+    color: #e0e0e0;
     width: 220px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-    z-index: 2000; /* Aumentado para estar sobre todo */
-    padding: 1.25rem;
+    box-shadow: none;
+    z-index: 2100;
+    padding: 1rem;
     box-sizing: border-box;
-    
-    /* ✅ CAMBIO AQUÍ: Borde blanco de 2px */
-    border: 2px solid white;
+    border: 1px solid #333;
 }
 
 .profile-menu-header {
@@ -37,12 +33,13 @@
 
 .profile-menu-name {
     font-family: 'Lato', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 130px;
+    color: #e0e0e0;
 }
 
 .profile-menu-nav ul {
@@ -61,14 +58,14 @@
 
 .profile-menu-nav a {
     font-family: 'Lato', sans-serif;
-    color: #f0f0f0;
+    color: #cfcfcf;
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 300;
     transition: color 0.2s ease;
-    display: block; /* Para mejor área de clic */
+    display: block;
 }
 
 .profile-menu-nav a:hover {
-    color: #B8860B; /* Dorado al hover */
+    color: #B8860B;
 }
