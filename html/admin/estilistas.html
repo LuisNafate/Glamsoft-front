@@ -43,6 +43,17 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="search-group" style="margin-left: 16px;">
+                        <label for="activoFilter" class="label-text">Estado</label>
+                        <div class="search-wrapper">
+                            <select id="activoFilter" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
+                                <option value="all">Todos</option>
+                                <option value="activo">Activos</option>
+                                <option value="inactivo">Inactivos</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -74,7 +85,7 @@
     <div id="notificationMenu" class="profile-menu-modal notification-menu" style="display: none;">
         <div class="profile-menu-header">
             <span class="profile-menu-name">Notificaciones</span>
-            <a href="notificaciones.html">Ver todas</a>
+            <a href="#" title="Notificaciones eliminadas">Ver todas</a>
         </div>
         <div class="notification-list" id="notificationList"></div>
     </div>

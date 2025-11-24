@@ -13,6 +13,74 @@
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
 
     <style>
+        /* ==========================================
+           ESTILOS DE BUSCADOR (Reutilizado de Servicios)
+           ========================================== */
+        .search-flex {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .search-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 250px; /* Ajustado para el panel */
+        }
+
+        .label-text {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .search-wrapper {
+            display: flex;
+            flex: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            width: 100%;
+        }
+
+        .search-wrapper input:focus {
+            border-color: #B8860B;
+        }
+
+        .search-wrapper button {
+            padding: 0 20px;
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #000;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-wrapper button:hover {
+            background-color: #333;
+        }
+
+
         /* Layout principal de 3 paneles */
         .grid-2panels {
             display: grid;
@@ -63,9 +131,15 @@
                 <!-- Panel Servicios -->
                 <section class="panel">
                     <h2>Servicios</h2>
-                    <div class="services-search">
-                        <input id="searchServicios" type="text" class="search-input" placeholder="Buscar servicios...">
+                    <div class="search-group">
+                        <div class="search-wrapper">
+                            <input type="text" id="searchServicios" placeholder="Buscar servicios...">
+                            <button type="button" id="searchButton">
+                                <i class="ph-bold ph-magnifying-glass"></i>
+                            </button>
+                        </div>
                     </div>
+                    <div class="divider"></div>
                     <div id="servicesList" class="services-list"></div>
                 </section>
 
@@ -78,7 +152,7 @@
                     <div id="emptyQuestions" style="display:none; text-align:center; padding:20px;" class="muted">No hay preguntas</div>
                     <div class="divider"></div>
                     <button id="btnAddQuestion" class="btn btn-primary" disabled>
-                    <i class="fas fa-plus"></i> Nueva Pregunta
+                    <i class="ph-bold ph-plus"></i> Nueva Pregunta
                     </button>
                 </section>
             </div>
@@ -136,10 +210,10 @@
 
             <div class="form-actions">
                 <button type="button" class="btn btn-primary" id="btnGuardarPregunta">
-                    <i class="fas fa-save"></i> Guardar Pregunta
+                    <i class="ph-bold ph-floppy-disk"></i> Guardar Pregunta
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="closePreguntaModal()">
-                    <i class="fas fa-times"></i> Cancelar
+                    <i class="ph-bold ph-x"></i> Cancelar
                 </button>
             </div>
         </div>

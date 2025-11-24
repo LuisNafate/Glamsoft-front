@@ -19,6 +19,7 @@ class ServiciosAdmin {
         try {
             this.setupEventListeners();
             await this.loadServicios();
+            this.handleUrlParams(); // Para abrir modal desde URL
         } catch (error) {
             console.error('Error al inicializar:', error);
         }
@@ -203,6 +204,14 @@ class ServiciosAdmin {
         });
 
         this.renderTable();
+    }
+
+    handleUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const servicioId = params.get('id');
+        if (servicioId) {
+            this.editServicio(parseInt(servicioId));
+        }
     }
 
     renderTable() {

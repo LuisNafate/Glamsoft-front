@@ -15,6 +15,72 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
+        /* ==========================================
+           ESTILOS DE BUSCADOR (Reutilizado de Servicios)
+           ========================================== */
+        .search-flex {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .search-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .label-text {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .search-wrapper {
+            display: flex;
+            flex: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            width: 100%;
+        }
+
+        .search-wrapper input:focus {
+            border-color: #B8860B;
+        }
+
+        .search-wrapper button {
+            padding: 0 20px;
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #000;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-wrapper button:hover {
+            background-color: #333;
+        }
         .comment-card {
             background: white;
             border-radius: 12px;
@@ -147,8 +213,13 @@
             
             <!-- Filtros -->
             <div class="content-card">
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar comentarios por contenido o cliente...">
+                <div class="search-group">
+                    <div class="search-wrapper">
+                        <input type="text" id="searchInput" placeholder="Buscar por cliente, servicio o contenido...">
+                        <button type="button" id="searchButton">
+                            <i class="ph-bold ph-magnifying-glass"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -158,7 +229,7 @@
             </div>
             
             <div id="emptyState" style="display: none; text-align: center; padding: 60px; background: white; border-radius: 12px;">
-                <i class="fas fa-comments" style="font-size: 64px; color: #bdc3c7; margin-bottom: 20px;"></i>
+                <i class="ph-bold ph-chats" style="font-size: 64px; color: #bdc3c7; margin-bottom: 20px;"></i>
                 <p style="color: #7f8c8d; font-size: 18px;">No se encontraron comentarios</p>
             </div>
             

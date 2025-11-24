@@ -182,7 +182,7 @@ class Dashboard {
             const stateClass = { 'cita': 'success', 'sistema': 'warning', 'error': 'error' }[tipo] || 'info';
 
             return `
-                <div class="notification-item ${!notif.leida ? 'unread' : ''}" onclick="window.location.href='notificaciones.html'">
+                <div class="notification-item ${!notif.leida ? 'unread' : ''}">
                     <div class="notif-icon-box ${stateClass}">
                         <i class="ph ${iconClass}"></i>
                     </div>
@@ -209,10 +209,23 @@ class Dashboard {
 
     // ... (updateStats, loadActivities, formatTime, setupAutoRefresh, loaders) ...
     updateStats(citas, servicios, estilistas) {
-        document.getElementById('totalCitas').textContent = citas.total;
-        document.getElementById('citasPendientes').textContent = citas.pendientes;
-        document.getElementById('totalServicios').textContent = servicios.total;
-        document.getElementById('totalEstilistas').textContent = estilistas.total;
+        // Defensive DOM updates: some pages or timing may not include these nodes
+        const elTotalCitas = document.getElementById('totalCitas');
+        const elCitasPendientes = document.getElementById('citasPendientes');
+        const elTotalServicios = document.getElementById('totalServicios');
+        const elTotalEstilistas = document.getElementById('totalEstilistas');
+
+        if (elTotalCitas) elTotalCitas.textContent = (citas && typeof citas.total !== 'undefined') ? citas.total : 0;
+        else console.warn('Dashboard.updateStats: element #totalCitas not found');
+
+        if (elCitasPendientes) elCitasPendientes.textContent = (citas && typeof citas.pendientes !== 'undefined') ? citas.pendientes : 0;
+        else console.warn('Dashboard.updateStats: element #citasPendientes not found');
+
+        if (elTotalServicios) elTotalServicios.textContent = (servicios && typeof servicios.total !== 'undefined') ? servicios.total : 0;
+        else console.warn('Dashboard.updateStats: element #totalServicios not found');
+
+        if (elTotalEstilistas) elTotalEstilistas.textContent = (estilistas && typeof estilistas.total !== 'undefined') ? estilistas.total : 0;
+        else console.warn('Dashboard.updateStats: element #totalEstilistas not found');
     }
 
     async loadActivities() {

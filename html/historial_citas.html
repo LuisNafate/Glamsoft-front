@@ -41,11 +41,12 @@
                             <th>Fecha Solicitud</th>
                             <th>Servicios</th>
                             <th>Total</th>
+                            <th>Comentario</th>
                         </tr>
                     </thead>
                     <tbody id="citas-table-body">
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 20px;">Cargando historial...</td>
+                            <td colspan="6" style="text-align: center; padding: 20px;">Cargando historial...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -64,12 +65,26 @@
     <script src="../services/http.service.js"></script>
     <script src="../services/auth.service.js"></script>
     <script src="../services/citas.service.js"></script>
+    <script src="../services/comentarios.service.js"></script>
     <script src="../services/notificaciones.service.js"></script>
 
     <script src="../utils/state-manager.js"></script>
 
     <script src="../js/header_footer.js"></script>
     <script src="../js/historial_citas.js"></script>
+
+    <!-- Modal para crear comentario -->
+    <div id="comment-modal" class="comment-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:10000;">
+        <div style="background:#fff; padding:18px; border-radius:10px; width:520px; max-width:95%;">
+            <h3 style="margin-top:0;">Agregar comentario</h3>
+            <div id="comment-modal-service" style="color:#666; margin-bottom:8px; font-size:0.95rem;"></div>
+            <textarea id="comment-modal-text" rows="5" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; resize:vertical;" placeholder="Escribe tu comentario aquí..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                <button id="comment-modal-cancel" style="background:#eee; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Cancelar</button>
+                <button id="comment-modal-submit" style="background:#B8860B; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Enviar</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
