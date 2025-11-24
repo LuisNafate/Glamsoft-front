@@ -21,15 +21,29 @@ class ConfirmacionesAdmin {
         }
     }
 
-    async checkAuth() {
+async checkAuth() {
         try {
-            const user = StateManager.get('user');
-            if (!user || user.rol !== 'admin' && user.rol !== 'Admin') {
-                console.warn('Usuario no autenticado o no es admin');
-                // window.location.href = '../login.html';
+            const user = JSON.parse(localStorage.getItem('user_data') || 'null');
+            
+            // 🔒 SEGURIDAD: Solo Rol 1 (Admin) puede estar aquí
+            if (!user || user.idRol !== 1) {
+                console.warn("Acceso denegado: No eres Administrador.");
+                window.location.href = '../inicio.html';
+                return; // Detener ejecución
             }
+
+            // Actualizar interfaz con datos del usuario
+            const nombreReal = user.nombre || 'Administrador';
+            
+            const headerName = document.getElementById('userName');
+            if (headerName) headerName.textContent = nombreReal;
+            
+            const menuName = document.getElementById('menuUserName');
+            if (menuName) menuName.textContent = nombreReal;
+
         } catch (error) {
-            console.warn('StateManager no disponible:', error);
+            console.error("Error de sesión:", error);
+            window.location.href = '../login.html';
         }
     }
 

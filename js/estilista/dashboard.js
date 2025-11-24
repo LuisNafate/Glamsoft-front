@@ -33,12 +33,10 @@ class DashboardEstilista {
             }
 
             // Verificar si es estilista (idRol: 2) o admin (idRol: 1)
-            const esEstilista = user && (user.idRol === 2 || user.id_rol === 2 || user.rol === 'estilista' || user.rol === 'Estilista');
-            const esAdmin = user && (user.idRol === 1 || user.id_rol === 1 || user.rol === 'admin' || user.rol === 'Admin');
-
-            if (!user || (!esEstilista && !esAdmin)) {
-                console.warn('Usuario no autenticado o no es estilista. Usuario:', user);
-                // window.location.href = '../login.html';
+            if (!user || (user.idRol !== 1 && user.idRol !== 2)) { 
+                console.warn("Acceso denegado: No tienes permisos de Estilista.");
+                window.location.href = '../inicio.html';
+                return; // Detener ejecución
             }
 
             const nombreReal = user ? user.nombre : 'Estilista';

@@ -1,0 +1,274 @@
+/* ==========================================
+   ESTILOS ESPECÍFICOS DE ESTILISTAS
+   ========================================== */
+
+/* --- 1. BUSCADOR MODERNO (Tipo Servicios) --- */
+.search-flex {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.search-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    min-width: 300px; /* Evita que se aplaste en móviles */
+}
+
+.label-text {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.search-wrapper {
+    display: flex;
+    flex: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-wrapper input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    outline: none;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-wrapper input:focus {
+    border-color: #B8860B; /* Dorado al foco */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.search-wrapper button {
+    padding: 0 25px;
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #000;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-wrapper button:hover {
+    background-color: #333;
+    border-color: #333;
+}
+
+/* --- 2. TABLA DE ESTILISTAS --- */
+.estilista-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f0f0f0;
+}
+
+.specialties-list {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.service-tag {
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+    text-transform: capitalize;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* --- 3. BOTONES PERSONALIZADOS --- */
+.btn-warning {
+    background-color: #f1c40f !important;
+    color: #000 !important; /* Texto negro para contraste */
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+    background-color: #d4ac0d !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
+}
+
+button:disabled, .btn:disabled {
+    background-color: #e0e0e0 !important;
+    color: #999 !important;
+    border-color: #ccc !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* --- 4. MODAL Y FORMULARIO --- */
+/* Ajustes específicos para el modal de estilistas */
+.modal-content {
+    max-width: 850px; /* Un poco más ancho para el horario */
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.form-control {
+    background-color: #f8f9fa;
+    border: 1px solid #dfe6e9;
+    color: #2d3436;
+}
+
+.form-control:focus {
+    background-color: #fff;
+    border-color: #B8860B;
+}
+
+.form-control[readonly] {
+    background-color: #e9ecef;
+    color: #636e72;
+    cursor: default;
+}
+
+/* Select múltiple personalizado */
+select[multiple].form-control {
+    padding: 5px;
+    background-image: none;
+}
+
+select[multiple].form-control option {
+    padding: 10px 15px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+select[multiple].form-control option:hover {
+    background-color: #f1f2f6;
+}
+
+select[multiple].form-control option:checked {
+    background: linear-gradient(135deg, #2c3e50, #000000) !important;
+    color: white !important;
+}
+
+/* --- 5. GRID DE HORARIOS (INTERACTIVO) --- */
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+    background: #fdfdfd;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.day-schedule {
+    background: white;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+/* Estado Activo (Cuando el estilista trabaja ese día) */
+.day-schedule.active {
+    border-color: #27ae60; /* Verde éxito */
+    background-color: rgba(39, 174, 96, 0.05);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
+}
+
+.day-name {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+.day-checkbox {
+    transform: scale(1.2);
+    cursor: pointer;
+    accent-color: #27ae60;
+}
+
+/* Inputs de hora */
+.time-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+.time-inputs input {
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    width: 100%;
+    color: #333;
+}
+
+.time-inputs span {
+    font-size: 11px;
+    color: #888;
+    font-weight: bold;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .search-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

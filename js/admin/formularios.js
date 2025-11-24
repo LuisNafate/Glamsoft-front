@@ -19,7 +19,31 @@ class PreguntasPorServicioAdmin {
       this.notify('Error al inicializar', 'error');
     }
   }
+async checkAuth() {
+        try {
+            const user = JSON.parse(localStorage.getItem('user_data') || 'null');
+            
+            // 🔒 SEGURIDAD: Solo Rol 1 (Admin) puede estar aquí
+            if (!user || user.idRol !== 1) {
+                console.warn("Acceso denegado: No eres Administrador.");
+                window.location.href = '../inicio.html';
+                return; // Detener ejecución
+            }
 
+            // Actualizar interfaz con datos del usuario
+            const nombreReal = user.nombre || 'Administrador';
+            
+            const headerName = document.getElementById('userName');
+            if (headerName) headerName.textContent = nombreReal;
+            
+            const menuName = document.getElementById('menuUserName');
+            if (menuName) menuName.textContent = nombreReal;
+
+        } catch (error) {
+            console.error("Error de sesión:", error);
+            window.location.href = '../login.html';
+        }
+    }
   cacheDom() {
     this.$servicesList = document.getElementById('servicesList');
     this.$searchServicios = document.getElementById('searchServicios');

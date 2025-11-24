@@ -28,10 +28,11 @@ class PortafolioEstilista {
         const user = JSON.parse(userStr);
         
         // 1. Validar Rol
-        if (user.idRol !== 2 && user.idRol !== 1) {
-            window.location.href = '../inicio.html';
-            return;
-        }
+        if (!user || (user.idRol !== 1 && user.idRol !== 2)) { 
+                console.warn("Acceso denegado: No tienes permisos de Estilista.");
+                window.location.href = '../inicio.html';
+                return; // Detener ejecución
+            }
 
         // 2. Mostrar nombre en el menú
         const nombre = user.nombre || 'Estilista';
