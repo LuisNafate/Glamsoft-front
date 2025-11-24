@@ -261,15 +261,22 @@ class PreguntasPorServicioAdmin {
   }
 
   async eliminarPregunta(p) {
-    if (!confirm('¿Eliminar esta pregunta?')) return;
+    const confirmed = await customConfirm(
+      '¿Eliminar esta pregunta?',
+      'Eliminar Pregunta',
+      { icon: 'ph-trash' }
+    );
+
+    if (!confirmed) return;
+
     this.showLoader();
     try {
       await PreguntasService.delete(p.idPregunta);
-      this.notify('Pregunta eliminada', 'success');
+      await customAlert('Pregunta eliminada', 'Éxito', { type: 'success' });
       await this.loadPreguntas();
     } catch (e) {
       console.error(e);
-      this.notify('No se pudo eliminar', 'error');
+      await customAlert('No se pudo eliminar', 'Error', { type: 'error' });
     } finally { this.hideLoader(); }
   }
 

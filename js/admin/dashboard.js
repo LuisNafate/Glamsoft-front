@@ -83,7 +83,12 @@ class Dashboard {
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                const confirmed = await customConfirm(
+                    '¿Estás seguro de que deseas cerrar sesión?',
+                    'Cerrar Sesión',
+                    { icon: 'ph-sign-out' }
+                );
+                if (confirmed) {
                     await AuthService.logout();
                     window.location.href = '../login.html';
                 }

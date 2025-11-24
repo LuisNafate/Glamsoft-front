@@ -293,22 +293,26 @@ class PromocionesAdmin {
     }
 
     async deletePromocion(id) {
-        if (!confirm('¿Estás seguro de eliminar esta promoción?')) {
-            return;
-        }
-        
+        const confirmed = await customConfirm(
+            '¿Estás seguro de eliminar esta promoción?',
+            'Eliminar Promoción',
+            { icon: 'ph-trash' }
+        );
+
+        if (!confirmed) return;
+
         this.showLoader();
-        
+
         try {
             const response = await PromocionesService.delete(id);
             console.log('Respuesta delete:', response);
             const message = response?.data?.message || 'Promoción eliminada correctamente';
-            this.showNotification(message, 'success');
+            await customAlert(message, 'Éxito', { type: 'success' });
             await this.loadPromociones();
         } catch (error) {
             console.error('Error al eliminar promoción:', error);
             const errorMsg = error.response?.data?.message || error.message || 'Error al eliminar promoción';
-            this.showNotification(errorMsg, 'error');
+            await customAlert(errorMsg, 'Error', { type: 'error' });
         } finally {
             this.hideLoader();
         }

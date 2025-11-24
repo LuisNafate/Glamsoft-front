@@ -10,7 +10,8 @@
     
     <!-- Estilos -->
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
-       <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../../Css/modals/custom-modal.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
         .gallery-grid {
@@ -107,9 +108,7 @@
                 <h1>Gestión de Portafolio</h1>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" id="btnNuevaImagen">
-                    <i class="fas fa-plus"></i> Nueva Imagen
-                </button>
+                <!-- Botón eliminado - solo gestión por álbumes -->
             </div>
         </header>
         
@@ -137,9 +136,7 @@
                 <div id="emptyState" style="display: none; text-align: center; padding: 60px;">
                     <i class="fas fa-images" style="font-size: 64px; color: #bdc3c7; margin-bottom: 20px;"></i>
                     <p style="color: #7f8c8d; font-size: 18px;">No hay imágenes en el portafolio</p>
-                    <button class="btn btn-primary" style="margin-top: 20px;" onclick="document.getElementById('btnNuevaImagen').click()">
-                        <i class="fas fa-plus"></i> Agregar Primera Imagen
-                    </button>
+                    <p style="color: #95a5a6; font-size: 14px; margin-top: 10px;">Agrega imágenes usando la sección de álbumes a continuación</p>
                 </div>
             </div>
             
@@ -223,6 +220,7 @@
     <script src="../../services/portafolio.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
+    <script src="../../utils/custom-modal.js"></script>
     <script src="../../js/admin/portafolio.js"></script>
     
     <script>

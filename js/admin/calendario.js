@@ -376,12 +376,19 @@ class CalendarioAdmin {
 
         const esConfirmacion = nuevoEstado === 'confirmada';
         const mensaje = esConfirmacion
-            ? '¿Confirmar aprobación de la cita?\n\nSe enviará un email al cliente.'
+            ? 'Se enviará un email al cliente.'
             : '¿Confirmar cancelación de la cita?';
+        const titulo = esConfirmacion
+            ? '¿Confirmar aprobación de la cita?'
+            : 'Cancelar Cita';
 
-        if (!confirm(mensaje)) {
-            return;
-        }
+        const confirmed = await customConfirm(
+            mensaje,
+            titulo,
+            { icon: esConfirmacion ? 'ph-check-circle' : 'ph-x-circle' }
+        );
+
+        if (!confirmed) return;
 
         this.showLoader();
 
@@ -390,15 +397,20 @@ class CalendarioAdmin {
 
             if (esConfirmacion) {
                 await CitasService.aprobar(citaId);
-                this.showNotification('Cita aprobada. Email enviado al cliente.', 'success');
+                await customAlert('Cita aprobada. Email enviado al cliente.', 'Éxito', { type: 'success' });
             } else {
-                const motivo = prompt('Ingresa el motivo de cancelación (opcional):');
+                const motivo = await customPrompt(
+                    'Ingresa el motivo de cancelación (opcional):',
+                    'Motivo de Cancelación',
+                    '',
+                    { placeholder: 'Motivo...', icon: 'ph-chat-circle-text' }
+                );
                 if (motivo === null) {
                     this.hideLoader();
                     return; // Usuario canceló
                 }
                 await CitasService.cancelar(citaId, motivo);
-                this.showNotification('Cita cancelada correctamente', 'success');
+                await customAlert('Cita cancelada correctamente', 'Cita Cancelada', { type: 'warning' });
             }
 
             closeModal();

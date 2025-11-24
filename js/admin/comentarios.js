@@ -209,19 +209,23 @@ class ComentariosAdmin {
     }
 
     async deleteComentario(id) {
-        if (!confirm('¿Estás seguro de eliminar este comentario?')) {
-            return;
-        }
-        
+        const confirmed = await customConfirm(
+            '¿Estás seguro de eliminar este comentario?',
+            'Eliminar Comentario',
+            { icon: 'ph-trash' }
+        );
+
+        if (!confirmed) return;
+
         this.showLoader();
-        
+
         try {
             await ComentariosService.delete(id);
-            this.showNotification('Comentario eliminado correctamente', 'success');
+            await customAlert('Comentario eliminado correctamente', 'Éxito', { type: 'success' });
             await this.loadComentarios();
         } catch (error) {
             console.error('Error al eliminar comentario:', error);
-            this.showNotification('Error al eliminar comentario', 'error');
+            await customAlert('Error al eliminar comentario', 'Error', { type: 'error' });
         } finally {
             this.hideLoader();
         }

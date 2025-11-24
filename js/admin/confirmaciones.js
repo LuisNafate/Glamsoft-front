@@ -226,9 +226,13 @@ class ConfirmacionesAdmin {
     }
 
     async aprobarCita(citaId) {
-        if (!confirm('¿Confirmar la aprobación de esta cita?\n\nSe enviará un email de confirmación al cliente.')) {
-            return;
-        }
+        const confirmed = await customConfirm(
+            'Se enviará un email de confirmación al cliente.',
+            '¿Confirmar la aprobación de esta cita?',
+            { icon: 'ph-check-circle' }
+        );
+
+        if (!confirmed) return;
 
         this.showLoader();
 
@@ -246,14 +250,18 @@ class ConfirmacionesAdmin {
             // Enviar email de confirmación
             await this.enviarEmailConfirmacion(cita);
 
-            this.showNotification('Cita aprobada correctamente. Se ha enviado un email al cliente.', 'success');
+            await customAlert(
+                'Cita aprobada correctamente. Se ha enviado un email al cliente.',
+                'Éxito',
+                { type: 'success' }
+            );
 
             // Recargar lista
             await this.loadCitasPendientes();
 
         } catch (error) {
             console.error('Error al aprobar cita:', error);
-            this.showNotification('Error al aprobar la cita', 'error');
+            await customAlert('Error al aprobar la cita', 'Error', { type: 'error' });
         } finally {
             this.hideLoader();
         }
@@ -325,7 +333,15 @@ class ConfirmacionesAdmin {
     }
 
     async rechazarCita(citaId) {
-        const motivo = prompt('Ingresa el motivo del rechazo (opcional):');
+        const motivo = await customPrompt(
+            'Ingresa el motivo del rechazo (opcional):',
+            'Rechazar Cita',
+            '',
+            {
+                placeholder: 'Motivo del rechazo...',
+                icon: 'ph-x-circle'
+            }
+        );
 
         if (motivo === null) {
             return; // Usuario canceló
@@ -336,14 +352,18 @@ class ConfirmacionesAdmin {
         try {
             await CitasService.rechazar(citaId, motivo);
 
-            this.showNotification('Cita rechazada. Se ha notificado al cliente.', 'success');
+            await customAlert(
+                'Cita rechazada. Se ha notificado al cliente.',
+                'Cita Rechazada',
+                { type: 'warning' }
+            );
 
             // Recargar lista
             await this.loadCitasPendientes();
 
         } catch (error) {
             console.error('Error al rechazar cita:', error);
-            this.showNotification('Error al rechazar la cita', 'error');
+            await customAlert('Error al rechazar la cita', 'Error', { type: 'error' });
         } finally {
             this.hideLoader();
         }

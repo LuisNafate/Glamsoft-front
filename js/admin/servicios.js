@@ -344,15 +344,22 @@ class ServiciosAdmin {
     }
 
     async deleteServicio(id) {
-        if (!confirm('¿Eliminar servicio?')) return;
+        const confirmed = await customConfirm(
+            '¿Eliminar servicio?',
+            'Confirmar Eliminación',
+            { icon: 'ph-trash' }
+        );
+
+        if (!confirmed) return;
+
         this.showLoader();
         try {
             await ServiciosService.delete(id);
             await this.loadServicios();
-            this.showNotification('Servicio eliminado', 'success');
+            await customAlert('Servicio eliminado', 'Éxito', { type: 'success' });
         } catch (error) {
             console.error('Error al eliminar servicio:', error);
-            this.showNotification('Error al eliminar', 'error');
+            await customAlert('Error al eliminar', 'Error', { type: 'error' });
         } finally {
             this.hideLoader();
         }

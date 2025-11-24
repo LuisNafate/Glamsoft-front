@@ -91,7 +91,12 @@ class DashboardEstilista {
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                const confirmed = await customConfirm(
+                    '¿Estás seguro de que deseas cerrar sesión?',
+                    'Cerrar Sesión',
+                    { icon: 'ph-sign-out' }
+                );
+                if (confirmed) {
                     await AuthService.logout();
                     window.location.href = '../login.html';
                 }
@@ -366,18 +371,32 @@ document.addEventListener('DOMContentLoaded', () => { new DashboardEstilista(); 
 
 // Funciones globales para las acciones de confirmación
 async function confirmarCita(idCita) {
-    if (!confirm('¿Confirmar esta cita?')) return;
-    
+    const confirmed = await customConfirm(
+        '¿Confirmar esta cita?',
+        'Confirmar Cita',
+        { icon: 'ph-check-circle' }
+    );
+
+    if (!confirmed) return;
+
     try {
         const loader = document.getElementById('loader');
         if (loader) loader.style.display = 'flex';
-        
+
         await CitasService.aprobar(idCita);
-        alert('Cita confirmada exitosamente');
+        await customAlert(
+            'Cita confirmada exitosamente',
+            'Éxito',
+            { type: 'success' }
+        );
         window.location.reload();
     } catch (error) {
         console.error('Error al confirmar cita:', error);
-        alert('Error al confirmar la cita');
+        await customAlert(
+            'Error al confirmar la cita',
+            'Error',
+            { type: 'error' }
+        );
     } finally {
         const loader = document.getElementById('loader');
         if (loader) loader.style.display = 'none';
@@ -385,19 +404,36 @@ async function confirmarCita(idCita) {
 }
 
 async function rechazarCita(idCita) {
-    const motivo = prompt('¿Motivo del rechazo?');
+    const motivo = await customPrompt(
+        '¿Motivo del rechazo?',
+        'Rechazar Cita',
+        '',
+        {
+            placeholder: 'Ingrese el motivo del rechazo...',
+            icon: 'ph-x-circle'
+        }
+    );
+
     if (!motivo) return;
-    
+
     try {
         const loader = document.getElementById('loader');
         if (loader) loader.style.display = 'flex';
-        
+
         await CitasService.rechazar(idCita, motivo);
-        alert('Cita rechazada');
+        await customAlert(
+            'Cita rechazada',
+            'Cita Rechazada',
+            { type: 'warning' }
+        );
         window.location.reload();
     } catch (error) {
         console.error('Error al rechazar cita:', error);
-        alert('Error al rechazar la cita');
+        await customAlert(
+            'Error al rechazar la cita',
+            'Error',
+            { type: 'error' }
+        );
     } finally {
         const loader = document.getElementById('loader');
         if (loader) loader.style.display = 'none';
