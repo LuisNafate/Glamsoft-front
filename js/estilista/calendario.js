@@ -84,9 +84,13 @@ class CalendarioEstilista {
         document.getElementById('btnConfirmar')?.addEventListener('click', () => {
             this.updateEstadoCita('confirmada');
         });
-        
+
         document.getElementById('btnCancelar')?.addEventListener('click', () => {
             this.updateEstadoCita('cancelada');
+        });
+
+        document.getElementById('btnReagendar')?.addEventListener('click', () => {
+            this.reagendarCita();
         });
     }
 
@@ -576,6 +580,196 @@ class CalendarioEstilista {
         }
     }
 
+    async reagendarCita() {
+        if (!this.currentCita) return;
+
+        // Cerrar modal de detalles y abrir modal de reagendar
+        closeModal();
+        document.getElementById('modalReagendar').classList.add('active');
+
+        // Configurar fecha mínima (hoy)
+        const inputFecha = document.getElementById('nuevaFechaReagendar');
+        const today = new Date().toISOString().split('T')[0];
+        inputFecha.min = today;
+        inputFecha.value = today;
+
+        // Cargar horarios para hoy
+        await this.cargarHorariosDisponibles(today);
+
+        // Event listener para cambio de fecha
+        inputFecha.addEventListener('change', async (e) => {
+            await this.cargarHorariosDisponibles(e.target.value);
+        });
+
+        // Event listener para confirmar
+        document.getElementById('btnConfirmarReagendar').onclick = () => {
+            this.confirmarReagendado();
+        };
+    }
+
+    async cargarHorariosDisponibles(fecha) {
+        const container = document.getElementById('horariosDisponibles');
+        container.innerHTML = '<p style="text-align: center; padding: 20px;">Cargando horarios...</p>';
+
+        try {
+            // Obtener el estilista de la cita actual
+            const estilistaId = this.currentCita.idEstilista || this.currentCita.estilista?.idEstilista;
+
+            if (!estilistaId) {
+                container.innerHTML = '<p style="color: red; text-align: center;">No se pudo obtener el estilista</p>';
+                return;
+            }
+
+            // Cargar horarios configurados desde el backend (igual que agendar.js)
+            let horaInicio = '09:00:00';
+            let horaFin = '19:00:00';
+
+            try {
+                console.log('🕒 Cargando horarios desde la API...');
+                const response = await HorariosService.getAll();
+                const horariosData = response.data || response;
+
+                if (horariosData && horariosData.length > 0) {
+                    const horario = horariosData[0];
+                    console.log('📋 Horario configurado:', horario);
+
+                    // Convertir horaInicio y horaFin si son objetos LocalTime
+                    if (typeof horario.horaInicio === 'object' && horario.horaInicio !== null) {
+                        horaInicio = `${String(horario.horaInicio.hour || 9).padStart(2, '0')}:${String(horario.horaInicio.minute || 0).padStart(2, '0')}:${String(horario.horaInicio.second || 0).padStart(2, '0')}`;
+                    } else if (horario.horaInicio) {
+                        horaInicio = horario.horaInicio;
+                    }
+
+                    if (typeof horario.horaFin === 'object' && horario.horaFin !== null) {
+                        horaFin = `${String(horario.horaFin.hour || 19).padStart(2, '0')}:${String(horario.horaFin.minute || 0).padStart(2, '0')}:${String(horario.horaFin.second || 0).padStart(2, '0')}`;
+                    } else if (horario.horaFin) {
+                        horaFin = horario.horaFin;
+                    }
+
+                    console.log('⏰ Usando horario - Inicio:', horaInicio, '- Fin:', horaFin);
+                }
+            } catch (error) {
+                console.warn('⚠️ No se pudieron cargar horarios configurados, usando horarios por defecto', error);
+            }
+
+            // Parsear horas de inicio y fin
+            const [inicioHora] = String(horaInicio).split(':').map(Number);
+            const [finHora] = String(horaFin).split(':').map(Number);
+
+            // Generar horarios cada hora entre horaInicio y horaFin (igual que agendar.js)
+            const horarios = [];
+            for (let hour = inicioHora; hour < finHora; hour++) {
+                horarios.push(`${String(hour).padStart(2, '0')}:00`);
+            }
+
+            // Verificar si la fecha seleccionada es hoy para deshabilitar horarios pasados
+            const fechaSeleccionada = new Date(fecha);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            fechaSeleccionada.setHours(0, 0, 0, 0);
+            const esHoy = fechaSeleccionada.getTime() === hoy.getTime();
+            const horaActual = esHoy ? new Date().getHours() : -1;
+
+            // Renderizar horarios en formato 12 horas (igual que agendar.js)
+            container.innerHTML = horarios.map(hora => {
+                const [h] = hora.split(':').map(Number);
+                const esPasado = esHoy && h <= horaActual;
+                const opacity = esPasado ? '0.3' : '1';
+                const cursor = esPasado ? 'not-allowed' : 'pointer';
+                const disabled = esPasado ? 'disabled' : '';
+
+                // Formatear a formato 12 horas con AM/PM
+                const hora12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                const periodo = h >= 12 ? 'PM' : 'AM';
+                const horaDisplay = `${hora12}:00 ${periodo}`;
+
+                return `
+                    <div class="horario-item ${disabled}" data-hora="${hora}" style="
+                        padding: 12px 16px;
+                        margin-bottom: 8px;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        cursor: ${cursor};
+                        opacity: ${opacity};
+                        transition: all 0.2s;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    " ${esPasado ? '' : `onmouseover="this.style.borderColor='#B8860B'; this.style.background='#faf8f0';"
+                       onmouseout="if(!this.classList.contains('selected')){this.style.borderColor='#e0e0e0'; this.style.background='white';}"
+                       onclick="window.calendarioEstilista.seleccionarHorario(this, '${hora}')"`}>
+                        <i class="fas fa-clock" style="color: #B8860B;"></i>
+                        <span style="font-weight: 500;">${horaDisplay}</span>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('Error al cargar horarios:', error);
+            container.innerHTML = '<p style="color: red; text-align: center;">Error al cargar horarios</p>';
+        }
+    }
+
+    seleccionarHorario(elemento, hora) {
+        // Remover selección anterior
+        document.querySelectorAll('.horario-item').forEach(item => {
+            item.classList.remove('selected');
+            item.style.borderColor = '#e0e0e0';
+            item.style.background = 'white';
+        });
+
+        // Seleccionar nuevo
+        elemento.classList.add('selected');
+        elemento.style.borderColor = '#B8860B';
+        elemento.style.background = '#faf8f0';
+    }
+
+    async confirmarReagendado() {
+        const nuevaFecha = document.getElementById('nuevaFechaReagendar').value;
+        const horarioSeleccionado = document.querySelector('.horario-item.selected');
+
+        if (!nuevaFecha) {
+            this.showNotification('Por favor seleccione una fecha', 'error');
+            return;
+        }
+
+        if (!horarioSeleccionado) {
+            this.showNotification('Por favor seleccione un horario', 'error');
+            return;
+        }
+
+        const nuevaHora = horarioSeleccionado.getAttribute('data-hora');
+
+        if (!confirm(`¿Confirmar reagendado para ${nuevaFecha} a las ${nuevaHora}?`)) {
+            return;
+        }
+
+        this.showLoader();
+
+        try {
+            const citaId = this.currentCita.idCita || this.currentCita.id;
+
+            const data = {
+                idCita: citaId,
+                nuevaFecha: nuevaFecha,
+                nuevaHora: nuevaHora
+            };
+
+            await CitasService.updateFecha(data);
+            this.showNotification('Cita reagendada exitosamente', 'success');
+
+            closeModalReagendar();
+            await this.loadCitas();
+            this.renderCalendar();
+
+        } catch (error) {
+            console.error('Error al reagendar cita:', error);
+            this.showNotification('Error al reagendar la cita', 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
     formatFecha(fecha) {
         // Manejar formato array [year, month, day]
         if (Array.isArray(fecha)) {
@@ -640,4 +834,5 @@ let calendarioEstilista;
 
 document.addEventListener('DOMContentLoaded', () => {
     calendarioEstilista = new CalendarioEstilista();
+    window.calendarioEstilista = calendarioEstilista; // Exponer globalmente
 });

@@ -310,16 +310,15 @@
                 <button type="button" class="btn btn-success" id="btnConfirmar">
                     <i class="fas fa-check"></i> Confirmar
                 </button>
-                <button type="button" class="btn btn-warning" id="btnReagendar">
-                    <i class="fas fa-calendar-alt"></i> Reagendar
-                </button>
                 <button type="button" class="btn btn-danger" id="btnCancelar">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
         </div>
     </div>
-    
+
+
+
     <!-- Loader -->
     <div class="admin-loader" id="loader" style="display: none;">
         <div class="loader-spinner"></div>
@@ -329,6 +328,7 @@
     <script src="../../config/api.config.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
+    <script src="../../services/horarios.service.js"></script>
     <script src="../../services/citas.service.js"></script>
     <script src="../../services/notificaciones.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
@@ -344,6 +344,10 @@
             
         function closeModal() {
             document.getElementById('modalCita').classList.remove('active');
+        }
+
+        function closeModalReagendar() {
+            document.getElementById('modalReagendar').classList.remove('active');
         }
     </script>
     
