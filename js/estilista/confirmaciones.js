@@ -272,9 +272,13 @@ class ConfirmacionesEstilista {
     }
 
     async confirmarCita(citaId) {
-        if (!confirm('¿Confirmar esta cita?\n\nSe enviará un email de confirmación al cliente.')) {
-            return;
-        }
+        const confirmed = await customConfirm(
+            'Se enviará un email de confirmación al cliente.',
+            '¿Confirmar esta cita?',
+            { icon: 'ph-check-circle' }
+        );
+
+        if (!confirmed) return;
 
         this.showLoader();
 
@@ -292,13 +296,21 @@ class ConfirmacionesEstilista {
             // Enviar email de confirmación
             await this.enviarEmailConfirmacion(cita);
 
-            this.showNotification('Cita confirmada exitosamente. Email enviado al cliente.', 'success');
+            await customAlert(
+                'Cita confirmada exitosamente. Email enviado al cliente.',
+                'Éxito',
+                { type: 'success' }
+            );
 
             // Recargar lista
             await this.loadConfirmaciones();
         } catch (error) {
             console.error('Error al confirmar cita:', error);
-            this.showNotification('Error al confirmar la cita', 'error');
+            await customAlert(
+                'Error al confirmar la cita',
+                'Error',
+                { type: 'error' }
+            );
         } finally {
             this.hideLoader();
         }
@@ -374,7 +386,15 @@ class ConfirmacionesEstilista {
     }
 
     async rechazarCita(citaId) {
-        const motivo = prompt('Ingresa el motivo del rechazo (opcional):');
+        const motivo = await customPrompt(
+            'Ingresa el motivo del rechazo (opcional):',
+            'Rechazar Cita',
+            '',
+            {
+                placeholder: 'Motivo del rechazo...',
+                icon: 'ph-x-circle'
+            }
+        );
 
         if (motivo === null) {
             return; // Usuario canceló
@@ -384,11 +404,19 @@ class ConfirmacionesEstilista {
 
         try {
             await CitasService.rechazar(citaId, motivo);
-            this.showNotification('Cita rechazada correctamente', 'success');
+            await customAlert(
+                'Cita rechazada correctamente',
+                'Cita Rechazada',
+                { type: 'warning' }
+            );
             await this.loadConfirmaciones();
         } catch (error) {
             console.error('Error al rechazar cita:', error);
-            this.showNotification('Error al rechazar la cita', 'error');
+            await customAlert(
+                'Error al rechazar la cita',
+                'Error',
+                { type: 'error' }
+            );
         } finally {
             this.hideLoader();
         }

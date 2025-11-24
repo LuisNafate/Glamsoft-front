@@ -445,7 +445,7 @@ class PortafolioAdmin {
                                     <button onclick="window.portafolioAdmin.editImagen(${img.idImagen}); this.closest('.modal-overlay').remove();" class="btn-icon edit" style="background: white;" title="Editar">
                                         <i class="ph ph-pencil-simple"></i>
                                     </button>
-                                    <button onclick="if(confirm('¿Eliminar esta imagen?')) { window.portafolioAdmin.deleteImagen(${img.idImagen}); this.closest('.modal-overlay').remove(); }" class="btn-icon delete" style="background: white;" title="Eliminar">
+                                    <button onclick="(async () => { const confirmed = await customConfirm('¿Eliminar esta imagen?', 'Eliminar Imagen', { icon: 'ph-trash' }); if (confirmed) { window.portafolioAdmin.deleteImagen(${img.idImagen}); this.closest('.modal-overlay').remove(); } })()" class="btn-icon delete" style="background: white;" title="Eliminar">
                                         <i class="ph ph-trash"></i>
                                     </button>
                                 </div>
@@ -463,7 +463,13 @@ class PortafolioAdmin {
         const album = this.agruparPorTitulo(this.imagenes).find(a => a.titulo === titulo);
         if (!album) return;
 
-        if (!confirm(`¿Eliminar el álbum "${titulo}" con ${album.imagenes.length} imagen(es)?`)) return;
+        const confirmed = await customConfirm(
+            `¿Eliminar el álbum "${titulo}" con ${album.imagenes.length} imagen(es)?`,
+            'Eliminar Álbum',
+            { icon: 'ph-trash' }
+        );
+
+        if (!confirmed) return;
 
         this.showLoader();
         try {
@@ -483,9 +489,9 @@ class PortafolioAdmin {
             await this.loadImagenes();
 
             if (fallidas === 0) {
-                this.showNotification(`Álbum "${titulo}" eliminado completamente`, 'success');
+                await customAlert(`Álbum "${titulo}" eliminado completamente`, 'Éxito', { type: 'success' });
             } else {
-                this.showNotification(`Álbum eliminado parcialmente: ${exitosas} exitosas, ${fallidas} fallidas`, 'warning');
+                await customAlert(`Álbum eliminado parcialmente: ${exitosas} exitosas, ${fallidas} fallidas`, 'Advertencia', { type: 'warning' });
             }
         } catch (error) {
             console.error('Error al eliminar álbum:', error);
@@ -501,14 +507,25 @@ class PortafolioAdmin {
     }
 
     async deleteImagen(id) {
-        if(!confirm('¿Borrar imagen?')) return;
+        const confirmed = await customConfirm(
+            '¿Borrar imagen?',
+            'Eliminar Imagen',
+            { icon: 'ph-trash' }
+        );
+
+        if (!confirmed) return;
+
         this.showLoader();
         try {
             await PortafolioService.delete(id);
-            this.showNotification('Imagen eliminada', 'success');
+            await customAlert('Imagen eliminada', 'Éxito', { type: 'success' });
             await this.loadImagenes();
-        } catch(e) { console.error(e); }
-        finally { this.hideLoader(); }
+        } catch(e) {
+            console.error(e);
+            await customAlert('Error al eliminar imagen', 'Error', { type: 'error' });
+        } finally {
+            this.hideLoader();
+        }
     }
 
     async saveImagen() {

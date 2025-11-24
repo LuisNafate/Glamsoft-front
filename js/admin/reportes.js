@@ -267,7 +267,7 @@ class ReportesAdmin {
 
     async exportarReporte() {
         if (!this.datosReporte) {
-            alert('No hay datos para exportar');
+            await customAlert('No hay datos para exportar', 'Advertencia', { type: 'warning' });
             return;
         }
 
@@ -394,7 +394,7 @@ class ReportesAdmin {
 
         } catch (error) {
             console.error('Error al exportar PDF:', error);
-            alert('Error al exportar el reporte. Verifica que la librería jsPDF esté cargada correctamente.');
+            await customAlert('Error al exportar el reporte. Verifica que la librería jsPDF esté cargada correctamente.', 'Error', { type: 'error' });
         }
     }
 

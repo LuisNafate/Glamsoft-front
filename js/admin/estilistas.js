@@ -155,7 +155,11 @@ class EstilistasAdmin {
         const estilistaId = estilistaIdVal ? parseInt(estilistaIdVal) : null;
         
         if (!usuarioId || isNaN(usuarioId)) {
-            alert("Error: No se ha seleccionado un usuario válido. Verifica el teléfono primero.");
+            await customAlert(
+                "No se ha seleccionado un usuario válido. Verifica el teléfono primero.",
+                "Error",
+                { type: 'error' }
+            );
             return;
         }
 
@@ -271,7 +275,11 @@ class EstilistasAdmin {
         btnGuardar.disabled = true;
 
         if (!telefono) {
-            alert("Por favor ingresa un número de teléfono.");
+            await customAlert(
+                "Por favor ingresa un número de teléfono.",
+                "Campo requerido",
+                { type: 'warning' }
+            );
             return;
         }
 
@@ -346,17 +354,24 @@ class EstilistasAdmin {
     }
 
     async deleteEstilista(id) {
-        if(!confirm("¿Eliminar estilista?")) return;
+        const confirmed = await customConfirm(
+            "¿Eliminar estilista?",
+            "Confirmar Eliminación",
+            { icon: 'ph-trash' }
+        );
+
+        if (!confirmed) return;
+
         this.showLoader();
         try {
             await EstilistasService.delete(id);
-            this.showNotification('Estilista eliminado', 'success');
+            await customAlert('Estilista eliminado', 'Éxito', { type: 'success' });
             this.loadEstilistas();
         } catch(e) {
             console.error('Error al eliminar estilista:', e);
             // Intentar extraer mensaje claro desde la respuesta del servidor
             const serverMsg = e?.response?.data?.message || e?.data?.message || e?.message || 'Error al eliminar el estilista.';
-            this.showNotification(serverMsg, 'error');
+            await customAlert(serverMsg, 'Error', { type: 'error' });
         } finally {
             this.hideLoader();
         }
