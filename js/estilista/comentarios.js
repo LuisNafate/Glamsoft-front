@@ -8,38 +8,11 @@ class ComentariosEstilista {
 
     async init() {
         try {
-            await this.checkAuth();
             this.setupEventListeners();
             await this.loadComentarios();
         } catch (error) {
             console.error('Error al inicializar:', error);
             this.showNotification('Error al inicializar comentarios', 'error');
-        }
-    }
-
-  async checkAuth() {
-        try {
-            const user = JSON.parse(localStorage.getItem('user_data') || 'null');
-            
-            // 🔒 SEGURIDAD: Solo Rol 1 (Admin) o 2 (Estilista) pueden estar aquí
-            if (!user || (user.idRol !== 1 && user.idRol !== 2)) { 
-                console.warn("Acceso denegado: No tienes permisos de Estilista.");
-                window.location.href = '../inicio.html';
-                return; // Detener ejecución
-            }
-
-            // Actualizar interfaz
-            const nombre = user.nombre || 'Estilista';
-            document.getElementById('userName').textContent = nombre;
-            const menuName = document.getElementById('menuUserName');
-            if(menuName) menuName.textContent = nombre;
-
-            this.currentUser = user;
-            this.currentUserId = user.idUsuario || user.id;
-
-        } catch (error) {
-            console.error("Error de sesión:", error);
-            window.location.href = '../login.html';
         }
     }
 

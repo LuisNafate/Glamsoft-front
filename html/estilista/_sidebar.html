@@ -7,7 +7,7 @@
             <small style="color: #aaa; padding-left: 2px;">Panel Estilista</small>
         </div>
     </div>
-    
+
     <nav class="sidebar-menu">
         <ul>
             <li>
@@ -16,7 +16,7 @@
                     <span>Inicio</span>
                 </a>
             </li>
-            
+
             <li>
                 <a href="calendario.html" class="menu-item" data-page="calendario">
                     <i class="ph ph-calendar-check sidebar-icon"></i>
@@ -37,7 +37,7 @@
                     <span>Mi Portafolio</span>
                 </a>
             </li>
-            
+
             <li>
                 <a href="comentarios.html" class="menu-item" data-page="comentarios">
                     <i class="ph ph-chat-teardrop-text sidebar-icon"></i>
@@ -46,42 +46,16 @@
             </li>
         </ul>
     </nav>
-    
+
     <div class="sidebar-footer">
         <a href="../inicio.html" class="menu-item" title="Volver a la página principal">
             <i class="ph ph-globe sidebar-icon"></i>
             <span>Ver Sitio Web</span>
         </a>
 
-        <a href="#" class="menu-item logout-link" id="logoutBtn">
+        <a href="#" class="menu-item logout-link" id="sidebarLogoutBtn">
             <i class="ph ph-sign-out sidebar-icon"></i>
             <span>Cerrar Sesión</span>
         </a>
     </div>
 </aside>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Marcar activo el item actual
-    const path = window.location.pathname;
-    const page = path.split('/').pop().replace('.html', '') || 'dashboard';
-    const menuItems = document.querySelectorAll('.menu-item');
-    
-    menuItems.forEach(item => {
-        if (item.getAttribute('data-page') === page) {
-            item.classList.add('active');
-        }
-    });
-    
-    // Lógica de Logout
-    document.getElementById('logoutBtn')?.addEventListener('click', async function(e) {
-        e.preventDefault();
-        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_data');
-            localStorage.setItem('isLoggedIn', 'false');
-            window.location.href = '../inicio.html';
-        }
-    });
-});
-</script>

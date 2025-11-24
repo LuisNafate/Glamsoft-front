@@ -337,62 +337,53 @@
     <script src="../../utils/custom-modal.js"></script> <script src="../../js/estilista/calendario.js"></script>
     
     <script>
-        // 1. Definir funciones globales primero (para que el HTML pueda acceder a ellas)
-        function closeModal() {
-            const modal = document.getElementById('modalCita');
-            if (modal) modal.classList.remove('active');
-        }
+    fetch('_sidebar.html')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('sidebarContainer').innerHTML = html;
 
-        function closeModalReagendar() {
-            const modal = document.getElementById('modalReagendar');
-            if (modal) modal.classList.remove('active');
-        }
+            // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
+            const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
 
-        // 2. Cargar el sidebar
-        fetch('_sidebar.html')
-            .then(response => response.text())
-            .then(html => { 
-                document.getElementById('sidebarContainer').innerHTML = html; 
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
 
-                // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
-                const sidebarLogoutBtn = document.getElementById('logoutBtn');
-                
-                if (sidebarLogoutBtn) {
-                    sidebarLogoutBtn.addEventListener('click', async function(e) {
-                        e.preventDefault();
-                        
-                        // Asegúrate de que customConfirm y AuthService estén disponibles
-                        if (typeof customConfirm !== 'undefined' && typeof AuthService !== 'undefined') {
-                            const confirmed = await customConfirm(
-                                '¿Estás seguro de que deseas cerrar sesión?', 
-                                'Cerrar Sesión', 
-                                { icon: 'ph-sign-out' }
-                            );
+                    // Usar confirm simple si customConfirm no está disponible
+                    const useCustom = typeof customConfirm !== 'undefined';
+                    let confirmed = false;
 
-                            if (confirmed) {
-                                await AuthService.logout();
-                                window.location.href = '../inicio.html';
-                            }
-                        } else {
-                            // Fallback si no cargaron las librerías
-                            if(confirm('¿Cerrar sesión?')) {
-                                window.location.href = '../inicio.html';
-                            }
-                        }
-                    });
-                }
+                    if (useCustom) {
+                        confirmed = await customConfirm(
+                            '¿Estás seguro de que deseas cerrar sesión?',
+                            'Cerrar Sesión',
+                            { icon: 'ph-sign-out' }
+                        );
+                    } else {
+                        confirmed = confirm('¿Estás seguro de que deseas cerrar sesión?');
+                    }
 
-                // Marcar activo el menú actual
-                const path = window.location.pathname;
-                const page = path.split('/').pop().replace('.html', '') || 'dashboard';
-                
-                document.querySelectorAll('.menu-item').forEach(item => {
-                    if (item.getAttribute('data-page') === page) {
-                        item.classList.add('active');
+                    if (confirmed) {
+                        // Limpiar localStorage
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_data');
+                        localStorage.setItem('isLoggedIn', 'false');
+
+                        // Redirigir a inicio
+                        window.location.href = '../inicio.html';
                     }
                 });
-            })
-            .catch(error => console.error('Error cargando el sidebar:', error));
-    </script>
+            }
+
+            // Marcar activo el menú actual
+            const path = window.location.pathname;
+            const page = path.split('/').pop().replace('.html', '') || 'dashboard';
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.getAttribute('data-page') === page) {
+                    item.classList.add('active');
+                }
+            });
+        });
+</script>
 </body>
 </html>

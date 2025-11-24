@@ -11,81 +11,10 @@ class PortafolioEstilista {
 
     async init() {
         try {
-            await this.checkAuth();
             this.setupEventListeners();
             await this.loadImagenes();
         } catch (error) {
             console.error('Error al inicializar:', error);
-        }
-    }
-
-    async checkAuth() {
-        const userStr = localStorage.getItem('user_data');
-        if (!userStr) {
-            window.location.href = '../inicio.html';
-            return;
-        }
-        const user = JSON.parse(userStr);
-        
-        // 1. Validar Rol
-        if (!user || (user.idRol !== 1 && user.idRol !== 2)) { 
-                console.warn("Acceso denegado: No tienes permisos de Estilista.");
-                window.location.href = '../inicio.html';
-                return; // Detener ejecución
-            }
-
-        // 2. Mostrar nombre en el menú
-        const nombre = user.nombre || 'Estilista';
-        const menuName = document.getElementById('menuUserName');
-        if (menuName) menuName.textContent = nombre;
-
-        // 3. OBTENER EL ID DE ESTILISTA REAL (CRÍTICO)
-        // El ID de usuario (login) NO siempre es el mismo que el ID de estilista (empleado)
-        try {
-            const userIdToMatch = user.idUsuario || user.id || user.id_usuario;
-
-            // Primero intentar mediante EmpleadosService por rol (2 = estilista)
-            try {
-                const respEmp = await EmpleadosService.getByRol(2);
-                const empleados = respEmp?.data || respEmp || [];
-                const matchEmp = empleados.find(emp => {
-                    const usuarioId = emp.usuario?.idUsuario || emp.usuario?.id || emp.idUsuario || emp.id_usuario;
-                    return usuarioId && String(usuarioId) === String(userIdToMatch);
-                });
-
-                if (matchEmp) {
-                    this.currentUserId = matchEmp.idEstilista || matchEmp.idEmpleado || matchEmp.id || null;
-                    console.log('✅ Identidad confirmada via EmpleadosService. ID Usuario:', userIdToMatch, '-> ID Estilista:', this.currentUserId);
-                }
-            } catch (empErr) {
-                console.warn('Error al consultar EmpleadosService.getByRol(2):', empErr);
-            }
-
-            // Si aún no se resolvió, intentar con EstilistasService (compatibilidad)
-            if (!this.currentUserId) {
-                try {
-                    const response = await EstilistasService.getAll();
-                    const estilistas = response.data || response || [];
-                    const miPerfilEstilista = estilistas.find(e => {
-                        const candidato = e.idUsuario || e.usuario?.idUsuario || e.usuario?.id || e.id || e.idEstilista;
-                        return candidato && String(candidato) === String(userIdToMatch);
-                    });
-
-                    if (miPerfilEstilista) {
-                        this.currentUserId = miPerfilEstilista.idEstilista || miPerfilEstilista.id || null;
-                        console.log('✅ Identidad confirmada via EstilistasService. ID Usuario:', userIdToMatch, '-> ID Estilista:', this.currentUserId);
-                    } else {
-                        console.warn('⚠️ No se encontró perfil de estilista asociado a este usuario. Usando idUsuario como fallback.');
-                        this.currentUserId = userIdToMatch;
-                    }
-                } catch (error) {
-                    console.error('Error al verificar identidad de estilista:', error);
-                    this.currentUserId = userIdToMatch;
-                }
-            }
-        } catch (error) {
-            console.error("Error al verificar identidad de estilista:", error);
-            this.currentUserId = user.idUsuario || user.id;
         }
     }
 
@@ -146,7 +75,7 @@ class PortafolioEstilista {
             e.preventDefault();
             if (confirm('¿Cerrar sesión?')) {
                 await AuthService.logout();
-                window.location.href = '../login.html';
+                window.location.href = '../inicio.html';
             }
         });
     }

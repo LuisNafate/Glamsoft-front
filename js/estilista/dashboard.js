@@ -7,47 +7,16 @@ class DashboardEstilista {
 
     async init() {
         try {
-            await this.checkAuth();
-            this.setupMenus(); 
+            this.setupMenus();
             await this.loadAllData();
             this.setupAutoRefresh();
-            
+
             // Cerrar menús al hacer scroll
             window.addEventListener('scroll', () => {
                 this.closeMenus();
             });
         } catch (error) {
             console.error('Error al inicializar dashboard:', error);
-        }
-    }
-
-    async checkAuth() {
-        try {
-            let user = null;
-            if (typeof StateManager !== 'undefined') {
-                user = StateManager.get('user');
-            }
-            if (!user) {
-                const userStr = localStorage.getItem('user_data');
-                if (userStr) user = JSON.parse(userStr);
-            }
-
-            // Verificar si es estilista (idRol: 2) o admin (idRol: 1)
-            if (!user || (user.idRol !== 1 && user.idRol !== 2)) { 
-                console.warn("Acceso denegado: No tienes permisos de Estilista.");
-                window.location.href = '../inicio.html';
-                return; // Detener ejecución
-            }
-
-            const nombreReal = user ? user.nombre : 'Estilista';
-
-            const headerName = document.getElementById('userName');
-            if (headerName) headerName.textContent = nombreReal;
-
-            const menuName = document.getElementById('menuUserName');
-            if (menuName) menuName.textContent = nombreReal;
-        } catch (error) {
-            console.error("Error auth:", error);
         }
     }
 

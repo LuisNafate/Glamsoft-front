@@ -102,12 +102,39 @@ body {
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .btn-agendar:hover {
     background: #B8860B;
     border-color: #B8860B;
     color: #000;
+}
+
+/* Botón para volver al panel (Admin/Estilista) */
+.btn-panel {
+    background: #B8860B;
+    color: #000;
+    border: 1px solid #B8860B;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.btn-panel:hover {
+    background: #d4a21e;
+    border-color: #d4a21e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(184, 134, 11, 0.3);
 }
 
 .header-level-3 {

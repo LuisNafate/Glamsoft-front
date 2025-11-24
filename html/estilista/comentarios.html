@@ -256,24 +256,37 @@
   <script>
     fetch('_sidebar.html')
         .then(response => response.text())
-        .then(html => { 
-            document.getElementById('sidebarContainer').innerHTML = html; 
+        .then(html => {
+            document.getElementById('sidebarContainer').innerHTML = html;
 
             // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
-            const sidebarLogoutBtn = document.getElementById('logoutBtn');
-            
+            const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+
             if (sidebarLogoutBtn) {
                 sidebarLogoutBtn.addEventListener('click', async function(e) {
                     e.preventDefault();
-                    
-                    const confirmed = await customConfirm(
-                        '¿Estás seguro de que deseas cerrar sesión?', 
-                        'Cerrar Sesión', 
-                        { icon: 'ph-sign-out' }
-                    );
+
+                    // Usar confirm simple si customConfirm no está disponible
+                    const useCustom = typeof customConfirm !== 'undefined';
+                    let confirmed = false;
+
+                    if (useCustom) {
+                        confirmed = await customConfirm(
+                            '¿Estás seguro de que deseas cerrar sesión?',
+                            'Cerrar Sesión',
+                            { icon: 'ph-sign-out' }
+                        );
+                    } else {
+                        confirmed = confirm('¿Estás seguro de que deseas cerrar sesión?');
+                    }
 
                     if (confirmed) {
-                        await AuthService.logout();
+                        // Limpiar localStorage
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_data');
+                        localStorage.setItem('isLoggedIn', 'false');
+
+                        // Redirigir a inicio
                         window.location.href = '../inicio.html';
                     }
                 });

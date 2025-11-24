@@ -17,7 +17,40 @@ function loadHeaderFooter() {
 
             initDropdowns();
             initBellIcon();
+            initPanelButton(); // Inicializar botón de panel
         });
+}
+
+// ================== Botón Volver al Panel ==================
+function initPanelButton() {
+    const btnVolverPanel = document.getElementById('btnVolverPanel');
+    if (!btnVolverPanel) return;
+
+    try {
+        const userData = localStorage.getItem('user_data');
+        if (userData) {
+            const user = JSON.parse(userData);
+            const idRol = parseInt(user.idRol || user.id_rol || 0);
+
+            // Mostrar botón solo para Admin (1) o Estilista (2)
+            if (idRol === 1 || idRol === 2) {
+                btnVolverPanel.style.display = 'inline-flex';
+
+                // Configurar redirección según el rol
+                if (idRol === 1) {
+                    // Admin
+                    btnVolverPanel.href = 'admin/dashboard.html';
+                    btnVolverPanel.innerHTML = '<i class="fas fa-th-large"></i> PANEL ADMIN';
+                } else if (idRol === 2) {
+                    // Estilista
+                    btnVolverPanel.href = 'estilista/dashboard.html';
+                    btnVolverPanel.innerHTML = '<i class="fas fa-th-large"></i> MI PANEL';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error al verificar rol de usuario:', error);
+    }
 }
 
 function initDropdowns() {
@@ -265,7 +298,7 @@ function initializeModalEvents() {
                         window.location.href = 'admin/dashboard.html';
                     } 
                     else if(idRol === 2 || nombreRol.includes('ESTILISTA')){
-                        window.location.href = 'estilista/dashboard.html';
+                        window.location.href = 'estilista/calendario.html';
                     }
                     else {
                         // Lógica de redirección del cliente
