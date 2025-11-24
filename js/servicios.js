@@ -30,25 +30,8 @@ class ServiciosCliente {
     async loadServicios() {
         this.showLoader();
         try {
-            console.log('Cargando servicios desde API...');
             const response = await ServiciosService.getAll();
-            console.log('Respuesta completa de la API:', response);
-
             const serviciosActivos = (response.data || response || []).filter(s => s.activo);
-            console.log('Servicios activos encontrados:', serviciosActivos.length);
-
-            === DEBUG IMÁGENES========== DEBUG IMÁGENES ==========');
-                serviciosActivos.forEach((s, index) => {
-                    console.log(`Servicio ${index + 1} - ${s.nombre}:`);
-                    console.log('  - Todos los campos:', Object.keys(s));
-                    console.log('  - imagenURL:', s.imagenURL);
-                    console.log('  - Longitud imagenURL:', s.imagenURL ? s.imagenURL.length : 0);
-                    console.log('  - Empieza con data:image?', s.imagenURL ? s.imagenURL.startsWith('data:image') : false);
-                    console.log('---');
-                });
-                console.log('=====================================');
-            }
-
             this.servicios = serviciosActivos;
             this.renderServicios();
         } catch (error) {
@@ -97,9 +80,7 @@ class ServiciosCliente {
                             <span class="service-price">$${parseFloat(servicio.precio).toFixed(2)}</span>
                             <span class="service-duration"><i class="far fa-clock"></i> ${servicio.duracion} min</span>
                         </div>
-                        <button class="btn-agendar" data-servicio-id="${servicio.idServicio}">
-                            Agendar
-                        </button>
+                        <button class="btn-agendar" data-servicio-id="${servicio.idServicio}">Agendar</button>
                     </div>
                 </div>
             </div>
@@ -113,11 +94,6 @@ class ServiciosCliente {
         document.querySelectorAll('.btn-agendar').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idServicio = parseInt(e.target.dataset.servicioId);
-                console.log('========================================');
-                console.log('BOTÓN AGENDAR CLICKEADO');
-                console.log('ID del servicio:', idServicio);
-                console.log('========================================');
-                alert('Botón clickeado! Servicio ID: ' + idServicio);
                 this.agendarServicio(idServicio);
             });
         });
@@ -127,7 +103,7 @@ class ServiciosCliente {
         const servicio = this.servicios.find(s => s.idServicio === idServicio);
         if (!servicio) {
             console.error('Servicio no encontrado:', idServicio);
-            this.showNotification('Error: Servicio no encontrado', 'error');
+            this.showNotification('Servicio no encontrado', 'error');
             return;
         }
 
@@ -138,8 +114,7 @@ class ServiciosCliente {
             window.location.href = 'agendar.html';
         } catch (error) {
             // Mostrar error amable si falla la redirección/almacenamiento
-            const modalErr = document.getElementById('error-modal');
-            if (modalErr && typeof openErrorModal === 'function') {
+            if (typeof openErrorModal === 'function') {
                 openErrorModal('No se pudo continuar al agendado. Intenta nuevamente.');
             } else {
                 this.showNotification('No se pudo continuar al agendado. Intenta nuevamente.', 'error');
