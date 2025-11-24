@@ -130,7 +130,20 @@ class Dashboard {
     }
 
     // ... Métodos loadCitas, loadServicios, loadEstilistas (mantenlos igual) ...
-    async loadCitas() { try { const r = await CitasService.getAll(); const d = r.data || []; const h = new Date().toISOString().split('T')[0]; return { total: d.filter(c => c.fecha === h).length, pendientes: d.filter(c => c.estado === 'pendiente').length, todas: d }; } catch (e) { return { total: 0, pendientes: 0, todas: [] }; } }
+    async loadCitas() {
+        try {
+            const r = await CitasService.getAll();
+            const d = r.data || [];
+            const h = new Date().toISOString().split('T')[0];
+            return {
+                total: d.filter(c => c.fecha === h).length,
+                pendientes: d.filter(c => (c.estadoCita || c.estado || '').toUpperCase() === 'PENDIENTE').length,
+                todas: d
+            };
+        } catch (e) {
+            return { total: 0, pendientes: 0, todas: [] };
+        }
+    }
     async loadServicios() { try { const r = await ServiciosService.getAll(); const d = r.data || []; return { total: d.filter(s => s.activo !== false).length, todos: d }; } catch (e) { return { total: 0, todos: [] }; } }
     async loadEstilistas() { try { const r = await EstilistasService.getAll(); const d = r.data || []; return { total: d.length, todos: d }; } catch (e) { return { total: 0, todos: [] }; } }
 

@@ -18,6 +18,7 @@ class ServiciosAdmin {
     async init() {
         try {
             this.setupEventListeners();
+            await this.loadCategorias();
             await this.loadServicios();
             this.handleUrlParams(); // Para abrir modal desde URL
         } catch (error) {
@@ -151,6 +152,42 @@ class ServiciosAdmin {
         if (preview) preview.style.display = 'none';
 
         this.showNotification('Imagen eliminada', 'info');
+    }
+
+    async loadCategorias() {
+        try {
+            const categorias = await CategoriasService.getAll();
+            console.log('Categorías cargadas:', categorias);
+
+            // Llenar select del formulario (para crear/editar)
+            const selectForm = document.getElementById('categoriaServicio');
+            if (selectForm) {
+                selectForm.innerHTML = '<option value="">Seleccionar...</option>' +
+                    categorias.map(cat =>
+                        `<option value="${cat.idCategoria}">${cat.nombre}</option>`
+                    ).join('');
+            }
+
+            // Llenar select del filtro
+            const selectFilter = document.getElementById('filterCategoria');
+            if (selectFilter) {
+                selectFilter.innerHTML = '<option value="">Todas las categorías</option>' +
+                    categorias.map(cat =>
+                        `<option value="${cat.nombre}">${cat.nombre}</option>`
+                    ).join('');
+            }
+
+            // Actualizar el mapa de categorías dinámicamente
+            this.mapaCategorias = {};
+            categorias.forEach(cat => {
+                this.mapaCategorias[cat.nombre] = cat.idCategoria;
+            });
+
+            console.log('Mapa de categorías actualizado:', this.mapaCategorias);
+        } catch (error) {
+            console.error('Error al cargar categorías:', error);
+            this.showNotification('Error al cargar categorías', 'error');
+        }
     }
 
     async loadServicios() {
