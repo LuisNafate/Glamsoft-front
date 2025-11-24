@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="promo-content">
                             <h2 class="promo-title">${promo.nombre}</h2>
                             <p class="promo-desc">${promo.descripcion || 'Aprovecha un descuento de ' + descuentoTexto}</p>
-                            <a href="#" data-target="agendar.html" class="btn-promo">AGENDAR AHORA</a>
+                            <button class="btn-promo agendar-ahora">AGENDAR AHORA</button>
                         </div>
                     `;
                     
@@ -55,6 +55,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     card.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
                     
                     promoContainer.appendChild(card);
+
+                    const agendarAhoraBtn = card.querySelector('.agendar-ahora');
+                    agendarAhoraBtn.addEventListener('click', () => {
+                        window.location.href = 'agendar.html';
+                    });
                 });
                 
                 // Aplicar animación con IntersectionObserver

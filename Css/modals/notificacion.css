@@ -1,24 +1,24 @@
 /* --- BASE MODAL (POSICIÓN) --- */
 .modal-notificaciones {
     display: none;
-    position: absolute;
-    z-index: 1000;
+    position: fixed;
+    z-index: 2000;
     top: 80px;
-    right: 60px;
+    right: 40px;
     background: transparent;
 }
 
 /* --- CAJA DE CONTENIDO --- */
 .modal-content-notificaciones {
-    background-color: #1a1a1a;
+    background-color: #0d0d0d;
     padding: 0;
     border: 1px solid #333;
-    width: 400px;
-    max-height: 600px;
-    color: white;
-    font-family: 'Montserrat', sans-serif;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-    border-radius: 8px;
+    width: 380px;
+    max-height: 560px;
+    color: #e0e0e0;
+    font-family: 'Lato', sans-serif;
+    box-shadow: none;
+    border-radius: 6px;
     position: relative;
     overflow: hidden;
 }
@@ -38,8 +38,8 @@
     margin: 0;
     font-weight: 600;
     letter-spacing: 1px;
-    color: white;
-    font-size: 1.2rem;
+    color: #e0e0e0;
+    font-size: 1rem;
     text-transform: uppercase;
 }
 
@@ -47,13 +47,13 @@
 .btn-marcar-todas-leidas {
     background: none;
     border: none;
-    color: #B8923A;
-    font-size: 0.8rem;
+    color: #B8860B;
+    font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
-    padding: 5px 10px;
+    padding: 4px 8px;
     transition: color 0.2s ease;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Lato', sans-serif;
 }
 
 .btn-marcar-todas-leidas:hover {
@@ -124,19 +124,19 @@
 .notification-title {
     font-weight: 600;
     font-size: 0.95rem;
-    color: #ffffff;
+    color: #e0e0e0;
     margin: 0;
 }
 
 .notification-time {
     font-size: 0.75rem;
-    color: #888;
+    color: #9a9a9a;
     white-space: nowrap;
 }
 
 .notification-message {
     font-size: 0.85rem;
-    color: #ccc;
+    color: #bdbdbd;
     line-height: 1.4;
     margin: 0;
 }
@@ -175,7 +175,7 @@
 .no-notifications {
     text-align: center;
     padding: 60px 20px;
-    color: #666;
+    color: #8a8a8a;
 }
 
 .no-notifications i {

@@ -1,38 +1,37 @@
-* {
+a * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    background: #000;
     color: #fff;
+    font-family: 'Lato', sans-serif;
     min-height: 100vh;
 }
 
 .services-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 140px 20px 40px;
 }
 
 .services-header {
-    text-align: center;
-    margin-bottom: 50px;
+    display: none;
 }
 
 .services-header h1 {
     font-family: 'GFS Didot', serif;
     font-size: 48px;
-    color: #B8923A;
+     color: #fff;
     margin-bottom: 15px;
     letter-spacing: 2px;
 }
 
 .services-header p {
     font-size: 18px;
-    color: #bdc3c7;
+    color: #fff;
 }
 
 /* Filtros de Categoría */
@@ -45,28 +44,27 @@ body {
 }
 
 .category-filter {
-    padding: 12px 28px;
-    background: #2c2c2c;
-    border: 2px solid transparent;
-    border-radius: 25px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .category-filter:hover {
-    background: #3c3c3c;
-    transform: translateY(-2px);
+    background: #fff;
+    color: #1a1a1a;
 }
 
 .category-filter.active {
-    background: #B8923A;
-    border-color: #B8923A;
+    background: #fff;
     color: #1a1a1a;
+    border-color: #fff;
 }
 
 /* Grid de Servicios */
@@ -80,13 +78,13 @@ body {
 }
 
 .service-card {
-    background: #1a1a1a;
+    background: #0d0d0d;
     border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
+    box-shadow: none;
+    transition: none;
     border: none;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid #333;
     display: grid;
     grid-template-columns: 1fr 1fr;
     height: 350px;
@@ -111,9 +109,7 @@ body {
 }
 
 .service-card:hover {
-    transform: translateY(0px);
-    box-shadow: 0 4px 8px rgba(109, 87, 35, 0.25);
-    border-color: #24221e;
+    background: #0f0f0f;
 }
 
 .service-image {
@@ -142,7 +138,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 64px;
-    color: #B8923A;
+    color: #fff;
 }
 
 .service-content {
@@ -150,20 +146,20 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background: #1a1a1a;
+    background: #0d0d0d;
 }
 
 .service-title {
     font-family: 'GFS Didot', serif;
     font-size: 26px;
-    color: #B8923A;
+    color: #B8860B;
     margin-bottom: 8px;
     letter-spacing: 0.5px;
 }
 
 .service-category {
     font-size: 11px;
-    color: #888;
+    color: #fff;
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-bottom: 12px;
@@ -172,7 +168,7 @@ body {
 
 .service-description {
     font-size: 13px;
-    color: #aaa;
+    color: #fff;
     line-height: 1.6;
     margin-bottom: 20px;
     flex: 1;
@@ -195,13 +191,13 @@ body {
 .service-price {
     font-size: 26px;
     font-weight: bold;
-    color: #B8923A;
+    color: #B8860B;
     letter-spacing: 0.5px;
 }
 
 .service-duration {
     font-size: 12px;
-    color: #888;
+    color: #fff;
     display: flex;
     align-items: center;
 }
@@ -212,30 +208,24 @@ body {
 }
 
 .btn-agendar {
-    background-color: transparent;
-    border: 2px solid #B8923A;
-    color: #B8923A;
-    font-family: 'Montserrat', sans-serif;
-    padding: 12px 40px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 10px 20px;
     text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
     letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .btn-agendar:hover {
-    background-color: #B8923A;
-    color: #1A1A1A;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(184, 146, 58, 0.3);
+    background: #B8860B;
+    border-color: #B8860B;
+    color: #000;
 }
 
-.btn-agendar:active {
-    transform: translateY(0);
-}
 
 /* Empty State */
 .empty-state {
@@ -251,7 +241,7 @@ body {
 
 .empty-state p {
     font-size: 18px;
-    color: #7f8c8d;
+    color: #fff;
 }
 
 /* Loader */
@@ -270,7 +260,7 @@ body {
 
 .loader-spinner {
     border: 4px solid #333;
-    border-top: 4px solid #B8923A;
+    border-top: 4px solid #B8860B;
     border-radius: 50%;
     width: 50px;
     height: 50px;
@@ -285,6 +275,10 @@ body {
 /* Responsive */
 @media (max-width: 768px) {
    
+
+    .services-container {
+        padding-top: 120px;
+    }
 
     .services-list {
         gap: 20px;

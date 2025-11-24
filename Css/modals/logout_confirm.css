@@ -14,32 +14,32 @@
 
 /* Contenido del modal */
 .modal-content-logout {
-    background-color: #1a1a1a;
+    background-color: #0d0d0d;
     padding: 2.5rem 2rem;
-    border-radius: 8px;
+    border-radius: 6px;
     width: 90%;
-    max-width: 500px;
+    max-width: 480px;
     text-align: center;
     position: relative;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    border: 2px solid #333;
+    box-shadow: none;
+    border: 1px solid #333;
 }
 
 /* Título */
 .modal-content-logout h2 {
-    color: #ffffff;
-    font-size: 1.8rem;
+    color: #e6e6e6;
+    font-size: 1.6rem;
     font-weight: 300;
-    letter-spacing: 8px;
-    margin: 0 0 1.5rem 0;
+    letter-spacing: 6px;
+    margin: 0 0 1.25rem 0;
     font-family: 'Montserrat', sans-serif;
 }
 
 /* Párrafo */
 .modal-content-logout p {
-    color: #cccccc;
-    font-size: 1rem;
-    margin-bottom: 2rem;
+    color: #bdbdbd;
+    font-size: 0.95rem;
+    margin-bottom: 1.75rem;
     line-height: 1.6;
     font-family: 'Lato', sans-serif;
 }
@@ -47,27 +47,26 @@
 /* Botón de cerrar (X) */
 .logout-close-btn {
     position: absolute;
-    top: 15px; 
-    right: 20px;
-    font-size: 2rem;
+    top: 12px; 
+    right: 16px;
+    font-size: 1.4rem;
     cursor: pointer;
-    color: #ff4444;
+    color: #e0e0e0;
     background-color: transparent;
-    border: 2px solid #ff4444;
+    border: 1px solid #e0e0e0;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .logout-close-btn:hover {
-    background-color: #ff4444;
-    color: #fff;
-    transform: rotate(90deg);
+    background-color: #e0e0e0;
+    color: #000;
 }
 
 /* Botones de acción */
@@ -79,43 +78,45 @@
 }
 
 .btn {
-    padding: 0.8rem 2.5rem;
-    border: 2px solid transparent;
-    border-radius: 4px;
+    padding: 0.75rem 2rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
     cursor: pointer;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 2px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-family: 'Montserrat', sans-serif;
-    min-width: 120px;
+    min-width: 140px;
+    background: transparent;
+    color: #e0e0e0;
 }
 
 /* Botón Sí */
 .btn.confirm {
-    background-color: transparent;
-    color: #ffffff;
-    border: 2px solid #666;
+    background: transparent;
+    color: #e0e0e0;
+    border-color: #e0e0e0;
 }
 
 .btn.confirm:hover {
-    background-color: #ffffff;
-    color: #1a1a1a;
-    border-color: #ffffff;
+    background: #B8860B;
+    color: #000;
+    border-color: #B8860B;
 }
 
 /* Botón No */
 .btn.cancel {
-    background-color: transparent;
-    color: #ffffff;
-    border: 2px solid #666;
+    background: transparent;
+    color: #e0e0e0;
+    border-color: #e0e0e0;
 }
 
 .btn.cancel:hover {
-    background-color: #ffffff;
-    color: #1a1a1a;
-    border-color: #ffffff;
+    background: #333;
+    color: #e0e0e0;
+    border-color: #333;
 }
 
 /* Animación de entrada */

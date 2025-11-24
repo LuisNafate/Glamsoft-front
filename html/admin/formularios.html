@@ -86,6 +86,8 @@
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Descripción</th>
+                            <th>Servicios Asociados</th>
+                            <th>Preguntas</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -94,7 +96,7 @@
                         <!-- Se llena dinámicamente -->
                     </tbody>
                 </table>
-                
+
                 <div id="emptyState" style="display: none; text-align: center; padding: 40px;">
                     <i class="fas fa-file-alt" style="font-size: 48px; color: #bdc3c7; margin-bottom: 15px;"></i>
                     <p style="color: #7f8c8d;">No se encontraron formularios</p>
@@ -107,16 +109,16 @@
     
     <!-- Modal Detalle de Formulario -->
     <div class="modal-overlay" id="modalFormulario">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h2 class="modal-title">Detalle del Formulario</h2>
                 <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
-            
+
             <div id="formularioDetalle">
                 <!-- Se llena dinámicamente -->
             </div>
-            
+
             <div class="form-actions">
                 <button type="button" class="btn btn-primary" id="btnGuardarFormulario" style="display: none;">
                     <i class="fas fa-save"></i> Guardar
@@ -126,6 +128,100 @@
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">
                     <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gestión de Preguntas -->
+    <div class="modal-overlay" id="modalPreguntas">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Gestión de Preguntas</h2>
+                <button class="close-modal" onclick="closePreguntasModal()">&times;</button>
+            </div>
+
+            <div style="padding: 20px 0;">
+                <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="formularioNombre" style="margin: 0; color: var(--admin-primary);"></h3>
+                    <button class="btn btn-primary" id="btnNuevaPregunta">
+                        <i class="fas fa-plus"></i> Nueva Pregunta
+                    </button>
+                </div>
+
+                <div id="preguntasList" style="display: grid; gap: 15px;">
+                    <!-- Se llena dinámicamente -->
+                </div>
+
+                <div id="emptyPreguntas" style="display: none; text-align: center; padding: 40px;">
+                    <i class="fas fa-question-circle" style="font-size: 48px; color: #bdc3c7; margin-bottom: 15px;"></i>
+                    <p style="color: #7f8c8d;">No hay preguntas en este formulario</p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closePreguntasModal()">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva/Editar Pregunta -->
+    <div class="modal-overlay" id="modalPregunta">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="preguntaModalTitle">Nueva Pregunta</h2>
+                <button class="close-modal" onclick="closePreguntaModal()">&times;</button>
+            </div>
+
+            <div style="padding: 20px 0;">
+                <div style="display: grid; gap: 20px;">
+                    <div class="form-group">
+                        <label for="textoPregunta" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                            Texto de la Pregunta *
+                        </label>
+                        <textarea id="textoPregunta"
+                                  class="search-input"
+                                  style="width: 100%; min-height: 100px; resize: vertical;"
+                                  placeholder="¿Cuál es tu pregunta?"
+                                  required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipoPregunta" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                            Tipo de Pregunta *
+                        </label>
+                        <select id="tipoPregunta" class="filter-select" style="width: 100%;" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="texto">Texto Corto</option>
+                            <option value="texto_largo">Texto Largo</option>
+                            <option value="numero">Número</option>
+                            <option value="fecha">Fecha</option>
+                            <option value="hora">Hora</option>
+                            <option value="si_no">Sí/No</option>
+                            <option value="opcion_multiple">Opción Múltiple</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="opcionesContainer" style="display: none;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+                            Opciones (una por línea)
+                        </label>
+                        <textarea id="opcionesPregunta"
+                                  class="search-input"
+                                  style="width: 100%; min-height: 80px; resize: vertical;"
+                                  placeholder="Opción 1&#10;Opción 2&#10;Opción 3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" id="btnGuardarPregunta">
+                    <i class="fas fa-save"></i> Guardar Pregunta
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closePreguntaModal()">
+                    <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
         </div>
