@@ -7,6 +7,28 @@ class CalendarioEstilista {
         this.init();
     }
 
+    promptSelectEstilista(estilistas) {
+        const opciones = estilistas.map(e => `${e.idEstilista || e.id || '?'}: ${e.nombre || e.email || e.telefono}`).join('\n');
+        const msg = `No se pudo determinar automáticamente tu perfil de estilista.\nSelecciona tu ID de la lista:\n\n${opciones}\n\nIngresa el ID:`;
+        const val = prompt(msg);
+        if (!val) return null;
+        const chosen = estilistas.find(e => String(e.idEstilista || e.id || '') === String(val));
+        if (chosen) {
+            // Guardar en user_data para futuro
+            try {
+                const userStr = localStorage.getItem('user_data');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    user.idEstilista = chosen.idEstilista || chosen.id || user.idEstilista;
+                    localStorage.setItem('user_data', JSON.stringify(user));
+                    if (typeof StateManager !== 'undefined') StateManager.setUser(user);
+                }
+            } catch (e) { /* ignore */ }
+            return chosen.idEstilista || chosen.id || null;
+        }
+        return null;
+    }
+
     async init() {
         try {
             await this.checkAuth();
@@ -220,8 +242,113 @@ class CalendarioEstilista {
                 this.citas = [];
                 return;
             }
+            // Resolver ID de estilista: puede estar en user.idEstilista o debemos buscarlo por idUsuario
+            let estilistaId = user.idEstilista || user.id_estilista || user.idEmpleado || user.id_empleado || user.id || user.idUsuario || user.id_usuario;
+
+            // Si el valor parece ser el idUsuario (login) en lugar de idEstilista, intentar mapear mediante EmpleadosService (rol 2 -> estilistas)
+            if ((user.idUsuario || user.id_usuario) && (!estilistaId || String(estilistaId) === String(user.idUsuario || user.id_usuario))) {
+                const userIdToMatch = user.idUsuario || user.id || user.id_usuario;
+                try {
+                    const respEmp = await EmpleadosService.getByRol(2);
+                    const empleados = respEmp?.data || respEmp || [];
+                    // Buscar empleado cuyo usuario vinculado coincida con el id de sesión
+                    const matchEmp = empleados.find(emp => {
+                        const u = emp.usuario || emp.user || emp.usuarioId || {};
+                        const candidates = [emp.idEstilista, emp.idEmpleado, emp.id, emp.usuario?.idUsuario, emp.usuario?.id, emp.idUsuario, emp.id_usuario, (emp.usuario && emp.usuario.id)];
+                        const usuarioCandidates = [emp.usuario?.idUsuario, emp.usuario?.id, emp.idUsuario, emp.id_usuario];
+                        return usuarioCandidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
+                    });
+
+                    if (matchEmp) {
+                        estilistaId = matchEmp.idEstilista || matchEmp.idEmpleado || matchEmp.id || null;
+                        console.log('Calendario: resolved estilistaId via EmpleadosService.getByRol:', estilistaId);
+                    } else {
+                        // Si no se encontró en empleados, intentar con EstilistasService como antes
+                        try {
+                            const resp = await EstilistasService.getAll();
+                            const estilistas = resp.data || resp || [];
+                            const perfil = estilistas.find(e => {
+                                const candidates = [e.idUsuario, e.id_usuario, e.usuario?.idUsuario, e.usuario?.id, e.id, e.idEstilista, e.id_estilista, e.idEmpleado, e.id_empleado];
+                                return candidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
+                            });
+                            if (perfil) {
+                                estilistaId = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
+                                console.log('Calendario: resolved estilistaId via EstilistasService (fallback):', estilistaId);
+                            } else if (Array.isArray(estilistas) && estilistas.length > 0) {
+                                const chosen = this.promptSelectEstilista(estilistas);
+                                if (chosen) {
+                                    estilistaId = chosen;
+                                    console.log('Calendario: estilistaId seleccionado por usuario (fallback):', estilistaId);
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Calendario: getAll estilistas falló en fallback', e);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Calendario: EmpleadosService.getByRol(2) falló, intentando EstilistasService', e);
+                    try {
+                        const resp = await EstilistasService.getAll();
+                        const estilistas = resp.data || resp || [];
+                        const perfil = estilistas.find(e => {
+                            const candidates = [e.idUsuario, e.id_usuario, e.usuario?.idUsuario, e.usuario?.id, e.id, e.idEstilista, e.id_estilista, e.idEmpleado, e.id_empleado];
+                            return candidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
+                        });
+                        if (perfil) {
+                            estilistaId = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
+                            console.log('Calendario: resolved estilistaId via EstilistasService (after empleados fail):', estilistaId);
+                        }
+                    } catch (e2) {
+                        console.warn('Calendario: EstilistasService también falló', e2);
+                    }
+                }
+            }
+
+            // Si aún no tenemos estilistaId, pero user.idUsuario exists, try to find by EstilistasService anyway
+            if (!estilistaId && (user.idUsuario || user.id || user.id_usuario)) {
+                try {
+                    const resp = await EstilistasService.getAll();
+                    const estilistas = resp.data || resp || [];
+                    const userIdToMatch = user.idUsuario || user.id || user.id_usuario;
+                    const perfil = estilistas.find(e => {
+                        const candidates = [e.idUsuario, e.id_usuario, e.usuario?.idUsuario, e.usuario?.id, e.id, e.idEstilista, e.id_estilista, e.idEmpleado, e.id_empleado];
+                        return candidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
+                    });
+                    if (perfil) {
+                        estilistaId = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
+                        console.log('Calendario: resolved estilistaId via EstilistasService (fallback):', estilistaId);
+                    }
+                    else if (Array.isArray(estilistas) && estilistas.length > 0) {
+                        const chosen = this.promptSelectEstilista(estilistas);
+                        if (chosen) {
+                            estilistaId = chosen;
+                            console.log('Calendario: estilistaId seleccionado por usuario (fallback):', estilistaId);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Calendario: getAll estilistas falló en fallback', e);
+                }
+            }
+
+            if (!estilistaId) {
+                console.warn('Calendario: no se pudo determinar idEstilista. Se intentará cargar todas las citas y filtrar localmente.');
+                // Como último recurso, traer todas y filtrar localmente por campos que coincidan con user.idUsuario
+                const respAll = await CitasService.getAll();
+                const todas = respAll.data?.data || respAll.data || respAll || [];
+                const userIdToMatch = user.idUsuario || user.id || user.id_usuario;
+                this.citas = todas.filter(cita => {
+                    const idEst = cita.idEstilista || cita.id_estilista || cita.estilista?.id || cita.estilista?.idEstilista || cita.estilista?.idUsuario || cita.estilista?.id_usuario || cita.idEmpleado || cita.id_empleado;
+                    const estilistaUsuarioId = cita.estilista?.idUsuario || cita.estilista?.id_usuario || cita.estilista?.usuario?.idUsuario || cita.estilista?.usuario?.id;
+                    if (idEst && estilistaId && String(idEst) === String(estilistaId)) return true;
+                    if (userIdToMatch && estilistaUsuarioId && String(estilistaUsuarioId) === String(userIdToMatch)) return true;
+                    return false;
+                });
+                console.log('Citas cargadas tras fallback:', this.citas.length);
+                return;
+            }
+
             // Usar endpoint específico para citas de estilista
-            const response = await CitasService.getByEstilista(user.id);
+            const response = await CitasService.getByEstilista(estilistaId);
             console.log('loadCitas - Response completo:', response);
             // Manejar estructura: {data: [...], message: "...", status: "success"}
             this.citas = response.data?.data || response.data || [];

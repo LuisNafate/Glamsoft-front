@@ -41,19 +41,46 @@ class PortafolioEstilista {
         // 3. OBTENER EL ID DE ESTILISTA REAL (CRÍTICO)
         // El ID de usuario (login) NO siempre es el mismo que el ID de estilista (empleado)
         try {
-            const response = await EstilistasService.getAll();
-            const estilistas = response.data || response || [];
-            
-            // Buscamos al estilista que tenga el mismo idUsuario que el logueado
-            const miPerfilEstilista = estilistas.find(e => e.idUsuario === (user.idUsuario || user.id));
+            const userIdToMatch = user.idUsuario || user.id || user.id_usuario;
 
-            if (miPerfilEstilista) {
-                this.currentUserId = miPerfilEstilista.idEstilista; // Usamos el ID de empleado/estilista
-                console.log("✅ Identidad confirmada. ID Usuario:", user.idUsuario, "-> ID Estilista:", this.currentUserId);
-            } else {
-                console.warn("⚠️ No se encontró perfil de estilista asociado a este usuario.");
-                // Fallback por si acaso es admin o hay inconsistencia
-                this.currentUserId = user.idUsuario || user.id; 
+            // Primero intentar mediante EmpleadosService por rol (2 = estilista)
+            try {
+                const respEmp = await EmpleadosService.getByRol(2);
+                const empleados = respEmp?.data || respEmp || [];
+                const matchEmp = empleados.find(emp => {
+                    const usuarioId = emp.usuario?.idUsuario || emp.usuario?.id || emp.idUsuario || emp.id_usuario;
+                    return usuarioId && String(usuarioId) === String(userIdToMatch);
+                });
+
+                if (matchEmp) {
+                    this.currentUserId = matchEmp.idEstilista || matchEmp.idEmpleado || matchEmp.id || null;
+                    console.log('✅ Identidad confirmada via EmpleadosService. ID Usuario:', userIdToMatch, '-> ID Estilista:', this.currentUserId);
+                }
+            } catch (empErr) {
+                console.warn('Error al consultar EmpleadosService.getByRol(2):', empErr);
+            }
+
+            // Si aún no se resolvió, intentar con EstilistasService (compatibilidad)
+            if (!this.currentUserId) {
+                try {
+                    const response = await EstilistasService.getAll();
+                    const estilistas = response.data || response || [];
+                    const miPerfilEstilista = estilistas.find(e => {
+                        const candidato = e.idUsuario || e.usuario?.idUsuario || e.usuario?.id || e.id || e.idEstilista;
+                        return candidato && String(candidato) === String(userIdToMatch);
+                    });
+
+                    if (miPerfilEstilista) {
+                        this.currentUserId = miPerfilEstilista.idEstilista || miPerfilEstilista.id || null;
+                        console.log('✅ Identidad confirmada via EstilistasService. ID Usuario:', userIdToMatch, '-> ID Estilista:', this.currentUserId);
+                    } else {
+                        console.warn('⚠️ No se encontró perfil de estilista asociado a este usuario. Usando idUsuario como fallback.');
+                        this.currentUserId = userIdToMatch;
+                    }
+                } catch (error) {
+                    console.error('Error al verificar identidad de estilista:', error);
+                    this.currentUserId = userIdToMatch;
+                }
             }
         } catch (error) {
             console.error("Error al verificar identidad de estilista:", error);
