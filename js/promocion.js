@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         // Cargar promociones desde la API
-        const response = await fetch('http://localhost:7000/api/promociones');
+        const response = await fetch('http://98.86.212.2:7000/api/promociones');
         const data = await response.json();
         
         console.log('Respuesta de promociones:', data);

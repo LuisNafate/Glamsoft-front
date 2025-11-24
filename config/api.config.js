@@ -2,7 +2,7 @@
 
 const API_CONFIG = {
     // URL base de tu API (cambiar según el entorno)
-    BASE_URL: 'http://localhost:7000/api',
+    BASE_URL: 'http://98.86.212.2:7000/api',
     
     // Endpoints de la API (según routers reales del backend)
     ENDPOINTS: {

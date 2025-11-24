@@ -98,7 +98,7 @@ async checkAuth() {
     async loadServicios() {
         try {
             // Cargar servicios para el selector
-            const response = await fetch('http://localhost:7000/api/servicios');
+            const response = await fetch('http://98.86.212.2:7000/api/servicios');
             const data = await response.json();
             const servicios = data.data || [];
             
