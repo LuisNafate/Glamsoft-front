@@ -75,7 +75,7 @@
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="totalCitas">0</div>
-                            <div class="stat-label">Citas Hoy</div>
+                            <div class="stat-label">Total de Citas</div>
                         </div>
                         <div class="stat-icon"> <i class="ph ph-calendar-check"></i> </div>
                     </div>
@@ -84,9 +84,18 @@
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="citasPendientes">0</div>
-                            <div class="stat-label">Pendientes</div>
+                            <div class="stat-label">Citas Pendientes</div>
                         </div>
                         <div class="stat-icon"> <i class="ph ph-clock"></i> </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="citasHoy">0</div>
+                            <div class="stat-label">Citas Hoy</div>
+                        </div>
+                        <div class="stat-icon"> <i class="ph ph-calendar-dots"></i> </div>
                     </div>
                 </div>
             </div>
@@ -98,6 +107,10 @@
                         <div class="quick-action-icon"><i class="fas fa-calendar-alt"></i></div>
                         <div class="quick-action-title">Mi Agenda</div>
                     </div>
+                    <div class="quick-action-card" onclick="window.location.href='confirmaciones.html'">
+                        <div class="quick-action-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="quick-action-title">Mis Confirmaciones</div>
+                    </div>
                     <div class="quick-action-card" onclick="window.location.href='portafolio.html'">
                         <div class="quick-action-icon"><i class="fas fa-briefcase"></i></div>
                         <div class="quick-action-title">Mi Portafolio</div>
@@ -106,33 +119,6 @@
                         <div class="quick-action-icon"><i class="fas fa-star"></i></div>
                         <div class="quick-action-title">Mis Reseñas</div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="content-card" style="margin-top: 30px;">
-                <div class="card-header">
-                    <h2 class="card-title">Confirmaciones Pendientes</h2>
-                </div>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Servicio</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="confirmacionesTable">
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">
-                                    Cargando confirmaciones...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
             
@@ -170,6 +156,8 @@
     <script src="../../config/api.config.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
+    <script src="../../services/empleados.service.js"></script>
+    <script src="../../services/estilistas.service.js"></script>
     <script src="../../services/citas.service.js"></script>
     <script src="../../services/notificaciones.service.js"></script>
     <script src="../../utils/error-handler.js"></script>

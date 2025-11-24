@@ -32,15 +32,20 @@ class DashboardEstilista {
                 if (userStr) user = JSON.parse(userStr);
             }
 
-            if (!user || (user.rol !== 'estilista' && user.rol !== 'admin')) {
+            // Verificar si es estilista (idRol: 2) o admin (idRol: 1)
+            const esEstilista = user && (user.idRol === 2 || user.id_rol === 2 || user.rol === 'estilista' || user.rol === 'Estilista');
+            const esAdmin = user && (user.idRol === 1 || user.id_rol === 1 || user.rol === 'admin' || user.rol === 'Admin');
+
+            if (!user || (!esEstilista && !esAdmin)) {
+                console.warn('Usuario no autenticado o no es estilista. Usuario:', user);
                 // window.location.href = '../login.html';
             }
 
             const nombreReal = user ? user.nombre : 'Estilista';
-            
+
             const headerName = document.getElementById('userName');
             if (headerName) headerName.textContent = nombreReal;
-            
+
             const menuName = document.getElementById('menuUserName');
             if (menuName) menuName.textContent = nombreReal;
         } catch (error) {
@@ -117,38 +122,93 @@ class DashboardEstilista {
     async loadAllData() {
         this.showLoader();
         try {
-            const user = StateManager.get('user');
-            
-            // IMPORTANTE: Obtener idEmpleado del usuario
-            // Puede venir como idEmpleado, id, o necesitar consulta adicional
-            let idEmpleado = user.idEmpleado || user.id;
-            
-            // Si no tiene idEmpleado, intentar obtenerlo del backend
-            if (!user.idEmpleado && user.id) {
-                console.log('⚠️ Usuario no tiene idEmpleado, consultando al backend...');
-                try {
-                    const empleadoData = await EmpleadosService.getById(user.id);
-                    idEmpleado = empleadoData.data?.idEmpleado || empleadoData.idEmpleado || user.id;
-                    console.log('✅ idEmpleado obtenido del backend:', idEmpleado);
-                    
-                    // Actualizar StateManager con el idEmpleado
-                    user.idEmpleado = idEmpleado;
+            let user = StateManager.get('user');
+
+            // Si no hay usuario en StateManager, intentar cargar desde localStorage
+            if (!user) {
+                const userStr = localStorage.getItem('user_data');
+                if (userStr) {
+                    user = JSON.parse(userStr);
                     StateManager.set('user', user);
-                    localStorage.setItem('user_data', JSON.stringify(user));
-                } catch (error) {
-                    console.error('❌ Error al obtener idEmpleado:', error);
                 }
             }
-            
+
+            console.log('📋 Usuario completo desde StateManager/localStorage:', user);
+
+            // IMPORTANTE: Obtener idEmpleado del usuario
+            // Priorizar idEstilista, idEmpleado, luego intentar buscar por idUsuario
+            let idEmpleado = user.idEstilista || user.id_estilista || user.idEmpleado || user.id_empleado;
+
+            // Si el usuario ya tiene idEmpleado, usarlo directamente
+            if (idEmpleado) {
+                console.log('✅ idEmpleado encontrado en usuario:', idEmpleado);
+            } else {
+                console.log('⚠️ idEmpleado no encontrado en usuario, intentando user.id');
+                // Solo usar user.id si no es el mismo que idUsuario
+                if (user.id && user.id !== user.idUsuario) {
+                    idEmpleado = user.id;
+                }
+            }
+
+            // Si el valor parece ser el idUsuario (login) en lugar de idEmpleado, intentar mapear mediante EmpleadosService (rol 2 -> estilistas)
+            if ((user.idUsuario || user.id_usuario) && (!idEmpleado || String(idEmpleado) === String(user.idUsuario || user.id_usuario))) {
+                const userIdToMatch = user.idUsuario || user.id || user.id_usuario;
+                console.log('⚠️ Dashboard: Intentando resolver idEmpleado para idUsuario:', userIdToMatch);
+
+                try {
+                    const respEmp = await EmpleadosService.getByRol(2);
+                    const empleados = respEmp?.data || respEmp || [];
+
+                    const matchEmp = empleados.find(emp => {
+                        const usuarioCandidates = [emp.usuario?.idUsuario, emp.usuario?.id, emp.idUsuario, emp.id_usuario];
+                        return usuarioCandidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
+                    });
+
+                    if (matchEmp) {
+                        idEmpleado = matchEmp.idEstilista || matchEmp.idEmpleado || matchEmp.id || null;
+                        console.log('✅ Dashboard: resolved idEmpleado via EmpleadosService.getByRol:', idEmpleado);
+
+                        // Actualizar StateManager con el idEmpleado
+                        user.idEmpleado = idEmpleado;
+                        user.idEstilista = idEmpleado;
+                        StateManager.set('user', user);
+                        localStorage.setItem('user_data', JSON.stringify(user));
+                    } else {
+                        // Si no se encontró en empleados, intentar con EstilistasService
+                        try {
+                            const resp = await EstilistasService.getAll();
+                            const estilistas = resp.data || resp || [];
+                            const perfil = estilistas.find(e => {
+                                const candidates = [e.idUsuario, e.id_usuario, e.usuario?.idUsuario, e.usuario?.id, e.id, e.idEstilista, e.id_estilista, e.idEmpleado, e.id_empleado];
+                                return candidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
+                            });
+                            if (perfil) {
+                                idEmpleado = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
+                                console.log('✅ Dashboard: resolved idEmpleado via EstilistasService (fallback):', idEmpleado);
+
+                                // Actualizar StateManager
+                                user.idEmpleado = idEmpleado;
+                                user.idEstilista = idEmpleado;
+                                StateManager.set('user', user);
+                                localStorage.setItem('user_data', JSON.stringify(user));
+                            }
+                        } catch (e) {
+                            console.warn('Dashboard: getAll estilistas falló en fallback', e);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Dashboard: EmpleadosService.getByRol(2) falló', e);
+                }
+            }
+
             console.log('🔑 Cargando citas para empleado ID:', idEmpleado);
             console.log('👤 Usuario completo:', user);
-            
+
             const [citas, notificaciones] = await Promise.all([
                 this.loadCitas(idEmpleado),
                 this.loadNotificaciones()
             ]);
             this.updateStats(citas);
-            await this.loadConfirmaciones(citas.todas);
             await this.loadActivities();
         } catch (error) {
             console.error('Error al cargar datos:', error);
@@ -163,14 +223,29 @@ class DashboardEstilista {
             console.log('Respuesta de CitasService.getByEstilista:', r);
             const d = r.data?.data || r.data || [];
             const h = new Date().toISOString().split('T')[0];
+
+            // Calcular estadísticas
+            const citasHoy = d.filter(c => {
+                const fechaCita = c.fechaCita || c.fecha || '';
+                return fechaCita === h;
+            }).length;
+
+            const citasPendientes = d.filter(c => {
+                const estado = (c.estadoCita || c.estado || '').toUpperCase();
+                return estado === 'PENDIENTE';
+            }).length;
+
+            const totalCitas = d.length;
+
             return {
-                total: d.filter(c => (c.fechaCita || c.fecha) === h).length,
-                pendientes: d.filter(c => (c.estadoCita || c.estado) === 'pendiente').length,
+                total: totalCitas,
+                pendientes: citasPendientes,
+                hoy: citasHoy,
                 todas: d
             };
         } catch (e) {
             console.error('Error al cargar citas:', e);
-            return { total: 0, pendientes: 0, todas: [] };
+            return { total: 0, pendientes: 0, hoy: 0, todas: [] };
         }
     }
 
@@ -244,71 +319,21 @@ class DashboardEstilista {
     }
 
     updateStats(citas) {
-        document.getElementById('totalCitas').textContent = citas.total;
-        document.getElementById('citasPendientes').textContent = citas.pendientes;
+        const totalCitasEl = document.getElementById('totalCitas');
+        const citasPendientesEl = document.getElementById('citasPendientes');
+        const citasHoyEl = document.getElementById('citasHoy');
+
+        if (totalCitasEl) totalCitasEl.textContent = citas.total || 0;
+        if (citasPendientesEl) citasPendientesEl.textContent = citas.pendientes || 0;
+        if (citasHoyEl) citasHoyEl.textContent = citas.hoy || 0;
+
+        console.log('📊 Estadísticas actualizadas:', {
+            total: citas.total,
+            pendientes: citas.pendientes,
+            hoy: citas.hoy
+        });
     }
 
-    async loadConfirmaciones(todasCitas) {
-        const table = document.getElementById('confirmacionesTable');
-        if (!table) return;
-
-        try {
-            // Filtrar solo citas pendientes de confirmación
-            const pendientes = todasCitas.filter(c => 
-                (c.estadoCita || c.estado) === 'pendiente'
-            ).slice(0, 5); // Mostrar máximo 5
-
-            if (pendientes.length === 0) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">
-                            No tienes confirmaciones pendientes
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            table.innerHTML = pendientes.map(cita => {
-                const fecha = cita.fechaCita || cita.fecha || '';
-                const hora = cita.horaCita || cita.hora || '';
-                const cliente = cita.nombreCliente || cita.cliente || 'Sin nombre';
-                const servicio = cita.nombreServicio || cita.servicio || 'Sin servicio';
-                
-                return `
-                    <tr>
-                        <td>${cliente}</td>
-                        <td>${servicio}</td>
-                        <td>${fecha}</td>
-                        <td>${hora}</td>
-                        <td>
-                            <span class="badge badge-warning">Pendiente</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-success" onclick="confirmarCita(${cita.idCita})" title="Confirmar">
-                                <i class="ph ph-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="rechazarCita(${cita.idCita})" title="Rechazar">
-                                <i class="ph ph-x"></i>
-                            </button>
-                            <button class="btn btn-sm btn-primary" onclick="verDetalle(${cita.idCita})" title="Ver detalle">
-                                <i class="ph ph-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        } catch (error) {
-            console.error('Error al cargar confirmaciones:', error);
-            table.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
-                        Error al cargar confirmaciones
-                    </td>
-                </tr>
-            `;
-        }
-    }
 
     async loadActivities() {
         const container = document.getElementById('activitiesContainer');

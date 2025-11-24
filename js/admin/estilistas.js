@@ -206,13 +206,14 @@ class EstilistasAdmin {
             if (!finalIdEstilista) finalIdEstilista = usuarioId;
 
             // 3. Servicios
+            // IMPORTANTE: Usar idEmpleado para asociar servicios
             const serviciosSelect = document.getElementById('serviciosEstilista');
             if (serviciosSelect) {
                 const selectedServices = Array.from(serviciosSelect.selectedOptions).map(opt => opt.value);
                 if (selectedServices.length > 0) {
-                    const serviciosPromesas = selectedServices.map(idServicio => 
+                    const serviciosPromesas = selectedServices.map(idServicio =>
                         EstilistasService.createServicio({
-                            idEstilista: parseInt(finalIdEstilista),
+                            idEmpleado: parseInt(finalIdEstilista), // Usar idEmpleado en lugar de idEstilista
                             idServicio: parseInt(idServicio)
                         })
                     );
@@ -221,15 +222,16 @@ class EstilistasAdmin {
             }
 
             // 4. Horarios
+            // IMPORTANTE: Usar idEmpleado para asociar horarios
             const horariosPromesas = [];
             document.querySelectorAll('.day-schedule.active').forEach(day => {
                 const dia = day.getAttribute('data-day');
                 const diaFormat = dia.charAt(0).toUpperCase() + dia.slice(1);
                 const inicio = day.querySelector('.hora-inicio').value;
                 const fin = day.querySelector('.hora-fin').value;
-                
+
                 horariosPromesas.push(EstilistasService.createHorario({
-                    idEstilista: parseInt(finalIdEstilista),
+                    idEmpleado: parseInt(finalIdEstilista), // Usar idEmpleado en lugar de idEstilista
                     diaSemana: diaFormat,
                     horaInicio: inicio + ":00",
                     horaFin: fin + ":00"

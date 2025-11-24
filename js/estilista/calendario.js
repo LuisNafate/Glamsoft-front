@@ -44,9 +44,16 @@ class CalendarioEstilista {
     async checkAuth() {
         try {
             const user = StateManager.get('user');
-            if (!user || (user.rol !== 'estilista' && user.rol !== 'admin')) {
-                console.warn('Usuario no autenticado o no es estilista');
+
+            // Verificar si es estilista (idRol: 2) o admin (idRol: 1)
+            const esEstilista = user && (user.idRol === 2 || user.id_rol === 2 || user.rol === 'estilista' || user.rol === 'Estilista');
+            const esAdmin = user && (user.idRol === 1 || user.id_rol === 1 || user.rol === 'admin' || user.rol === 'Admin');
+
+            if (!user || (!esEstilista && !esAdmin)) {
+                console.warn('Usuario no autenticado o no es estilista. Usuario:', user);
                 // window.location.href = '../login.html';
+            } else {
+                console.log('✅ Usuario autenticado correctamente:', user.nombre, 'idRol:', user.idRol);
             }
         } catch (error) {
             console.warn('StateManager no disponible:', error);
@@ -242,8 +249,13 @@ class CalendarioEstilista {
                 this.citas = [];
                 return;
             }
-            // Resolver ID de estilista: puede estar en user.idEstilista o debemos buscarlo por idUsuario
-            let estilistaId = user.idEstilista || user.id_estilista || user.idEmpleado || user.id_empleado || user.id || user.idUsuario || user.id_usuario;
+            // Resolver ID de estilista: priorizar idEstilista/idEmpleado sobre idUsuario
+            let estilistaId = user.idEstilista || user.id_estilista || user.idEmpleado || user.id_empleado;
+
+            // Si no tenemos un ID claro, intentar usar user.id solo si no es idUsuario
+            if (!estilistaId && user.id && user.id !== user.idUsuario) {
+                estilistaId = user.id;
+            }
 
             // Si el valor parece ser el idUsuario (login) en lugar de idEstilista, intentar mapear mediante EmpleadosService (rol 2 -> estilistas)
             if ((user.idUsuario || user.id_usuario) && (!estilistaId || String(estilistaId) === String(user.idUsuario || user.id_usuario))) {
@@ -253,8 +265,6 @@ class CalendarioEstilista {
                     const empleados = respEmp?.data || respEmp || [];
                     // Buscar empleado cuyo usuario vinculado coincida con el id de sesión
                     const matchEmp = empleados.find(emp => {
-                        const u = emp.usuario || emp.user || emp.usuarioId || {};
-                        const candidates = [emp.idEstilista, emp.idEmpleado, emp.id, emp.usuario?.idUsuario, emp.usuario?.id, emp.idUsuario, emp.id_usuario, (emp.usuario && emp.usuario.id)];
                         const usuarioCandidates = [emp.usuario?.idUsuario, emp.usuario?.id, emp.idUsuario, emp.id_usuario];
                         return usuarioCandidates.some(c => c !== undefined && c !== null && String(c) === String(userIdToMatch));
                     });
@@ -262,6 +272,12 @@ class CalendarioEstilista {
                     if (matchEmp) {
                         estilistaId = matchEmp.idEstilista || matchEmp.idEmpleado || matchEmp.id || null;
                         console.log('Calendario: resolved estilistaId via EmpleadosService.getByRol:', estilistaId);
+
+                        // Actualizar StateManager con el idEmpleado
+                        user.idEmpleado = estilistaId;
+                        user.idEstilista = estilistaId;
+                        StateManager.set('user', user);
+                        localStorage.setItem('user_data', JSON.stringify(user));
                     } else {
                         // Si no se encontró en empleados, intentar con EstilistasService como antes
                         try {
@@ -274,6 +290,12 @@ class CalendarioEstilista {
                             if (perfil) {
                                 estilistaId = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
                                 console.log('Calendario: resolved estilistaId via EstilistasService (fallback):', estilistaId);
+
+                                // Actualizar StateManager
+                                user.idEmpleado = estilistaId;
+                                user.idEstilista = estilistaId;
+                                StateManager.set('user', user);
+                                localStorage.setItem('user_data', JSON.stringify(user));
                             } else if (Array.isArray(estilistas) && estilistas.length > 0) {
                                 const chosen = this.promptSelectEstilista(estilistas);
                                 if (chosen) {
@@ -297,6 +319,12 @@ class CalendarioEstilista {
                         if (perfil) {
                             estilistaId = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
                             console.log('Calendario: resolved estilistaId via EstilistasService (after empleados fail):', estilistaId);
+
+                            // Actualizar StateManager
+                            user.idEmpleado = estilistaId;
+                            user.idEstilista = estilistaId;
+                            StateManager.set('user', user);
+                            localStorage.setItem('user_data', JSON.stringify(user));
                         }
                     } catch (e2) {
                         console.warn('Calendario: EstilistasService también falló', e2);
@@ -317,6 +345,12 @@ class CalendarioEstilista {
                     if (perfil) {
                         estilistaId = perfil.idEstilista || perfil.id_estilista || perfil.idEmpleado || perfil.id || perfil.idEmpleado;
                         console.log('Calendario: resolved estilistaId via EstilistasService (fallback):', estilistaId);
+
+                        // Actualizar StateManager
+                        user.idEmpleado = estilistaId;
+                        user.idEstilista = estilistaId;
+                        StateManager.set('user', user);
+                        localStorage.setItem('user_data', JSON.stringify(user));
                     }
                     else if (Array.isArray(estilistas) && estilistas.length > 0) {
                         const chosen = this.promptSelectEstilista(estilistas);
