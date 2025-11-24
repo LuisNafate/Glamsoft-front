@@ -814,3 +814,114 @@ body.admin-page {
     background: #ffeaa7;
     color: #d63031;
 }
+/* =====================================
+   MENÚ DE NOTIFICACIONES (DROPDOWN)
+   ===================================== */
+
+.notification-menu {
+    width: 350px; /* Un poco más ancho para leer bien los mensajes */
+    right: 70px !important; /* Ajustado para alinearse con la campana */
+    max-height: 450px; /* Altura máxima con scroll */
+    overflow-y: auto;
+    padding: 0 !important; /* Quitamos padding del contenedor para que los items lleguen al borde */
+}
+
+.notification-menu .profile-menu-header {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-list {
+    padding: 0;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f1f1f1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: #fafafa;
+}
+
+/* Estilo para no leídas */
+.notification-item.unread {
+    background-color: #fdf8e4; /* Fondo sutil amarillo/dorado */
+    border-left: 4px solid #B8860B;
+}
+
+.notif-icon-box {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.notif-icon-box.info { background: #e3f2fd; color: #1976d2; }
+.notif-icon-box.success { background: #e8f5e9; color: #2e7d32; }
+.notif-icon-box.warning { background: #fff3e0; color: #ef6c00; }
+.notif-icon-box.error { background: #ffebee; color: #c62828; }
+
+.notif-info {
+    flex: 1;
+}
+
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.notif-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+}
+
+.notif-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notif-time {
+    font-size: 10px;
+    color: #999;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+.empty-notif {
+    padding: 30px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+}
