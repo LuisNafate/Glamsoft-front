@@ -34,7 +34,10 @@ const API_CONFIG = {
             GET_BY_SEMANA: '/citas/semanas',
             GET_BY_DIA: '/citas/dias',
             CREATE: '/citas',
-            UPDATE_ESTADO: '/citas/estado',
+            APROBAR: '/citas/:id/aprobar',
+            RECHAZAR: '/citas/:id/rechazar',
+            COMPLETAR: '/citas/:id/completar',
+            CANCELAR: '/citas/:id/cancelar',
             UPDATE_FECHA: '/citas/fecha',
             DELETE: '/citas/:id'
         },

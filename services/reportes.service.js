@@ -228,19 +228,29 @@ const ReportesService = {
         const ingresosPorDia = {};
 
         citas.forEach(cita => {
-            const fecha = cita.fecha || cita.fechaHoraCita || cita.fechaCita;
-            if (!fecha) return;
+            let fechaStr = '';
 
-            const fechaStr = fecha.split('T')[0]; // Obtener solo la fecha (YYYY-MM-DD)
+            // Manejar formato array [2025, 11, 28, 13, 0]
+            if (Array.isArray(cita.fechaHoraCita) && cita.fechaHoraCita.length >= 3) {
+                const [year, month, day] = cita.fechaHoraCita;
+                fechaStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } else if (cita.fecha) {
+                fechaStr = cita.fecha.split('T')[0]; // Obtener solo la fecha (YYYY-MM-DD)
+            } else if (cita.fechaCita) {
+                fechaStr = cita.fechaCita.split('T')[0];
+            }
+
+            if (!fechaStr) return;
+
             const precio = parseFloat(cita.precioTotal || cita.precio || 0);
-            const estado = (cita.estado || cita.estadoCita || '').toLowerCase();
+            const estado = (cita.estadoCita || cita.estado || '').toLowerCase();
 
             if (!ingresosPorDia[fechaStr]) {
                 ingresosPorDia[fechaStr] = 0;
             }
 
             // Solo contar ingresos de citas confirmadas
-            if (estado === 'confirmada') {
+            if (estado === 'confirmada' || estado === 'aprobada') {
                 ingresosPorDia[fechaStr] += precio;
             }
         });
@@ -264,8 +274,8 @@ const ReportesService = {
     calcularTasaOcupacion(citas, diasPeriodo, citasPorDia = 10) {
         const capacidadTotal = diasPeriodo * citasPorDia;
         const citasRealizadas = citas.filter(c => {
-            const estado = (c.estado || c.estadoCita || '').toLowerCase();
-            return estado === 'confirmada';
+            const estado = (c.estadoCita || c.estado || '').toLowerCase();
+            return estado === 'confirmada' || estado === 'aprobada' || estado === 'completada';
         }).length;
 
         const tasa = (citasRealizadas / capacidadTotal) * 100;
@@ -310,7 +320,20 @@ const ReportesService = {
         fechaLimite.setDate(fechaLimite.getDate() - dias);
 
         return citas.filter(cita => {
-            const fecha = new Date(cita.fecha || cita.fechaHoraCita || cita.fechaCita);
+            let fecha;
+
+            // Manejar formato array [2025, 11, 28, 13, 0]
+            if (Array.isArray(cita.fechaHoraCita) && cita.fechaHoraCita.length >= 3) {
+                const [year, month, day] = cita.fechaHoraCita;
+                fecha = new Date(year, month - 1, day); // month - 1 porque Date usa meses 0-11
+            } else if (cita.fecha) {
+                fecha = new Date(cita.fecha);
+            } else if (cita.fechaCita) {
+                fecha = new Date(cita.fechaCita);
+            } else {
+                return false; // Sin fecha, excluir
+            }
+
             return fecha >= fechaLimite;
         });
     },

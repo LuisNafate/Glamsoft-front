@@ -137,16 +137,79 @@ const CitasService = {
     },
 
     /**
-     * Cambiar estado de cita (CONFIRMADA, CANCELADA)
-     * @param {Object} data - { estadoCita: "CONFIRMADA" o "CANCELADA" }
+     * Aprobar una cita - Cambia estado a CONFIRMADA
+     * @param {number|string} idCita - ID de la cita
      */
-    async updateEstado(data) {
+    async aprobar(idCita) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.UPDATE_ESTADO);
-            const response = await httpService.patch(url, data);
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.APROBAR,
+                { id: idCita }
+            );
+            const response = await httpService.put(url);
             return response.data;
         } catch (error) {
-            console.error('Error al actualizar estado de cita:', error);
+            console.error('Error al aprobar cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Rechazar una cita - Cambia estado a CANCELADA
+     * @param {number|string} idCita - ID de la cita
+     * @param {string} razonRechazo - Motivo del rechazo
+     */
+    async rechazar(idCita, razonRechazo) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.RECHAZAR,
+                { id: idCita }
+            );
+            const response = await httpService.put(url, {
+                razonRechazo: razonRechazo || 'Sin motivo especificado'
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error al rechazar cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Completar una cita - Cambia estado a COMPLETADA
+     * @param {number|string} idCita - ID de la cita
+     */
+    async completar(idCita) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.COMPLETAR,
+                { id: idCita }
+            );
+            const response = await httpService.put(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al completar cita:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Cancelar una cita - Cambia estado a CANCELADA
+     * @param {number|string} idCita - ID de la cita
+     * @param {string} razonCancelacion - Motivo de cancelación
+     */
+    async cancelar(idCita, razonCancelacion) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.CANCELAR,
+                { id: idCita }
+            );
+            const response = await httpService.put(url, {
+                razonRechazo: razonCancelacion || 'Cancelada por el cliente'
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error al cancelar cita:', error);
             throw error;
         }
     },
@@ -180,53 +243,6 @@ const CitasService = {
             return response.data;
         } catch (error) {
             console.error('Error al eliminar cita:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Obtener citas pendientes de aprobación (ADMIN)
-     * @returns {Promise}
-     */
-    async getPendientes() {
-        try {
-            const response = await HttpService.get('/citas/pendientes');
-            return response;
-        } catch (error) {
-            console.error('Error al obtener citas pendientes:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Aprobar una cita (ADMIN)
-     * @param {number} idCita - ID de la cita
-     * @returns {Promise}
-     */
-    async aprobar(idCita) {
-        try {
-            const response = await HttpService.put(`/citas/${idCita}/aprobar`);
-            return response;
-        } catch (error) {
-            console.error('Error al aprobar cita:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Rechazar una cita (ADMIN)
-     * @param {number} idCita - ID de la cita
-     * @param {string} razonRechazo - Motivo del rechazo
-     * @returns {Promise}
-     */
-    async rechazar(idCita, razonRechazo) {
-        try {
-            const response = await HttpService.put(`/citas/${idCita}/rechazar`, {
-                razonRechazo: razonRechazo
-            });
-            return response;
-        } catch (error) {
-            console.error('Error al rechazar cita:', error);
             throw error;
         }
     }

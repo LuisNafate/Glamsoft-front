@@ -32,19 +32,26 @@ const EmailService = {
     /**
      * Enviar correo de confirmación de cita
      * @param {Object} citaData - Datos de la cita
+     * @param {string} citaData.email - Email del cliente
+     * @param {string} citaData.nombreCliente - Nombre del cliente (opcional)
+     * @param {string} citaData.fecha - Fecha de la cita
+     * @param {string} citaData.hora - Hora de la cita
+     * @param {string} citaData.servicio - Nombre del servicio
+     * @param {string} citaData.estilista - Nombre del estilista
+     * @param {number} citaData.precio - Precio total
      * @returns {Promise}
      */
     async enviarConfirmacionCita(citaData) {
         try {
             console.log('📧 Enviando correo de confirmación...', citaData);
 
-            // Obtener email del usuario desde localStorage
-            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-            const userEmail = userData.email || citaData.email;
+            // Validar que tengamos el email del cliente
+            const clienteEmail = citaData.email;
+            const clienteNombre = citaData.nombreCliente || 'Cliente';
 
-            if (!userEmail) {
-                console.warn('⚠️ No se encontró email del usuario');
-                return { success: false, message: 'Email no disponible' };
+            if (!clienteEmail) {
+                console.warn('⚠️ No se encontró email del cliente');
+                return { success: false, message: 'Email del cliente no disponible' };
             }
 
             // Formatear fecha para el correo
@@ -54,8 +61,8 @@ const EmailService = {
             // Parámetros que se enviarán a la plantilla de EmailJS
             // Los nombres deben coincidir con las variables de tu plantilla
             const templateParams = {
-                to_email: userEmail,
-                to_name: userData.nombre || 'Cliente',
+                to_email: clienteEmail,
+                to_name: clienteNombre,
                 fecha: fechaFormateada,
                 hora: horaFormateada,
                 servicio: citaData.servicio || 'Servicio',

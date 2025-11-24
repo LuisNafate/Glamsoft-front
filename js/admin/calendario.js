@@ -126,45 +126,71 @@ class CalendarioAdmin {
                 
                 // Buscar citas para este día y hora
                 const citasDelSlot = this.citas.filter(cita => {
-                    // La API devuelve 'fecha' y 'hora', no 'fechaCita' y 'horaCita'
-                    const citaFecha = cita.fecha || cita.fechaCita;
-                    const citaHora = cita.hora || cita.horaCita;
-                    
-                    console.log('Comparando cita:', {
-                        citaFecha,
-                        citaHora,
-                        buscandoFecha: dateStr,
-                        buscandoHora: hora
-                    });
-                    
+                    // Extraer fecha y hora del formato del backend
+                    let citaFecha = '';
+                    let citaHora = '';
+
+                    // Manejar formato array [2025, 11, 28, 13, 0]
+                    if (Array.isArray(cita.fechaHoraCita) && cita.fechaHoraCita.length >= 3) {
+                        const [year, month, day, hour, minute] = cita.fechaHoraCita;
+                        citaFecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        if (hour !== undefined && minute !== undefined) {
+                            citaHora = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                        }
+                    } else {
+                        // Formato string separado
+                        citaFecha = cita.fecha || cita.fechaCita || '';
+                        citaHora = cita.hora || cita.horaCita || '';
+                    }
+
                     // Comparar fechas
                     const fechaMatch = citaFecha === dateStr;
-                    
+
                     // Comparar horas (solo las primeras 2 cifras: "16:00" con "16")
                     const horaMatch = citaHora?.startsWith(hora.substring(0, 2));
-                    
+
                     const match = fechaMatch && horaMatch;
-                    
+
                     if (match) {
                         console.log('✓ Cita encontrada para mostrar:', {
                             fecha: citaFecha,
                             hora: citaHora,
-                            cliente: cita.cliente?.nombre,
-                            estado: cita.estado
+                            cliente: cita.nombreCliente || cita.cliente?.nombre,
+                            estado: cita.estadoCita || cita.estado
                         });
                     }
-                    
+
                     return match;
                 });
                 
                 html += `<div class="calendar-cell" data-date="${dateStr}" data-hora="${hora}">`;
                 
                 citasDelSlot.forEach(cita => {
-                    const estadoClass = (cita.estado || cita.estadoCita || 'pendiente').toLowerCase();
-                    const clienteNombre = cita.cliente?.nombre || 'Cliente';
-                    const servicioNombre = cita.servicios?.[0]?.nombre || 'Servicio';
-                    const citaId = cita.idCita;
-                    
+                    const estadoRaw = (cita.estadoCita || cita.estado || 'PENDIENTE').toUpperCase();
+                    let estadoClass = 'pendiente';
+
+                    if (estadoRaw.includes('CONFIRMADA') || estadoRaw.includes('APROBADA')) {
+                        estadoClass = 'confirmada';
+                    } else if (estadoRaw.includes('CANCELADA') || estadoRaw.includes('RECHAZADA')) {
+                        estadoClass = 'cancelada';
+                    } else if (estadoRaw.includes('COMPLETADA') || estadoRaw.includes('FINALIZADA')) {
+                        estadoClass = 'completada';
+                    } else if (estadoRaw.includes('PENDIENTE')) {
+                        estadoClass = 'pendiente';
+                    }
+
+                    const clienteNombre = cita.nombreCliente || cita.cliente?.nombre || 'Cliente';
+
+                    // Extraer nombre del servicio
+                    let servicioNombre = 'Servicio';
+                    if (Array.isArray(cita.servicios) && cita.servicios.length > 0) {
+                        servicioNombre = cita.servicios[0].nombre || cita.servicios[0].nombreServicio || 'Servicio';
+                    } else if (cita.nombreServicio) {
+                        servicioNombre = cita.nombreServicio;
+                    }
+
+                    const citaId = cita.idCita || cita.id;
+
                     html += `
                         <div class="appointment-card ${estadoClass}" onclick="calendarioAdmin.showCitaDetail(${citaId})">
                             <div class="appointment-client">${clienteNombre}</div>
@@ -244,15 +270,26 @@ class CalendarioAdmin {
                 'CANCELADA': '#e74c3c'
             };
             
-            const estadoCita = this.currentCita.estadoCita || this.currentCita.estado || 'pendiente';
+            const estadoCita = this.currentCita.estadoCita || this.currentCita.estado || 'PENDIENTE';
             const estadoColor = estadoColors[estadoCita] || '#7f8c8d';
-            
-            const clienteNombre = this.currentCita.cliente?.nombre || this.currentCita.cliente_nombre || 'N/A';
-            const servicioNombre = this.currentCita.servicio?.nombre || this.currentCita.servicio_nombre || 'N/A';
-            const estilistaNombre = this.currentCita.estilista?.nombre || this.currentCita.estilista_nombre || '';
-            const fechaCita = this.currentCita.fechaCita || this.currentCita.fecha;
-            const horaCita = this.currentCita.horaCita || this.currentCita.hora;
+
+            const clienteNombre = this.currentCita.nombreCliente || this.currentCita.cliente?.nombre || this.currentCita.cliente_nombre || 'N/A';
+
+            // Extraer nombres de servicios
+            let servicioNombre = 'N/A';
+            if (Array.isArray(this.currentCita.servicios) && this.currentCita.servicios.length > 0) {
+                servicioNombre = this.currentCita.servicios.map(s => s.nombre).join(', ');
+            } else if (this.currentCita.servicio?.nombre) {
+                servicioNombre = this.currentCita.servicio.nombre;
+            } else if (this.currentCita.servicio_nombre) {
+                servicioNombre = this.currentCita.servicio_nombre;
+            }
+
+            const estilistaNombre = this.currentCita.nombreEstilista || this.currentCita.estilista?.nombre || this.currentCita.estilista_nombre || '';
+            const fechaCita = this.currentCita.fechaHoraCita || this.currentCita.fechaCita || this.currentCita.fecha;
+            const horaCita = this.currentCita.fechaHoraCita || this.currentCita.horaCita || this.currentCita.hora;
             const notas = this.currentCita.notas || this.currentCita.observaciones || '';
+            const precioTotal = this.currentCita.precioTotal || 0;
             
             detalle.innerHTML = `
                 <div style="padding: 20px 0;">
@@ -270,7 +307,7 @@ class CalendarioAdmin {
                             <strong style="color: #7f8c8d;">Servicio:</strong><br>
                             <span style="font-size: 16px;">${servicioNombre}</span>
                         </div>
-                        
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div>
                                 <strong style="color: #7f8c8d;">Fecha:</strong><br>
@@ -280,6 +317,11 @@ class CalendarioAdmin {
                                 <strong style="color: #7f8c8d;">Hora:</strong><br>
                                 <span>${this.formatHora(horaCita)}</span>
                             </div>
+                        </div>
+
+                        <div>
+                            <strong style="color: #7f8c8d;">Precio Total:</strong><br>
+                            <span style="font-size: 18px; color: #27ae60; font-weight: bold;">$${Number(precioTotal).toLocaleString('es-CO')}</span>
                         </div>
                         
                         ${estilistaNombre ? `
@@ -327,25 +369,38 @@ class CalendarioAdmin {
 
     async updateEstadoCita(nuevoEstado) {
         if (!this.currentCita) return;
-        
-        if (!confirm(`¿Confirmar ${nuevoEstado === 'confirmada' ? 'confirmación' : 'cancelación'} de la cita?`)) {
+
+        const esConfirmacion = nuevoEstado === 'confirmada';
+        const mensaje = esConfirmacion
+            ? '¿Confirmar aprobación de la cita?\n\nSe enviará un email al cliente.'
+            : '¿Confirmar cancelación de la cita?';
+
+        if (!confirm(mensaje)) {
             return;
         }
-        
+
         this.showLoader();
-        
+
         try {
             const citaId = this.currentCita.idCita || this.currentCita.id;
-            await CitasService.updateEstado({
-                idCita: citaId,
-                estadoCita: nuevoEstado.toUpperCase()
-            });
-            
-            this.showNotification(`Cita ${nuevoEstado} correctamente`, 'success');
+
+            if (esConfirmacion) {
+                await CitasService.aprobar(citaId);
+                this.showNotification('Cita aprobada. Email enviado al cliente.', 'success');
+            } else {
+                const motivo = prompt('Ingresa el motivo de cancelación (opcional):');
+                if (motivo === null) {
+                    this.hideLoader();
+                    return; // Usuario canceló
+                }
+                await CitasService.cancelar(citaId, motivo);
+                this.showNotification('Cita cancelada correctamente', 'success');
+            }
+
             closeModal();
             await this.loadCitas();
             this.renderCalendar();
-            
+
         } catch (error) {
             console.error('Error al actualizar cita:', error);
             this.showNotification('Error al actualizar cita', 'error');
