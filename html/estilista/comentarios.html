@@ -11,6 +11,7 @@
     <!-- Estilos -->
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
      <!-- La nueva para los iconos-->
+      <link rel="stylesheet" href="../../Css/modals/custom-modal.css">
 
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
@@ -252,55 +253,63 @@
     <script src="../../services/comentarios.service.js"></script>
     <script src="../../utils/state-manager.js"></script>
     <script src="../../js/estilista/comentarios.js"></script>
+    <script src="../../utils/custom-modal.js"></script>
+<script src="../../services/auth.service.js"></script> ```
     
   <script>
+    // --- 1. Funciones Globales de Modales ---
+    // Cierra cualquier modal activo (funciona para todas las vistas)
+    function closeModal() {
+        const activeModals = document.querySelectorAll('.modal-overlay.active');
+        activeModals.forEach(modal => modal.classList.remove('active'));
+    }
+
+    // --- 2. Carga del Sidebar y Lógica de Logout ---
     fetch('_sidebar.html')
         .then(response => response.text())
         .then(html => {
+            // Inyectar el sidebar
             document.getElementById('sidebarContainer').innerHTML = html;
 
-            // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
-            const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
-
-            if (sidebarLogoutBtn) {
-                sidebarLogoutBtn.addEventListener('click', async function(e) {
-                    e.preventDefault();
-
-                    // Usar confirm simple si customConfirm no está disponible
-                    const useCustom = typeof customConfirm !== 'undefined';
-                    let confirmed = false;
-
-                    if (useCustom) {
-                        confirmed = await customConfirm(
-                            '¿Estás seguro de que deseas cerrar sesión?',
-                            'Cerrar Sesión',
-                            { icon: 'ph-sign-out' }
-                        );
-                    } else {
-                        confirmed = confirm('¿Estás seguro de que deseas cerrar sesión?');
-                    }
-
-                    if (confirmed) {
-                        // Limpiar localStorage
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('user_data');
-                        localStorage.setItem('isLoggedIn', 'false');
-
-                        // Redirigir a inicio
-                        window.location.href = '../inicio.html';
-                    }
-                });
-            }
-
-            // Marcar activo el menú actual
+            // A) Marcar la opción activa en el menú
             const path = window.location.pathname;
             const page = path.split('/').pop().replace('.html', '') || 'dashboard';
-            document.querySelectorAll('.menu-item').forEach(item => {
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
                 if (item.getAttribute('data-page') === page) {
                     item.classList.add('active');
                 }
             });
-        });
+
+            // B) Lógica del Botón Cerrar Sesión (Estilo Dashboard)
+            const sidebarLogoutBtn = document.getElementById('logoutBtn');
+            
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+
+                    // Usar el modal personalizado (customConfirm) para mantener el estilo
+                    if (typeof customConfirm !== 'undefined' && typeof AuthService !== 'undefined') {
+                        const confirmed = await customConfirm(
+                            '¿Estás seguro de que deseas cerrar sesión?',
+                            'Cerrar Sesión',
+                            { icon: 'ph-sign-out' }
+                        );
+
+                        if (confirmed) {
+                            await AuthService.logout();
+                            window.location.href = '../inicio.html';
+                        }
+                    } else {
+                        // Fallback por seguridad si falla la carga de scripts
+                        if (confirm('¿Cerrar sesión?')) {
+                            window.location.href = '../inicio.html';
+                        }
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Error cargando el sidebar:', error));
 </script>
     
 </body>

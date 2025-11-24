@@ -265,7 +265,7 @@ class DashboardEstilista {
             const stateClass = { 'cita': 'success', 'sistema': 'warning', 'error': 'error' }[tipo] || 'info';
 
             return `
-                <div class="notification-item ${!notif.leida ? 'unread' : ''}" onclick="window.location.href='notificaciones.html'">
+                <div class="notification-item ${!notif.leida ? 'unread' : ''}">
                     <div class="notif-icon-box ${stateClass}">
                         <i class="ph ${iconClass}"></i>
                     </div>
@@ -330,8 +330,24 @@ class DashboardEstilista {
     
     formatTime(date) { return date.toLocaleDateString(); }
     setupAutoRefresh() { setInterval(() => this.loadNotificaciones(), 30000); setInterval(() => this.loadAllData(), 300000); }
-    showLoader() { document.getElementById('loader').style.display = 'flex'; }
-    hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+    showLoader() {
+        if (window.LoaderManager) {
+            LoaderManager.show();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'flex';
+        }
+    }
+
+    hideLoader() {
+        if (window.LoaderManager) {
+            LoaderManager.hide();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'none';
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => { new DashboardEstilista(); });

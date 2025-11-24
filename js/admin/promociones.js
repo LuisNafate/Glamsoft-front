@@ -418,22 +418,30 @@ async checkAuth() {
             z-index: 10000;
         `;
         notification.textContent = message;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
     }
 
     showLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'flex';
+        if (window.LoaderManager) {
+            LoaderManager.show();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'flex';
+        }
     }
 
     hideLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'none';
+        if (window.LoaderManager) {
+            LoaderManager.hide();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'none';
+        }
     }
 }
 

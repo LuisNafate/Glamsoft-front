@@ -184,11 +184,7 @@
                 <div class="form-group">
                     <label class="form-label">Categoría</label>
                     <select class="form-control" id="categoriaImagen">
-                        <option value="1">Cabello</option>
-                        <option value="2">Uñas</option>
-                        <option value="3">Maquillaje</option>
-                        <option value="4">Spa</option>
-                        <option value="5">Otros</option>
+                        <option value="">Cargando categorías...</option>
                     </select>
                 </div>
                 
@@ -215,8 +211,10 @@
     
     <!-- Scripts -->
     <script src="../../config/api.config.js"></script>
+    <script src="../../utils/loader-manager.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
+    <script src="../../services/categorias.service.js"></script>
     <script src="../../services/portafolio.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>

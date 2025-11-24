@@ -450,8 +450,23 @@ async checkAuth() {
         setTimeout(() => notification.remove(), 3000);
     }
 
-    showLoader() { document.getElementById('loader').style.display = 'flex'; }
-    hideLoader() { document.getElementById('loader').style.display = 'none'; }
+    showLoader() {
+        if (window.LoaderManager) {
+            LoaderManager.show();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'flex';
+        }
+    }
+
+    hideLoader() {
+        if (window.LoaderManager) {
+            LoaderManager.hide();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'none';
+        }
+    }
 }
 
 let serviciosAdmin;

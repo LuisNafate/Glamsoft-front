@@ -12,6 +12,7 @@ class PortafolioEstilista {
     async init() {
         try {
             this.setupEventListeners();
+            await this.loadCategorias();
             await this.loadImagenes();
         } catch (error) {
             console.error('Error al inicializar:', error);
@@ -78,6 +79,46 @@ class PortafolioEstilista {
                 window.location.href = '../inicio.html';
             }
         });
+    }
+
+    async loadCategorias() {
+        try {
+            console.log('📂 Cargando categorías para portafolio...');
+            const categorias = await CategoriasService.getAll();
+            console.log('✅ Categorías cargadas:', categorias);
+
+            const selectCategoria = document.getElementById('categoriaImagen');
+            if (selectCategoria) {
+                // Limpiar opciones existentes
+                selectCategoria.innerHTML = '';
+
+                // Si no hay categorías, mostrar un mensaje
+                if (!categorias || categorias.length === 0) {
+                    selectCategoria.innerHTML = '<option value="1">Sin categorías disponibles</option>';
+                    console.warn('⚠️ No se encontraron categorías');
+                    return;
+                }
+
+                // Agregar opciones desde la API
+                categorias.forEach(categoria => {
+                    const option = document.createElement('option');
+                    option.value = categoria.idCategoria;
+                    option.textContent = categoria.nombre;
+                    selectCategoria.appendChild(option);
+                });
+
+                console.log(`✅ ${categorias.length} categorías cargadas en el selector`);
+            } else {
+                console.warn('⚠️ No se encontró el elemento #categoriaImagen');
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar categorías:', error);
+            // En caso de error, dejar las categorías por defecto o mostrar mensaje
+            const selectCategoria = document.getElementById('categoriaImagen');
+            if (selectCategoria && selectCategoria.options.length === 0) {
+                selectCategoria.innerHTML = '<option value="1">Error al cargar categorías</option>';
+            }
+        }
     }
 
     // --- LÓGICA DE IMÁGENES (Igual que Admin) ---
@@ -444,8 +485,23 @@ class PortafolioEstilista {
         }
     }
 
-    showLoader() { document.getElementById('loader').style.display = 'flex'; }
-    hideLoader() { document.getElementById('loader').style.display = 'none'; }
+    showLoader() {
+        if (window.LoaderManager) {
+            LoaderManager.show();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'flex';
+        }
+    }
+
+    hideLoader() {
+        if (window.LoaderManager) {
+            LoaderManager.hide();
+        } else {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'none';
+        }
+    }
 }
 
 let portfolioInstance;

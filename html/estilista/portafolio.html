@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
     <link rel="stylesheet" href="../../Css/modals/profile_menu.css">
+    <link rel="stylesheet" href="../../Css/modals/custom-modal.css">
 
     <style>
         /* Estilos específicos copiados del Admin para Drag & Drop y Galería */
@@ -128,9 +129,6 @@
                     <strong>Arrastra tus fotos aquí</strong> o haz clic para seleccionar
                     <br><small style="color: #95a5a6; margin-top: 5px; display: block;">Las imágenes con el mismo título formarán un álbum</small>
                 </div>
-                <button class="btn btn-primary" id="btnNuevaImagen" style="margin-top: 15px;">
-                    <i class="fas fa-plus"></i> Subir Manualmente
-                </button>
             </div>
 
             <div class="content-card">
@@ -183,11 +181,7 @@
                 <div class="form-group">
                     <label class="form-label">Categoría</label>
                     <select class="form-control" id="categoriaImagen">
-                        <option value="1">Cabello</option>
-                        <option value="2">Uñas</option>
-                        <option value="3">Maquillaje</option>
-                        <option value="4">Spa</option>
-                        <option value="5">Otros</option>
+                        <option value="">Cargando categorías...</option>
                     </select>
                 </div>
                 
@@ -223,61 +217,71 @@
     </div>
 
     <script src="../../config/api.config.js"></script>
+    <script src="../../utils/loader-manager.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
+    <script src="../../services/categorias.service.js"></script>
     <script src="../../services/portafolio.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
     <script src="../../js/estilista/portafolio.js"></script>
+    <script src="../../utils/custom-modal.js"></script>
+<script src="../../services/auth.service.js"></script> ```
 
   <script>
+    // --- 1. Funciones Globales de Modales ---
+    // Cierra cualquier modal activo (funciona para todas las vistas)
+    function closeModal() {
+        const activeModals = document.querySelectorAll('.modal-overlay.active');
+        activeModals.forEach(modal => modal.classList.remove('active'));
+    }
+
+    // --- 2. Carga del Sidebar y Lógica de Logout ---
     fetch('_sidebar.html')
         .then(response => response.text())
         .then(html => {
+            // Inyectar el sidebar
             document.getElementById('sidebarContainer').innerHTML = html;
 
-            // --- LÓGICA DEL BOTÓN CERRAR SESIÓN DEL SIDEBAR ---
-            const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
-
-            if (sidebarLogoutBtn) {
-                sidebarLogoutBtn.addEventListener('click', async function(e) {
-                    e.preventDefault();
-
-                    // Usar confirm simple si customConfirm no está disponible
-                    const useCustom = typeof customConfirm !== 'undefined';
-                    let confirmed = false;
-
-                    if (useCustom) {
-                        confirmed = await customConfirm(
-                            '¿Estás seguro de que deseas cerrar sesión?',
-                            'Cerrar Sesión',
-                            { icon: 'ph-sign-out' }
-                        );
-                    } else {
-                        confirmed = confirm('¿Estás seguro de que deseas cerrar sesión?');
-                    }
-
-                    if (confirmed) {
-                        // Limpiar localStorage
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('user_data');
-                        localStorage.setItem('isLoggedIn', 'false');
-
-                        // Redirigir a inicio
-                        window.location.href = '../inicio.html';
-                    }
-                });
-            }
-
-            // Marcar activo el menú actual
+            // A) Marcar la opción activa en el menú
             const path = window.location.pathname;
             const page = path.split('/').pop().replace('.html', '') || 'dashboard';
-            document.querySelectorAll('.menu-item').forEach(item => {
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
                 if (item.getAttribute('data-page') === page) {
                     item.classList.add('active');
                 }
             });
-        });
+
+            // B) Lógica del Botón Cerrar Sesión (Estilo Dashboard)
+            const sidebarLogoutBtn = document.getElementById('logoutBtn');
+            
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+
+                    // Usar el modal personalizado (customConfirm) para mantener el estilo
+                    if (typeof customConfirm !== 'undefined' && typeof AuthService !== 'undefined') {
+                        const confirmed = await customConfirm(
+                            '¿Estás seguro de que deseas cerrar sesión?',
+                            'Cerrar Sesión',
+                            { icon: 'ph-sign-out' }
+                        );
+
+                        if (confirmed) {
+                            await AuthService.logout();
+                            window.location.href = '../inicio.html';
+                        }
+                    } else {
+                        // Fallback por seguridad si falla la carga de scripts
+                        if (confirm('¿Cerrar sesión?')) {
+                            window.location.href = '../inicio.html';
+                        }
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Error cargando el sidebar:', error));
 </script>
 </body>
 </html>

@@ -69,9 +69,9 @@ const EmailService = {
                 estilista: citaData.estilista || 'Estilista',
                 precio: citaData.precio ? `$${Number(citaData.precio).toLocaleString('es-CO')}` : '$0',
                 // Información adicional
-                salon_nombre: 'WHEELY-STYLE',
-                salon_direccion: '123 Calle Principal, Ciudad',
-                salon_telefono: '+1 234 567 890'
+                salon_nombre: 'GLAMSOFT',
+                salon_direccion: '295 Natalia Venegas, Tuxtla Gutiérrez, Chiapas',
+                salon_telefono: '+961 933 4376'
             };
 
             console.log('📧 Parámetros del email:', templateParams);
