@@ -493,7 +493,10 @@ function renderizarEstilistas(estilistas) {
         estilistas.forEach((estilista, index) => {
             const card = document.createElement('div');
             card.className = 'stylist-card';
-            card.dataset.idEstilista = estilista.idEstilista || estilista.idUsuario || index;
+            // IMPORTANTE: Usar idEmpleado para las citas, no idUsuario
+            const idEmpleado = estilista.idEmpleado || estilista.idEstilista;
+            card.dataset.idEstilista = idEmpleado || index;
+            console.log(`👨‍💼 Estilista: ${estilista.nombre}, idEmpleado: ${idEmpleado}, idUsuario: ${estilista.idUsuario}`);
 
             // Usar imagen del estilista o placeholder
             const imagenUrl = estilista.urlImagen ||
@@ -511,6 +514,7 @@ function renderizarEstilistas(estilistas) {
                 document.querySelectorAll('.stylist-card').forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
                 selectedStylist = this.dataset.idEstilista;
+                console.log('✅ Estilista seleccionado - idEmpleado:', selectedStylist);
             });
 
             stylistsGrid.appendChild(card);
@@ -1022,19 +1026,25 @@ async function enviarCitaConFormulario() {
         }
 
         // IMPORTANTE: Crear cita con respuestas del formulario y estado PENDIENTE
+        // selectedStylist contiene el idEmpleado del estilista, no el idUsuario
         const citaData = {
             fecha: fechaFormateada,
             hora: hora24,
             notas: '', // Las notas ahora están en respuestasFormulario
             idCliente: idCliente,
-            idEstilista: parseInt(selectedStylist),
+            idEstilista: parseInt(selectedStylist), // ID del EMPLEADO (no usuario)
             idHorario: idHorario,
             servicios: [idServicio],
             estado: 'PENDIENTE', // NUEVO: Estado pendiente por defecto
             respuestasFormulario: respuestasFormulario // NUEVO: Respuestas del formulario
         };
 
-        console.log('📤 Enviando cita:', citaData);
+        console.log('📤 Enviando cita con formulario:');
+        console.log('👤 ID Cliente:', idCliente);
+        console.log('💈 ID Estilista (idEmpleado):', selectedStylist);
+        console.log('🛍️  ID Servicio:', idServicio);
+        console.log('📝 Respuestas formulario:', respuestasFormulario.length, 'preguntas');
+        console.log(JSON.stringify(citaData, null, 2));
 
         const response = await CitasService.create(citaData);
         console.log('✅ Cita creada exitosamente:', response);
@@ -1337,17 +1347,23 @@ async function cargarYConfigurarModal() {
 
                 // Datos de la cita - formato según API
                 // NOTA: idHorario es temporal hasta que el backend lo haga opcional
+                // IMPORTANTE: selectedStylist ahora contiene el idEmpleado del estilista
                 const citaData = {
                     fecha: fechaFormateada, // "2024-07-15"
                     hora: hora24, // "10:30:00"
                     notas: formData.extra || '', // Opcional - campo "extra" del formulario
                     idCliente: idCliente,
-                    idEstilista: parseInt(selectedStylist), // Usar el ID del estilista seleccionado
+                    idEstilista: parseInt(selectedStylist), // ID del EMPLEADO (no usuario)
                     idHorario: idHorario, // TEMPORAL: Se eliminará cuando el backend se actualice
                     servicios: [idServicio]
                 };
                 
                 console.log('=== DATOS DE LA CITA (API FORMAT) ===');
+                console.log('📅 Fecha:', fechaFormateada);
+                console.log('🕐 Hora:', hora24);
+                console.log('👤 ID Cliente:', idCliente);
+                console.log('💈 ID Estilista (idEmpleado):', selectedStylist);
+                console.log('🛍️  ID Servicio:', idServicio);
                 console.log(JSON.stringify(citaData, null, 2));
                 console.log('=====================================');
                 
@@ -1370,18 +1386,16 @@ async function cargarYConfigurarModal() {
                 }
 
                 try {
-                    // Obtener nombre del estilista
+                    // Obtener nombre del estilista usando idEmpleado
                     const estilistas = await EstilistasService.getAll();
                     const estilistasArray = estilistas.data || estilistas;
                     const estilista = estilistasArray.find(e =>
-                        (e.idEstilista || e.idUsuario) == selectedStylist
+                        (e.idEmpleado || e.idEstilista) == selectedStylist
                     );
                     nombreEstilista = estilista?.nombre || 'Estilista';
                 } catch (error) {
                     console.warn('No se pudo obtener el nombre del estilista:', error);
-                }
-
-                // Mostrar modal de éxito con resumen de la cita
+                }        // Mostrar modal de éxito con resumen de la cita
                 openSuccessModal({
                     fecha: fechaFormateada,
                     hora: hora24,

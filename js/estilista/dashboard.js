@@ -118,8 +118,33 @@ class DashboardEstilista {
         this.showLoader();
         try {
             const user = StateManager.get('user');
+            
+            // IMPORTANTE: Obtener idEmpleado del usuario
+            // Puede venir como idEmpleado, id, o necesitar consulta adicional
+            let idEmpleado = user.idEmpleado || user.id;
+            
+            // Si no tiene idEmpleado, intentar obtenerlo del backend
+            if (!user.idEmpleado && user.id) {
+                console.log('⚠️ Usuario no tiene idEmpleado, consultando al backend...');
+                try {
+                    const empleadoData = await EmpleadosService.getById(user.id);
+                    idEmpleado = empleadoData.data?.idEmpleado || empleadoData.idEmpleado || user.id;
+                    console.log('✅ idEmpleado obtenido del backend:', idEmpleado);
+                    
+                    // Actualizar StateManager con el idEmpleado
+                    user.idEmpleado = idEmpleado;
+                    StateManager.set('user', user);
+                    localStorage.setItem('user_data', JSON.stringify(user));
+                } catch (error) {
+                    console.error('❌ Error al obtener idEmpleado:', error);
+                }
+            }
+            
+            console.log('🔑 Cargando citas para empleado ID:', idEmpleado);
+            console.log('👤 Usuario completo:', user);
+            
             const [citas, notificaciones] = await Promise.all([
-                this.loadCitas(user.id),
+                this.loadCitas(idEmpleado),
                 this.loadNotificaciones()
             ]);
             this.updateStats(citas);
