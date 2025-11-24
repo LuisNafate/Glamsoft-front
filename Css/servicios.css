@@ -274,9 +274,7 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .services-header h1 {
-        font-size: 36px;
-    }
+   
 
     .services-container {
         padding-top: 120px;

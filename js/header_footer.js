@@ -261,9 +261,13 @@ function initializeModalEvents() {
                     const idRol = parseInt(usuario.idRol || usuario.id_rol || 0);
                     const nombreRol = String(usuario.rol || usuario.role || '').toUpperCase();
 
-                    if (idRol === 1 || idRol === 2 || nombreRol.includes('ADMIN') || nombreRol.includes('ESTILISTA')) { 
+                    if (idRol === 1  || nombreRol.includes('ADMIN') ) { 
                         window.location.href = 'admin/dashboard.html';
-                    } else {
+                    } 
+                    else if(idRol === 2 || nombreRol.includes('ESTILISTA')){
+                        window.location.href = 'estilista/dashboard.html';
+                    }
+                    else {
                         // Lógica de redirección del cliente
                         const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
                         if (redirectUrl) {
@@ -518,7 +522,12 @@ function toggleProfileMenu() {
 document.addEventListener('click', e => {
     const target = e.target;
 
-    // Removido: el botón .btn-agendar ahora redirige directamente a agendar.html
+    // ✅ MODIFICADO: Ahora redirige a servicios.html en lugar de abrir modal
+    if (target.closest('.btn-agendar')) {
+        e.preventDefault();
+        window.location.href = 'servicios.html'; // Redirección directa
+        return;
+    }
 
     const authTrigger = target.closest('.auth-trigger');
     if (authTrigger) {
@@ -540,7 +549,6 @@ document.addEventListener('click', e => {
         profileModal.style.display = 'none';
     }
 });
-
 // ================== INICIALIZACIÓN ==================
 document.addEventListener('DOMContentLoaded', () => {
     loadHeaderFooter();
