@@ -21,6 +21,7 @@ class EstilistasAdmin {
         document.getElementById('btnNuevoEstilista')?.addEventListener('click', () => this.openModal());
         
         document.getElementById('searchInput')?.addEventListener('input', () => this.filterEstilistas());
+        document.getElementById('activoFilter')?.addEventListener('change', () => this.filterEstilistas());
 
         document.getElementById('formEstilista')?.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -68,11 +69,8 @@ class EstilistasAdmin {
         try {
             const response = await EstilistasService.getAll();
             const data = response.data || response || [];
-            
-            // ✅ FILTRO: Solo mostrar estilistas ACTIVOS en la tabla
-            const estilistasActivos = data.filter(e => e.activo !== false && e.activo !== 0);
-            
-            this.estilistas = estilistasActivos.map(e => ({
+            // Cargar todos los estilistas (mantener campo 'activo')
+            this.estilistas = data.map(e => ({
                 id: e.idEstilista || e.idEmpleado || e.id,
                 idUsuario: e.idUsuario || e.id_usuario || (e.usuario ? e.usuario.idUsuario : null),
                 nombre: e.nombre,
@@ -80,7 +78,8 @@ class EstilistasAdmin {
                 telefono: e.telefono,
                 puesto: e.puesto || 'Estilista',
                 avatar: e.imagenPerfil || e.avatar || e.imagen_perfil,
-                servicios: e.servicios || [] 
+                servicios: e.servicios || [],
+                activo: (e.activo === true || e.activo === 1) // normalize to boolean
             }));
 
             this.filteredEstilistas = [...this.estilistas];
@@ -94,9 +93,15 @@ class EstilistasAdmin {
 
     filterEstilistas() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        this.filteredEstilistas = this.estilistas.filter(e => 
-            (e.nombre || '').toLowerCase().includes(term)
-        );
+        const estado = document.getElementById('activoFilter')?.value || 'all';
+
+        this.filteredEstilistas = this.estilistas.filter(e => {
+            const matchesTerm = (e.nombre || '').toLowerCase().includes(term);
+            let matchesEstado = true;
+            if (estado === 'activo') matchesEstado = e.activo === true;
+            if (estado === 'inactivo') matchesEstado = e.activo === false || e.activo === undefined;
+            return matchesTerm && matchesEstado;
+        });
         this.renderTable();
     }
 
@@ -346,7 +351,10 @@ class EstilistasAdmin {
             this.showNotification('Estilista eliminado', 'success');
             this.loadEstilistas();
         } catch(e) {
-            this.showNotification('Error al eliminar', 'error');
+            console.error('Error al eliminar estilista:', e);
+            // Intentar extraer mensaje claro desde la respuesta del servidor
+            const serverMsg = e?.response?.data?.message || e?.data?.message || e?.message || 'Error al eliminar el estilista.';
+            this.showNotification(serverMsg, 'error');
         } finally {
             this.hideLoader();
         }

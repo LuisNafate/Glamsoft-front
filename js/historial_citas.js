@@ -154,6 +154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Obtener nombre del estilista
             const nombreEstilista = cita.nombreEstilista || cita.estilista || 'Sin asignar';
 
+            const citaId = cita.idCita || cita.id || cita._id;
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>
@@ -175,8 +177,180 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </small>
                 </td>
                 <td style="font-weight: bold; font-family: monospace; font-size: 1.1em;">$${precio}</td>
+                <td style="text-align:center;">
+                    <button title="Agregar comentario" class="btn-comment" data-cita-id="${citaId}" style="background:transparent; border:none; cursor:pointer; color:#B8860B; font-size:18px;">
+                        <i class="fas fa-comment-dots"></i>
+                    </button>
+                </td>
             `;
             tableBody.appendChild(row);
         });
+    }
+
+    // ----------------------
+    // Comentarios: modal y envío
+    // ----------------------
+    const commentModal = document.getElementById('comment-modal');
+    const commentText = document.getElementById('comment-modal-text');
+    const commentServiceLabel = document.getElementById('comment-modal-service');
+    let commentTargetCitaId = null;
+
+    // Delegación para botones de comentario
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest && e.target.closest('.btn-comment');
+        if (btn) {
+            const id = btn.getAttribute('data-cita-id');
+            openCommentModal(id, btn.closest('tr'));
+        }
+    });
+
+    document.getElementById('comment-modal-cancel').addEventListener('click', closeCommentModal);
+    document.getElementById('comment-modal-submit').addEventListener('click', submitComment);
+
+    async function openCommentModal(idCita, rowEl) {
+        commentTargetCitaId = idCita;
+        commentText.value = '';
+        commentServiceLabel.textContent = 'Cargando servicio...';
+        commentModal.style.display = 'flex';
+
+        // Intentar obtener la cita desde la API para extraer el servicio de forma fiable
+        try {
+            const citaResp = await CitasService.getById(idCita);
+            const citaObj = citaResp?.data?.data || citaResp?.data || citaResp || null;
+
+            let servicioName = 'Servicio';
+            if (citaObj) {
+                // Buscar en diferentes estructuras
+                if (Array.isArray(citaObj.servicios) && citaObj.servicios.length > 0) {
+                    servicioName = citaObj.servicios.map(s => s.nombre || s.nombreServicio || s).join(', ');
+                } else if (citaObj.servicio && (citaObj.servicio.nombre || citaObj.servicio.nombreServicio)) {
+                    servicioName = citaObj.servicio.nombre || citaObj.servicio.nombreServicio;
+                } else if (citaObj.nombreServicio) {
+                    servicioName = citaObj.nombreServicio;
+                } else if (rowEl) {
+                    // Fallback: leer lo que ya estaba en la tabla
+                    servicioName = rowEl.querySelector('td:nth-child(4) div')?.getAttribute('title') || rowEl.querySelector('td:nth-child(4) div')?.textContent || servicioName;
+                }
+
+                // Guardar la cita obtenida por si queremos usarla luego
+                commentModal.citaObj = citaObj;
+            } else if (rowEl) {
+                servicioName = rowEl.querySelector('td:nth-child(4) div')?.getAttribute('title') || rowEl.querySelector('td:nth-child(4) div')?.textContent || servicioName;
+            }
+
+            commentServiceLabel.textContent = `Cita: ${idCita} — ${servicioName}`;
+        } catch (err) {
+            console.warn('Error al obtener la cita para mostrar servicio en modal:', err);
+            // Fallback a contenido de fila si existe
+            const fallback = rowEl?.querySelector('td:nth-child(4) div')?.getAttribute('title') || rowEl?.querySelector('td:nth-child(4) div')?.textContent || 'Servicio';
+            commentServiceLabel.textContent = `Cita: ${idCita} — ${fallback}`;
+        }
+    }
+
+    function closeCommentModal() {
+        commentModal.style.display = 'none';
+        commentTargetCitaId = null;
+    }
+
+    async function submitComment() {
+        const texto = commentText.value.trim();
+        if (!texto) return alert('Escribe un comentario antes de enviar.');
+
+        try {
+            // ID del cliente (usuario actual)
+            const userStr = localStorage.getItem('user_data');
+            const currentUser = userStr ? JSON.parse(userStr) : null;
+            const userIdLocal = currentUser?.idUsuario || currentUser?.id;
+
+            if (!userIdLocal) {
+                alert('No se encontró usuario. Inicia sesión de nuevo.');
+                return;
+            }
+
+            const payload = {
+                idCliente: userIdLocal,
+                comentario: texto,
+                idCita: commentTargetCitaId
+            };
+
+            console.log('Enviando comentario, payload:', payload);
+            document.getElementById('comment-modal-submit').disabled = true;
+
+            const resp = await ComentariosService.create(payload);
+            console.log('Respuesta create comentario:', resp);
+
+            // Normalizar respuesta de éxito
+            const created = resp?.data?.data || resp?.data || resp;
+            if (created) {
+                console.log('Comentario creado (raw):', created);
+
+                // Si el backend no devuelve las relaciones 'cliente' o 'cita', intentamos enriquecer localmente
+                try {
+                    // Asegurar que cliente esté presente
+                    if (!created.cliente) {
+                        const userStr2 = localStorage.getItem('user_data');
+                        const currentUser2 = userStr2 ? JSON.parse(userStr2) : null;
+                        if (currentUser2) {
+                            created.cliente = {
+                                idUsuario: currentUser2.idUsuario || currentUser2.id,
+                                nombre: currentUser2.nombre || currentUser2.nombreCompleto || ''
+                            };
+                        }
+                    }
+
+                    // Asegurar que cita esté presente: intentar obtenerla desde API si tenemos idCita
+                    if (!created.cita && commentTargetCitaId) {
+                        try {
+                            const citaResp = await CitasService.getById(commentTargetCitaId);
+                            const citaObj = citaResp?.data?.data || citaResp?.data || citaResp || null;
+                            if (citaObj) created.cita = citaObj;
+                        } catch (e) {
+                            console.warn('No se pudo obtener la cita para enriquecer comentario:', e);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error enriqueciendo comentario creado:', e);
+                }
+
+                // Marcar visualmente la fila como comentada (si existe botón)
+                try {
+                    const btn = document.querySelector(`.btn-comment[data-cita-id="${commentTargetCitaId}"]`);
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-check-circle" style="color:#27ae60;"></i>';
+                        btn.disabled = true;
+                        btn.title = 'Comentado';
+                    }
+                } catch (e) {
+                    console.warn('No se pudo actualizar el botón de comentario en la UI:', e);
+                }
+
+                alert('Comentario enviado correctamente.');
+                closeCommentModal();
+            } else {
+                // Si la API no devuelve body, informar genérico
+                alert('Comentario enviado (sin confirmación del servidor).');
+                closeCommentModal();
+            }
+        } catch (err) {
+            console.error('Error al enviar comentario:', err);
+
+            // Intentar mostrar mensaje del servidor si existe
+            let serverMessage = 'Error al enviar comentario. Intenta nuevamente.';
+            try {
+                if (err && err.response) {
+                    const r = err.response;
+                    serverMessage = r.data?.message || r.data?.error || r.data || r.statusText || err.message;
+                    console.error('Error detalle servidor:', r);
+                } else if (err && err.message) {
+                    serverMessage = err.message;
+                }
+            } catch (e) {
+                console.error('No se pudo parsear error del servidor:', e);
+            }
+
+            alert(serverMessage);
+        } finally {
+            document.getElementById('comment-modal-submit').disabled = false;
+        }
     }
 });

@@ -75,7 +75,7 @@ class ConfirmacionesAdmin {
         if (this.citasPendientes.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-check-circle"></i>
+                    <i class="ph-bold ph-check-circle"></i>
                     <h3>¡Todo al día!</h3>
                     <p>No hay citas pendientes de confirmación</p>
                 </div>
@@ -153,7 +153,7 @@ class ConfirmacionesAdmin {
             respuestasHTML = `
                 <div class="respuestas-section">
                     <div class="respuestas-title">
-                        <i class="fas fa-clipboard-list"></i>
+                        <i class="ph-bold ph-clipboard-text"></i>
                         Información adicional del cliente
                     </div>
                     ${respuestasItems}
@@ -169,7 +169,7 @@ class ConfirmacionesAdmin {
                         <div class="cliente-info">
                             <h4>${clienteNombre}</h4>
                             <div class="telefono">
-                                <i class="fas fa-phone"></i> ${clienteTelefono}
+                                <i class="ph-bold ph-phone"></i> ${clienteTelefono}
                             </div>
                         </div>
                     </div>
@@ -180,21 +180,21 @@ class ConfirmacionesAdmin {
                     <div class="detail-item">
                         <span class="detail-label">Fecha de la Cita</span>
                         <span class="detail-value">
-                            <i class="fas fa-calendar"></i> ${fechaStr}
+                            <i class="ph-bold ph-calendar"></i> ${fechaStr}
                         </span>
                     </div>
 
                     <div class="detail-item">
                         <span class="detail-label">Hora</span>
                         <span class="detail-value">
-                            <i class="fas fa-clock"></i> ${horaStr}
+                            <i class="ph-bold ph-clock"></i> ${horaStr}
                         </span>
                     </div>
 
                     <div class="detail-item">
                         <span class="detail-label">Estilista</span>
                         <span class="detail-value">
-                            <i class="fas fa-user"></i> ${estilistaNombre}
+                            <i class="ph-bold ph-user"></i> ${estilistaNombre}
                         </span>
                     </div>
 
@@ -211,19 +211,14 @@ class ConfirmacionesAdmin {
                     </div>
                 </div>
 
-                <div class="detail-item" style="margin-top: 15px;">
-                    <span class="detail-label">Fecha de Solicitud</span>
-                    <span class="detail-value">${fechaSolicitudStr}</span>
-                </div>
-
                 ${respuestasHTML}
 
                 <div class="cita-actions">
                     <button class="btn btn-rechazar" id="btn-rechazar-${citaId}">
-                        <i class="fas fa-times"></i> Rechazar
+                        <i class="ph-bold ph-x"></i> Rechazar
                     </button>
                     <button class="btn btn-aprobar" id="btn-aprobar-${citaId}">
-                        <i class="fas fa-check"></i> Aprobar
+                        <i class="ph-bold ph-check"></i> Aprobar
                     </button>
                 </div>
             </div>

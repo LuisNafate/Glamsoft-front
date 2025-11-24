@@ -47,11 +47,86 @@ class ComentariosAdmin {
             const response = await ComentariosService.getAll();
             console.log('loadComentarios - Response completo:', response);
             
-            // Manejar estructura de respuesta: {data: [...], message: "...", status: "success"}
             const comentariosData = response.data?.data || response.data || [];
-            console.log('loadComentarios - Comentarios extraídos:', comentariosData);
+            console.log('loadComentarios - Comentarios iniciales:', comentariosData);
+
+            // Además obtener valoraciones (como en inicio.js) para enriquecer comentarios que no traen cita/servicio
+            let valoraciones = [];
+            try {
+                const valResp = await ValoracionesService.getAll();
+                valoraciones = valResp?.data?.data || valResp?.data || valResp || [];
+                console.log('loadComentarios - Valoraciones obtenidas para enriquecimiento:', valoraciones.length);
+            } catch (e) {
+                console.warn('No se pudieron obtener valoraciones para enriquecer comentarios:', e);
+            }
+
+            // Enriquecer cada comentario con los detalles de su cita
+            const comentariosEnriquecidos = await Promise.all(
+                comentariosData.map(async (comentario) => {
+                    // El comentario puede traer la cita como objeto o solo un id
+                    const idCita = comentario.id_cita || comentario.idCita;
+
+                    // Si la API ya incluyó la cita como objeto, usarla (evita fetch adicional)
+                    if (comentario.cita && typeof comentario.cita === 'object') {
+                        console.log('ComentariosAdmin: comentario ya trae objeto cita:', comentario.cita);
+                        // Normalizar por si la cita viene envuelta
+                        comentario.cita = comentario.cita?.data?.data || comentario.cita?.data || comentario.cita;
+                    } else if (idCita) {
+                        try {
+                            console.log(`ComentariosAdmin: buscando cita para comentario ${comentario.idComentario || comentario.id || comentario._id} -> idCita:`, idCita);
+
+                            // CitasService.getById puede devolver diferentes estructuras
+                            const citaResp = await CitasService.getById(idCita);
+                            console.log(`ComentariosAdmin: respuesta raw de CitasService.getById(${idCita}):`, citaResp);
+
+                            // Normalizar: preferir `data.data` si existe, luego `data`, luego el objeto mismo
+                            const cita = citaResp?.data?.data || citaResp?.data || citaResp || null;
+                            console.log(`ComentariosAdmin: cita normalizada para id ${idCita}:`, cita);
+
+                            // Adjuntamos el objeto cita normalizado al comentario
+                            comentario.cita = cita;
+                        } catch (e) {
+                            console.error(`Error al obtener detalles para la cita ${idCita}:`, e);
+                            comentario.cita = null; // Marcar que no se pudo cargar
+                        }
+
+                    } else {
+                        console.warn('ComentariosAdmin: comentario sin idCita ni objeto cita:', comentario);
+
+                        // Intentar emparejar con una valoración (misma cadena de contenido) para obtener servicio
+                        try {
+                            const texto = (comentario.contenido || comentario.comentario || '').trim();
+                            if (texto && Array.isArray(valoraciones) && valoraciones.length > 0) {
+                                const match = valoraciones.find(v => {
+                                    const vTexto = (v.comentario || v.texto || v.contenido || '').trim();
+                                    return vTexto && vTexto === texto;
+                                });
+
+                                if (match) {
+                                    console.log('ComentariosAdmin: se emparejó comentario con valoracion para obtener servicio:', match);
+                                    // Construir un objeto cita mínimo con servicios para mostrar badge
+                                    comentario.cita = {
+                                        servicios: [ { nombre: match.nombreServicio || match.servicio?.nombre || 'Servicio' , id: match.idServicio || match.servicio?.idServicio } ]
+                                    };
+
+                                    // Si no hay cliente, intentar usar datos de la valoración
+                                    if (!comentario.cliente) {
+                                        comentario.cliente = match.nombreCliente ? { nombre: match.nombreCliente } : (match.usuario ? { nombre: match.usuario } : null);
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Error al emparejar comentario con valoracion:', e);
+                        }
+                    }
+
+                    return comentario;
+                })
+            );
             
-            this.comentarios = comentariosData;
+            console.log('loadComentarios - Comentarios enriquecidos:', comentariosEnriquecidos);
+
+            this.comentarios = comentariosEnriquecidos;
             this.filteredComentarios = [...this.comentarios];
             this.renderComentarios();
         } catch (error) {
@@ -71,8 +146,9 @@ class ComentariosAdmin {
         this.filteredComentarios = this.comentarios.filter(comentario => {
             const contenido = (comentario.contenido || comentario.comentario || '').toLowerCase();
             const clienteNombre = (comentario.cliente?.nombre || '').toLowerCase();
+            const servicioNombre = (comentario.cita?.servicios?.[0]?.nombre || '').toLowerCase();
             
-            return contenido.includes(searchTerm) || clienteNombre.includes(searchTerm);
+            return contenido.includes(searchTerm) || clienteNombre.includes(searchTerm) || servicioNombre.includes(searchTerm);
         });
         
         this.renderComentarios();
@@ -93,12 +169,18 @@ class ComentariosAdmin {
         if (emptyState) emptyState.style.display = 'none';
         
         container.innerHTML = this.filteredComentarios.map(comentario => {
-            const clienteNombre = comentario.cliente?.nombre || 'Usuario Anónimo';
+            const clienteNombre = comentario.cliente?.nombre || comentario.nombreCliente || 'Usuario Anónimo';
             const iniciales = clienteNombre.charAt(0).toUpperCase();
-            const fechaFormateada = this.formatFecha(comentario.fecha);
-            // La API retorna 'contenido' pero puede venir como 'comentario'
-            const textoComentario = comentario.contenido || comentario.comentario || '';
-            
+
+            // Buscar la fecha en posibles campos: 'fecha', 'fechaCita', 'createdAt', 'created_at'
+            const fechaRaw = comentario.fecha || comentario.fechaCita || comentario.createdAt || comentario.created_at || comentario.fecha_creacion;
+            const fechaFormateada = this.formatFecha(fechaRaw || comentario.cita?.fecha || comentario.cita?.fechaCita || comentario.cita?.fechaHoraCita);
+
+            const textoComentario = comentario.contenido || comentario.comentario || comentario.texto || '';
+
+            // Servicio eliminado de la vista: no mostrar badge ni enlace
+
+
             return `
                 <div class="comment-card">
                     <div class="comment-header">
@@ -109,13 +191,7 @@ class ComentariosAdmin {
                                 <div class="comment-date">${fechaFormateada}</div>
                             </div>
                         </div>
-                        <div>
-                            ${comentario.cita ? `
-                                <span class="comment-badge" style="background: #3498db; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                    <i class="fas fa-calendar"></i> Cita #${comentario.cita.idCita}
-                                </span>
-                            ` : ''}
-                        </div>
+                        <div></div>
                     </div>
                     
                     <div class="comment-text">
@@ -123,8 +199,8 @@ class ComentariosAdmin {
                     </div>
                     
                     <div class="comment-actions">
-                        <button class="btn btn-danger btn-sm" onclick="comentariosAdmin.deleteComentario(${comentario.idComentario})">
-                            <i class="fas fa-trash"></i> Eliminar
+                        <button class="btn btn-danger btn-sm" onclick="comentariosAdmin.deleteComentario(${comentario.idComentario || comentario.id || comentario._id})">
+                            <i class="ph-bold ph-trash"></i> Eliminar
                         </button>
                     </div>
                 </div>

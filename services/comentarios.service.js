@@ -60,10 +60,12 @@ const ComentariosService = {
             
             // Preparar datos según API: el campo debe ser 'comentario' no 'contenido'
             // idCita es opcional, si no existe se omite
+            // Enviar ambos campos ('comentario' y 'contenido') por compatibilidad
             const dataToSend = {
-                idCliente: comentarioData.idCliente,
+                idCliente: comentarioData.idCliente && Number(comentarioData.idCliente),
                 comentario: comentarioData.comentario,
-                ...(comentarioData.idCita && { idCita: comentarioData.idCita })
+                contenido: comentarioData.comentario,
+                ...(comentarioData.idCita && { idCita: Number(comentarioData.idCita) })
             };
             
             console.log('ComentariosService.create - Data enviada:', dataToSend);

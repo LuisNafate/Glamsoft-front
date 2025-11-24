@@ -25,28 +25,32 @@
         }
 
         .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ecf0f1;
+            box-shadow: none;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 24px;
+            border: 1px solid #e0e0e0;
+            background: #fafafa;
         }
 
         .stat-icon.pendientes {
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-            color: white;
+            background: #faf8f0;
+            color: #B8860B;
+            border-color: #ead8ad;
         }
 
         .stat-info h3 {
@@ -68,17 +72,17 @@
         }
 
         .cita-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid #9b59b6;
-            transition: all 0.3s ease;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #ecf0f1;
+            border-left: 4px solid #B8860B;
+            box-shadow: none;
+            transition: background 0.2s ease;
         }
 
         .cita-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
+            background: #fafafa;
         }
 
         .cita-header {
@@ -97,16 +101,17 @@
         }
 
         .cliente-avatar {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #536dfe 0%, #3949ab 100%);
-            color: white;
+            background: #f0f0f0;
+            color: #2c3e50;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 18px;
+            border: 1px solid #e6e6e6;
         }
 
         .cliente-info h4 {
@@ -125,13 +130,14 @@
         }
 
         .estado-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 6px 12px;
+            border-radius: 16px;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
-            background: #9b59b6;
-            color: white;
+            background: #f2f2f2;
+            color: #2c3e50;
+            border: 1px solid #e6e6e6;
         }
 
         .cita-details {
@@ -161,8 +167,8 @@
         }
 
         .detail-value.precio {
-            font-size: 20px;
-            color: #27ae60;
+            font-size: 18px;
+            color: #B8860B;
             font-weight: 700;
         }
 
@@ -239,23 +245,26 @@
         }
 
         .btn-aprobar {
-            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-            color: white;
+            background: transparent;
+            color: #B8860B;
+            border: 1px solid #B8860B;
         }
 
         .btn-aprobar:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+            background: #B8860B;
+            color: #000;
         }
 
         .btn-rechazar {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
+            background: transparent;
+            color: #333;
+            border: 1px solid #e0e0e0;
         }
 
         .btn-rechazar:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+            background: #333;
+            color: #fff;
+            border-color: #333;
         }
 
         .btn:disabled {
@@ -267,9 +276,10 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #ecf0f1;
+            box-shadow: none;
         }
 
         .empty-state i {
@@ -304,26 +314,27 @@
             </div>
             <div class="header-actions">
                 <button class="btn btn-secondary" id="btnRefresh">
-                    <i class="fas fa-sync-alt"></i> Actualizar
+                    <i class="ph-bold ph-arrows-clockwise"></i> Actualizar
                 </button>
             </div>
         </header>
 
-        <!-- Estadísticas -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon pendientes">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="totalPendientes">0</h3>
-                    <p>Citas Pendientes</p>
+        <!-- Contenido Principal -->
+        <main class="main-content confirmaciones-container">
+            <!-- Estadísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon pendientes">
+                        <i class="ph-bold ph-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalPendientes">0</h3>
+                        <p>Citas Pendientes</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Lista de Citas -->
-        <main class="main-content confirmaciones-container">
+            <!-- Lista de Citas -->
             <div class="citas-list" id="citasList">
                 <!-- Se llena dinámicamente -->
             </div>
