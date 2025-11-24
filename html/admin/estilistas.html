@@ -6,275 +6,12 @@
     <title>Gestión de Estilistas - Panel Administrativo</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
+    <link rel="stylesheet" href="../../Css/modals/profile_menu.css">
     
-    <style>
-        /* ==========================================
-           CORRECCIÓN VISUAL DE BOTONES
-           ========================================== */
-        
-        /* Botón Verificar (Amarillo/Dorado) */
-        .btn-warning {
-            background-color: #f1c40f !important;
-            color: #000 !important; /* Texto negro para contraste */
-            border: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .btn-warning:hover {
-            background-color: #d4ac0d !important;
-            transform: translateY(-2px);
-        }
-
-        /* Botón Guardar (Primario - Negro/Oscuro) */
-        .btn-primary {
-            background-color: #000 !important;
-            color: #fff !important;
-            border: 1px solid #000;
-        }
-        
-        /* Estado Deshabilitado (Para que no se vea "blanco") */
-        button:disabled, .btn:disabled {
-            background-color: #e0e0e0 !important; /* Fondo Gris */
-            color: #888 !important; /* Texto Gris Oscuro */
-            border-color: #ccc !important;
-            cursor: not-allowed !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        /* ==========================================
-           ESTILOS GENERALES
-           ========================================== */
-
-        .estilista-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .availability-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .availability-badge.available {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .availability-badge.busy {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .availability-badge.unavailable {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .specialties-list {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .service-tag {
-            color: white;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: 500;
-            display: inline-block;
-            margin: 2px;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            padding: 20px;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            max-height: 90vh;
-            overflow-y: auto;
-            width: 100%;
-            max-width: 800px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 25px;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .modal-title {
-            margin: 0;
-            font-size: 24px;
-            color: #2c3e50;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 32px;
-            cursor: pointer;
-            color: #95a5a6;
-            line-height: 1;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .close-modal:hover {
-            color: #e74c3c;
-        }
-
-        .modal-content form {
-            padding: 25px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #1a1a1a;
-            font-size: 14px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #d0d0d0;
-            border-radius: 8px;
-            font-size: 14px;
-            background-color: #f5f5f5;
-            color: #333;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #ff9800;
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
-        }
-
-        /* Estilo para campos readonly */
-        .form-control[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-            color: #6c757d;
-        }
-
-        select[multiple].form-control option {
-            padding: 10px;
-            margin: 3px 0;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        select[multiple].form-control option:hover {
-            background-color: #e3f2fd !important;
-        }
-
-        select[multiple].form-control option:checked {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            color: white !important;
-            font-weight: 600;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
-        }
-
-        .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .day-schedule {
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .day-schedule.active {
-            border-color: var(--admin-accent);
-            background: rgba(52, 152, 219, 0.05);
-        }
-
-        .day-name {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--admin-primary);
-        }
-
-        .time-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .time-inputs input {
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-            width: 100%;
-        }
-        
-        .time-inputs span {
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-    </style>
+    <link rel="stylesheet" href="../../Css/admin/estilistas.css">
 </head>
 <body class="admin-page">
     
@@ -287,7 +24,7 @@
                 <h1>Gestión de Estilistas</h1>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" id="btnNuevoEstilista">
+                <button class="btn btn-primary" id="btnNuevoEstilista" style="margin-left: 15px;">
                     <i class="fas fa-user-plus"></i> Nuevo Estilista
                 </button>
             </div>
@@ -296,8 +33,16 @@
         <main class="main-content">
             
             <div class="content-card">
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar estilistas...">
+                <div class="search-flex">
+                    <div class="search-group">
+                        <label for="searchInput" class="label-text">Buscar</label>
+                        <div class="search-wrapper">
+                            <input type="text" id="searchInput" placeholder="Buscar estilista por nombre...">
+                            <button type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -324,11 +69,28 @@
             </div>
             
         </main>
-        
+    </div>
+
+    <div id="notificationMenu" class="profile-menu-modal notification-menu" style="display: none;">
+        <div class="profile-menu-header">
+            <span class="profile-menu-name">Notificaciones</span>
+            <a href="notificaciones.html">Ver todas</a>
+        </div>
+        <div class="notification-list" id="notificationList"></div>
+    </div>
+
+    <div id="profileMenuModal" class="profile-menu-modal">
+        <div class="profile-menu-header">
+            <div class="profile-menu-avatar"></div>
+            <span class="profile-menu-name" id="menuUserName">Cargando...</span>
+        </div>
+        <nav class="profile-menu-nav">
+            <ul><li><a href="#" id="headerLogoutBtn" style="color: #ff6b6b;">Cerrar sesión</a></li></ul>
+        </nav>
     </div>
     
     <div class="modal-overlay" id="modalEstilista">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title" id="modalTitle">Gestionar Estilista</h2>
                 <button class="close-modal" onclick="closeModal()">&times;</button>
@@ -336,7 +98,7 @@
             
             <form id="formEstilista">
                 <input type="hidden" id="estilistaId">
-                <input type="hidden" id="usuarioId"> <h3 style="margin-bottom: 15px; color: var(--admin-primary);">1. Vincular Usuario</h3>
+                <input type="hidden" id="usuarioId"> <h3 style="margin-bottom: 15px; color: #000;">1. Vincular Usuario</h3>
                 
                 <div class="form-row" style="align-items: flex-end;">
                     <div class="form-group" style="flex: 1;">
@@ -354,16 +116,16 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Nombre (Automático)</label>
-                        <input type="text" class="form-control" id="nombreEstilista" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                        <input type="text" class="form-control" id="nombreEstilista" readonly>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Email (Automático)</label>
-                        <input type="email" class="form-control" id="emailEstilista" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                        <input type="email" class="form-control" id="emailEstilista" readonly>
                     </div>
                 </div>
                 
-                <h3 style="margin: 25px 0 15px; color: var(--admin-primary);">2. Perfil Profesional</h3>
+                <h3 style="margin: 25px 0 15px; color: #000;">2. Perfil Profesional</h3>
 
                 <div class="form-group">
                     <label class="form-label">Especialidad / Puesto *</label>
@@ -375,7 +137,7 @@
                     <select multiple class="form-control" id="serviciosEstilista" style="height: 140px;">
                         </select>
                     <small style="color: #ff9800; font-size: 12px; margin-top: 5px; display: block; font-weight: 500;">
-                        <i class="fas fa-info-circle"></i> Mantén presionado Ctrl (Windows) o Cmd (Mac) para seleccionar varios.
+                        <i class="fas fa-info-circle"></i> Haz clic para seleccionar. Mantén Ctrl (Win) o Cmd (Mac) para varios.
                     </small>
                 </div>
 
@@ -389,7 +151,7 @@
                     <textarea class="form-control" id="biografiaEstilista" rows="3" placeholder="Breve descripción profesional..."></textarea>
                 </div>
                 
-                <h3 style="margin: 25px 0 15px; color: var(--admin-primary);">3. Horario de Disponibilidad</h3>
+                <h3 style="margin: 25px 0 15px; color: #000;">3. Horario de Disponibilidad</h3>
                 
                 <div class="schedule-grid">
                     <div class="day-schedule" data-day="lunes">
@@ -484,11 +246,16 @@
     <script src="../../services/horarios.service.js"></script>
     <script src="../../services/servicios.service.js"></script>
     <script src="../../services/empleados.service.js"></script>
-    <script src="../../services/usuarios.service.js"></script> <script src="../../utils/error-handler.js"></script>
+    <script src="../../services/usuarios.service.js"></script>
+    <script src="../../services/notificaciones.service.js"></script>
+    <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
+    
     <script src="../../js/admin/estilistas.js"></script>
+    <script src="../../js/admin/dashboard.js"></script>
     
     <script>
+        // Cargar Sidebar
         fetch('_sidebar.html')
             .then(response => response.text())
             .then(html => {
@@ -499,19 +266,20 @@
             document.getElementById('modalEstilista').classList.remove('active');
         }
         
-        // Manejar checkboxes de horario (lógica visual simple)
-        document.querySelectorAll('.day-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const daySchedule = this.closest('.day-schedule');
-                const timeInputs = daySchedule.querySelector('.time-inputs');
-                
-                if (this.checked) {
-                    daySchedule.classList.add('active');
-                    timeInputs.style.display = 'flex';
-                } else {
-                    daySchedule.classList.remove('active');
-                    timeInputs.style.display = 'none';
-                }
+        // Inicialización de checkboxes (Respaldo visual)
+        document.addEventListener('DOMContentLoaded', () => {
+             document.querySelectorAll('.day-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const daySchedule = this.closest('.day-schedule');
+                    const timeInputs = daySchedule.querySelector('.time-inputs');
+                    if (this.checked) {
+                        daySchedule.classList.add('active');
+                        timeInputs.style.display = 'flex';
+                    } else {
+                        daySchedule.classList.remove('active');
+                        timeInputs.style.display = 'none';
+                    }
+                });
             });
         });
     </script>

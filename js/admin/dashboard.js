@@ -1,69 +1,52 @@
-// Dashboard Admin - Lógica principal
+// Dashboard Admin - Lógica Principal
 class Dashboard {
     constructor() {
+        this.notificacionesData = [];
         this.init();
     }
 
     async init() {
         try {
             await this.checkAuth();
-            this.setupProfileMenu();
+            this.setupMenus(); 
             await this.loadAllData();
             this.setupAutoRefresh();
             
-            // Cerrar menú al hacer scroll
+            // Cerrar menús al hacer scroll
             window.addEventListener('scroll', () => {
-                const menu = document.getElementById('profileMenuModal');
-                if (menu && menu.style.display === 'block') {
-                    menu.style.display = 'none';
-                }
+                this.closeMenus();
             });
-
         } catch (error) {
             console.error('Error al inicializar dashboard:', error);
-            // ErrorHandler.handle(error);
         }
     }
 
     async checkAuth() {
         try {
-            // 1. Obtener usuario (Corregido: usar .get() o leer de localStorage directamente)
+            // ✅ CORRECCIÓN: Usar .get('user') o leer localStorage directamente
             let user = null;
             if (typeof StateManager !== 'undefined') {
-                user = StateManager.get('user');
+                user = StateManager.get('user'); // .get() es el método correcto
             }
-            
-            // Respaldo directo al localStorage si StateManager falla o está vacío
             if (!user) {
                 const userStr = localStorage.getItem('user_data');
                 if (userStr) user = JSON.parse(userStr);
             }
 
-            // Validación de rol (Opcional: descomentar para seguridad estricta)
-            /*
-            if (!user || user.rol !== 'admin') {
-                window.location.href = '../login.html';
-                return;
-            }
-            */
-
-            // 2. Actualizar Nombres en la Interfaz
             const nombreReal = user ? user.nombre : 'Administrador';
             
-            // A) Nombre en el Header ("Bienvenido ...")
             const headerName = document.getElementById('userName');
             if (headerName) headerName.textContent = nombreReal;
             
-            // B) Nombre en el Menú Desplegable (Icono de usuario)
             const menuName = document.getElementById('menuUserName');
             if (menuName) menuName.textContent = nombreReal;
-
         } catch (error) {
             console.error("Error auth:", error);
         }
     }
 
-    setupProfileMenu() {
+    setupMenus() {
+        // 1. Menú de Perfil
         const userIcon = document.getElementById('adminUserIcon');
         const profileMenu = document.getElementById('profileMenuModal');
         const logoutBtn = document.getElementById('headerLogoutBtn');
@@ -71,19 +54,29 @@ class Dashboard {
         if (userIcon && profileMenu) {
             userIcon.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (profileMenu.style.display === 'block') {
-                    profileMenu.style.display = 'none';
-                } else {
-                    profileMenu.style.display = 'block';
-                }
+                this.toggleMenu('profile');
             });
         }
 
+        // 2. ✅ Menú de Notificaciones
+        const notifIcon = document.getElementById('notificationIcon');
+        const notifMenu = document.getElementById('notificationMenu');
+
+        if (notifIcon && notifMenu) {
+            notifIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMenu('notification');
+            });
+        }
+
+        // Cerrar al hacer clic fuera
         document.addEventListener('click', (e) => {
-            if (profileMenu && profileMenu.style.display === 'block') {
-                if (!profileMenu.contains(e.target) && !userIcon.contains(e.target)) {
-                    profileMenu.style.display = 'none';
-                }
+            const target = e.target;
+            if (profileMenu && profileMenu.style.display === 'block' && !profileMenu.contains(target) && !userIcon.contains(target)) {
+                profileMenu.style.display = 'none';
+            }
+            if (notifMenu && notifMenu.style.display === 'block' && !notifMenu.contains(target) && !notifIcon.contains(target)) {
+                notifMenu.style.display = 'none';
             }
         });
 
@@ -96,6 +89,26 @@ class Dashboard {
                 }
             });
         }
+    }
+
+    toggleMenu(type) {
+        const profileMenu = document.getElementById('profileMenuModal');
+        const notifMenu = document.getElementById('notificationMenu');
+
+        if (type === 'profile') {
+            if (notifMenu) notifMenu.style.display = 'none'; 
+            if (profileMenu) profileMenu.style.display = (profileMenu.style.display === 'block') ? 'none' : 'block';
+        } else if (type === 'notification') {
+            if (profileMenu) profileMenu.style.display = 'none'; 
+            if (notifMenu) notifMenu.style.display = (notifMenu.style.display === 'block') ? 'none' : 'block';
+        }
+    }
+
+    closeMenus() {
+        const profileMenu = document.getElementById('profileMenuModal');
+        const notifMenu = document.getElementById('notificationMenu');
+        if (profileMenu) profileMenu.style.display = 'none';
+        if (notifMenu) notifMenu.style.display = 'none';
     }
 
     async loadAllData() {
@@ -111,76 +124,39 @@ class Dashboard {
             await this.loadActivities();
         } catch (error) {
             console.error('Error al cargar datos:', error);
-            // ErrorHandler.handle(error);
         } finally {
             this.hideLoader();
         }
     }
 
-    async loadCitas() {
-        try {
-            const response = await CitasService.getAll();
-            const citas = response.data || [];
-            
-            // Filtrar citas de hoy
-            const hoy = new Date().toISOString().split('T')[0];
-            const citasHoy = citas.filter(cita => cita.fecha === hoy);
-            const citasPendientes = citas.filter(cita => cita.estado === 'pendiente');
-            
-            return {
-                total: citasHoy.length,
-                pendientes: citasPendientes.length,
-                todas: citas
-            };
-        } catch (error) {
-            console.error('Error al cargar citas:', error);
-            return { total: 0, pendientes: 0, todas: [] };
-        }
-    }
+    // ... Métodos loadCitas, loadServicios, loadEstilistas (mantenlos igual) ...
+    async loadCitas() { try { const r = await CitasService.getAll(); const d = r.data || []; const h = new Date().toISOString().split('T')[0]; return { total: d.filter(c => c.fecha === h).length, pendientes: d.filter(c => c.estado === 'pendiente').length, todas: d }; } catch (e) { return { total: 0, pendientes: 0, todas: [] }; } }
+    async loadServicios() { try { const r = await ServiciosService.getAll(); const d = r.data || []; return { total: d.filter(s => s.activo !== false).length, todos: d }; } catch (e) { return { total: 0, todos: [] }; } }
+    async loadEstilistas() { try { const r = await EstilistasService.getAll(); const d = r.data || []; return { total: d.length, todos: d }; } catch (e) { return { total: 0, todos: [] }; } }
 
-    async loadServicios() {
-        try {
-            const response = await ServiciosService.getAll();
-            const servicios = response.data || [];
-            const activos = servicios.filter(s => s.activo !== false);
-            
-            return {
-                total: activos.length,
-                todos: servicios
-            };
-        } catch (error) {
-            console.error('Error al cargar servicios:', error);
-            return { total: 0, todos: [] };
-        }
-    }
-
-    async loadEstilistas() {
-        try {
-            const response = await EstilistasService.getAll();
-            const estilistas = response.data || [];
-            
-            return {
-                total: estilistas.length,
-                todos: estilistas
-            };
-        } catch (error) {
-            console.error('Error al cargar estilistas:', error);
-            return { total: 0, todos: [] };
-        }
-    }
-
+    // ✅ LOGICA DE NOTIFICACIONES ACTUALIZADA
     async loadNotificaciones() {
         try {
             const response = await NotificacionesService.getAll();
-            const notificaciones = response.data || [];
-            const noLeidas = notificaciones.filter(n => !n.leida);
+            this.notificacionesData = response.data || response || [];
             
-            // Actualizar badge
+            // Ordenar: No leídas primero
+            this.notificacionesData.sort((a, b) => {
+                if (a.leida === b.leida) return new Date(b.fecha) - new Date(a.fecha);
+                return a.leida ? 1 : -1;
+            });
+
+            const noLeidas = this.notificacionesData.filter(n => !n.leida);
+            
+            // 1. Badge
             const badge = document.getElementById('notificationCount');
             if (badge) {
                 badge.textContent = noLeidas.length;
                 badge.style.display = noLeidas.length > 0 ? 'flex' : 'none';
             }
+
+            // 2. Renderizar Lista
+            this.renderNotificationList();
             
             return noLeidas;
         } catch (error) {
@@ -189,101 +165,81 @@ class Dashboard {
         }
     }
 
+    renderNotificationList() {
+        const listContainer = document.getElementById('notificationList');
+        if (!listContainer) return;
+
+        if (this.notificacionesData.length === 0) {
+            listContainer.innerHTML = '<div class="empty-notif">No tienes notificaciones</div>';
+            return;
+        }
+
+        const toShow = this.notificacionesData.slice(0, 8);
+
+        listContainer.innerHTML = toShow.map(notif => {
+            const tipo = notif.tipo ? notif.tipo.toLowerCase() : 'info';
+            const iconClass = { 'cita': 'ph-calendar', 'sistema': 'ph-gear', 'usuario': 'ph-user' }[tipo] || 'ph-bell';
+            const stateClass = { 'cita': 'success', 'sistema': 'warning', 'error': 'error' }[tipo] || 'info';
+
+            return `
+                <div class="notification-item ${!notif.leida ? 'unread' : ''}" onclick="window.location.href='notificaciones.html'">
+                    <div class="notif-icon-box ${stateClass}">
+                        <i class="ph ${iconClass}"></i>
+                    </div>
+                    <div class="notif-info">
+                        <div class="notif-header">
+                            <span class="notif-title">${notif.titulo}</span>
+                            <span class="notif-time">${this.formatTimeShort(notif.fecha)}</span>
+                        </div>
+                        <div class="notif-desc">${notif.mensaje}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    formatTimeShort(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMins = Math.floor((now - date) / 60000);
+        if (diffMins < 60) return `${diffMins}m`;
+        if (diffMins < 1440) return `${Math.floor(diffMins/60)}h`;
+        return `${date.getDate()}/${date.getMonth()+1}`;
+    }
+
+    // ... (updateStats, loadActivities, formatTime, setupAutoRefresh, loaders) ...
     updateStats(citas, servicios, estilistas) {
-        // Actualizar valores en las tarjetas si existen los elementos
-        const elCitas = document.getElementById('totalCitas');
-        if(elCitas) elCitas.textContent = citas.total;
-        
-        const elPendientes = document.getElementById('citasPendientes');
-        if(elPendientes) elPendientes.textContent = citas.pendientes;
-        
-        const elServicios = document.getElementById('totalServicios');
-        if(elServicios) elServicios.textContent = servicios.total;
-        
-        const elEstilistas = document.getElementById('totalEstilistas');
-        if(elEstilistas) elEstilistas.textContent = estilistas.total;
+        document.getElementById('totalCitas').textContent = citas.total;
+        document.getElementById('citasPendientes').textContent = citas.pendientes;
+        document.getElementById('totalServicios').textContent = servicios.total;
+        document.getElementById('totalEstilistas').textContent = estilistas.total;
     }
 
     async loadActivities() {
         const container = document.getElementById('activitiesContainer');
         if (!container) return;
-
         try {
-            // Cargar notificaciones reales
             const response = await NotificacionesService.getAll();
-            const notificaciones = response.data || [];
-
-            // Ordenar por fecha más reciente y tomar las últimas 5
-            const recentNotifications = notificaciones
-                .sort((a, b) => new Date(b.fecha_creacion || b.createdAt) - new Date(a.fecha_creacion || a.createdAt))
-                .slice(0, 5);
-
-            if (recentNotifications.length === 0) {
-                container.innerHTML = `
-                    <div class="activity-item">
-                        <div class="activity-text">No hay notificaciones recientes</div>
-                    </div>
-                `;
+            const notifs = response.data || [];
+            const recent = notifs.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 5);
+            
+            if (recent.length === 0) {
+                container.innerHTML = `<div class="activity-item"><div class="activity-text">No hay actividad reciente</div></div>`;
                 return;
             }
-
-            const html = recentNotifications.map(notif => `
+            container.innerHTML = recent.map(n => `
                 <div class="activity-item">
-                    <div class="activity-time">${this.formatTime(new Date(notif.fecha_creacion || notif.createdAt))}</div>
-                    <div class="activity-text">${notif.mensaje || notif.titulo || 'Notificación'}</div>
+                    <div class="activity-time">${this.formatTime(new Date(n.fecha))}</div>
+                    <div class="activity-text">${n.mensaje}</div>
                 </div>
             `).join('');
-
-            container.innerHTML = html;
-        } catch (error) {
-            console.error('Error al cargar notificaciones:', error);
-            container.innerHTML = `
-                <div class="activity-item">
-                    <div class="activity-text">No hay notificaciones recientes</div>
-                </div>
-            `;
-        }
+        } catch (error) { container.innerHTML = ''; }
     }
-
-    formatTime(date) {
-        const diff = new Date() - date;
-        const hours = Math.floor(diff / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        
-        if (hours === 0) {
-            return `Hace ${minutes} minutos`;
-        } else if (hours < 24) {
-            return `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
-        } else {
-            const days = Math.floor(hours / 24);
-            return `Hace ${days} ${days === 1 ? 'día' : 'días'}`;
-        }
-    }
-
-    setupAutoRefresh() {
-        // Actualizar notificaciones cada 30 segundos
-        setInterval(() => {
-            this.loadNotificaciones();
-        }, 30000);
-        
-        // Actualizar estadísticas cada 5 minutos
-        setInterval(() => {
-            this.loadAllData();
-        }, 300000);
-    }
-
-    showLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'flex';
-    }
-
-    hideLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'none';
-    }
+    
+    formatTime(date) { return date.toLocaleDateString(); }
+    setupAutoRefresh() { setInterval(() => this.loadNotificaciones(), 30000); setInterval(() => this.loadAllData(), 300000); }
+    showLoader() { document.getElementById('loader').style.display = 'flex'; }
+    hideLoader() { document.getElementById('loader').style.display = 'none'; }
 }
 
-// Inicializar dashboard cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    new Dashboard();
-});
+document.addEventListener('DOMContentLoaded', () => { new Dashboard(); });

@@ -4,29 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Panel Administrativo</title>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
     <link rel="stylesheet" href="../../Css/modals/profile_menu.css">
-    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
     <style>
-        .chart-container { position: relative; height: 300px; margin-top: 20px; }
+        /* Estilos específicos del dashboard */
         .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; }
-        .quick-action-card { background: white; padding: 25px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid var(--admin-bg); }
-        .quick-action-card:hover { border-color: var(--admin-accent); transform: translateY(-5px); box-shadow: 0 5px 20px rgba(52,152,219,0.2); }
+        .quick-action-card { background: white; padding: 25px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid white; }
+        .quick-action-card:hover { border-color: #B8860B; transform: translateY(-5px); box-shadow: 0 5px 20px rgba(52,152,219,0.2); }
         .quick-action-icon { width: 60px; height: 60px; background: black; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; }
         .quick-action-title { font-size: 16px; font-weight: 600; color: var(--admin-primary); }
         .recent-activities { background: white; border-radius: 12px; padding: 25px; margin-top: 30px; }
-        .activity-item { padding: 15px; border-left: 3px solid var(--admin-accent); margin-bottom: 15px; background: var(--admin-bg); border-radius: 8px; }
+        .activity-item { padding: 15px; border-left: 3px solid #B8860B; margin-bottom: 15px; background: #f9f9f9; border-radius: 8px; }
         .activity-time { font-size: 12px; color: #7f8c8d; margin-bottom: 5px; }
         .activity-text { font-size: 14px; color: var(--admin-text); }
-
-        /* Ajuste de posición para el menú en Admin */
-        .profile-menu-modal { top: 90px !important; right: 30px !important; }
-        .user-profile-icon { cursor: pointer; }
+        /* Ajuste menú */
+        .profile-menu-modal { top: 90px !important; right: 30px !important; border: 1px solid white; }
     </style>
 </head>
 <body class="admin-page">
@@ -41,7 +35,7 @@
             </div>
             
             <div class="header-actions">
-                <div class="notification-icon">
+                <div class="notification-icon" id="notificationIcon" style="cursor: pointer;">
                     <i class="ph ph-bell"></i>
                     <span class="notification-badge" id="notificationCount">0</span>
                 </div>
@@ -53,7 +47,6 @@
         </header>
         
         <main class="main-content">
-            
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="stat-header">
@@ -61,9 +54,7 @@
                             <div class="stat-value" id="totalCitas">0</div>
                             <div class="stat-label">Citas Hoy</div>
                         </div>
-                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
-                            <i class="ph ph-calendar-check"></i>
-                        </div>
+                        <div class="stat-icon"> <i class="ph ph-calendar-check"></i> </div>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -72,20 +63,16 @@
                             <div class="stat-value" id="citasPendientes">0</div>
                             <div class="stat-label">Pendientes</div>
                         </div>
-                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
-                            <i class="ph ph-clock"></i>
-                        </div>
+                        <div class="stat-icon"> <i class="ph ph-clock"></i> </div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
                             <div class="stat-value" id="totalServicios">0</div>
-                            <div class="stat-label">Servicios Activos</div>
+                            <div class="stat-label">Servicios</div>
                         </div>
-                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
-                            <i class="ph ph-scissors"></i>
-                        </div>
+                        <div class="stat-icon"> <i class="ph ph-scissors"></i> </div>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -94,17 +81,13 @@
                             <div class="stat-value" id="totalEstilistas">0</div>
                             <div class="stat-label">Estilistas</div>
                         </div>
-                        <div class="stat-icon" style="background: transparent; color: black; border: 3px solid #B8860B;">
-                            <i class="ph ph-users-three"></i>
-                        </div>
+                        <div class="stat-icon"> <i class="ph ph-users-three"></i> </div>
                     </div>
                 </div>
             </div>
             
             <div class="content-card">
-                <div class="card-header">
-                    <h2 class="card-title">Acciones Rápidas</h2>
-                </div>
+                <div class="card-header"><h2 class="card-title">Acciones Rápidas</h2></div>
                 <div class="quick-actions">
                     <div class="quick-action-card" onclick="window.location.href='servicios.html'">
                         <div class="quick-action-icon"><i class="fas fa-plus"></i></div>
@@ -127,11 +110,19 @@
             
             <div class="recent-activities">
                 <h2 class="card-title" style="margin-bottom: 20px">Actividades Recientes</h2>
-                <div id="activitiesContainer">
-                    </div>
+                <div id="activitiesContainer"></div>
             </div>
-            
         </main>
+    </div>
+
+    <div id="notificationMenu" class="profile-menu-modal notification-menu" style="display: none;">
+        <div class="profile-menu-header">
+            <span class="profile-menu-name" style="font-size: 14px; color: #333;">Notificaciones</span>
+            <a href="notificaciones.html" style="font-size: 7px; color: #B8860B; text-decoration: none; font-weight: 600;">Ver todas</a>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <div class="empty-notif">Cargando...</div>
+        </div>
     </div>
 
     <div id="profileMenuModal" class="profile-menu-modal">
@@ -146,9 +137,7 @@
         </nav>
     </div>
     
-    <div class="admin-loader" id="loader" style="display: none;">
-        <div class="loader-spinner"></div>
-    </div>
+    <div class="admin-loader" id="loader" style="display: none;"><div class="loader-spinner"></div></div>
     
     <script src="../../config/api.config.js"></script>
     <script src="../../services/http.service.js"></script>
@@ -164,9 +153,7 @@
     <script>
         fetch('_sidebar.html')
             .then(response => response.text())
-            .then(html => {
-                document.getElementById('sidebarContainer').innerHTML = html;
-            });
+            .then(html => { document.getElementById('sidebarContainer').innerHTML = html; });
     </script>
 </body>
 </html>

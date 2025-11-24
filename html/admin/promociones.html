@@ -5,16 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Promociones - Panel Administrativo</title>
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-     <!-- La nueva para los iconos-->
-
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Estilos -->
     <link rel="stylesheet" href="../../Css/admin/admin-global.css">
+    <link rel="stylesheet" href="../../Css/modals/profile_menu.css">
     
     <style>
+        /* ==========================================
+           ESTILOS DE BUSCADOR (Nuevo Diseño)
+           ========================================== */
+        .search-flex {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .label-text {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .search-wrapper {
+            display: flex;
+            flex: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            width: 100%;
+        }
+
+        .search-wrapper input:focus {
+            border-color: #B8860B;
+        }
+
+        .search-wrapper button {
+            padding: 0 25px;
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #000;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-wrapper button:hover {
+            background-color: #333;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 180px;
+            outline: none;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .filter-select:focus {
+            border-color: #B8860B;
+        }
+
+        /* Estilos de la tabla y badges */
         .promo-badge {
             padding: 5px 12px;
             border-radius: 20px;
@@ -38,17 +123,15 @@
         }
         
         .discount-tag {
-            
             color: rgb(16, 15, 15);
             padding: 8px 16px;
             border-radius: 8px;
             font-weight: 700;
             font-size: 16px;
             display: inline-block;
-           
         }
         
-        /* Modal Styles */
+        /* Estilos del Modal (Manteniendo original) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -110,7 +193,6 @@
             color: #333;
         }
         
-        /* Estilos mejorados para el formulario */
         #formPromocion {
             padding: 30px;
         }
@@ -170,141 +252,67 @@
             border-top: 1px solid #e0e0e0;
         }
         
-        .btn {
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: #007bff;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #0056b3;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #545b62;
-        }
-        
+        /* Ajuste menú perfil */
+        .profile-menu-modal { top: 90px !important; right: 30px !important; border: 1px solid white; }
+
         @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-content {
-                width: 95%;
-                max-height: 95vh;
-            }
-            
-            #formPromocion {
-                padding: 20px;
-            }
-        }
-        
-        /* Mejoras adicionales para la tabla */
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-        
-        .admin-table th {
-            background: #f8f9fa;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: #333;
-            border-bottom: 2px solid #dee2e6;
-        }
-        
-        .admin-table td {
-            padding: 15px;
-            border-bottom: 1px solid #dee2e6;
-            color: #333;
-        }
-        
-        .admin-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .table-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .btn-icon {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #e9ecef;
-            color: #495057;
-        }
-        
-        .btn-icon.edit:hover {
-            background: #007bff;
-            color: white;
-        }
-        
-        .btn-icon.delete:hover {
-            background: #dc3545;
-            color: white;
+            .search-flex { flex-direction: column; align-items: stretch; }
+            .form-row { grid-template-columns: 1fr; }
+            .modal-content { width: 95%; max-height: 95vh; }
+            #formPromocion { padding: 20px; }
         }
     </style>
 </head>
 <body class="admin-page">
     
-    <!-- Sidebar -->
     <div id="sidebarContainer"></div>
     
-    <!-- Contenido Principal -->
     <div class="admin-content">
         
-        <!-- Header -->
         <header class="admin-header">
             <div class="header-title">
                 <h1>Gestión de Promociones</h1>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" id="btnNuevaPromocion">
+                <div class="notification-icon" id="notificationIcon" style="cursor: pointer;">
+                    <i class="ph ph-bell"></i>
+                    <span class="notification-badge" id="notificationCount">0</span>
+                </div>
+                <div class="user-profile-icon" id="adminUserIcon">
+                    <i class="ph ph-user"></i>
+                </div>
+                <button class="btn btn-primary" id="btnNuevaPromocion" style="margin-left: 15px;">
                     <i class="fas fa-plus"></i> Nueva Promoción
                 </button>
             </div>
         </header>
         
-        <!-- Contenido -->
         <main class="main-content">
             
-            <!-- Búsqueda y Filtros -->
             <div class="content-card">
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar promociones...">
-                    <select class="filter-select" id="filterEstado">
-                        <option value="">Todos los estados</option>
-                        <option value="activa">Activas</option>
-                        <option value="proxima">Próximas</option>
-                        <option value="expirada">Expiradas</option>
-                    </select>
+                <div class="search-flex">
+                    <div class="search-group">
+                        <label for="searchInput" class="label-text">Buscar</label>
+                        <div class="search-wrapper">
+                            <input type="text" id="searchInput" placeholder="Buscar promociones...">
+                            <button type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filterEstado" class="label-text">Estado</label>
+                        <select class="filter-select" id="filterEstado">
+                            <option value="">Todos los estados</option>
+                            <option value="activa">Activas</option>
+                            <option value="proxima">Próximas</option>
+                            <option value="expirada">Expiradas</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             
-            <!-- Tabla de Promociones -->
             <div class="content-card">
                 <table class="admin-table">
                     <thead>
@@ -319,8 +327,7 @@
                         </tr>
                     </thead>
                     <tbody id="promocionesTableBody">
-                        <!-- Se llena dinámicamente -->
-                    </tbody>
+                        </tbody>
                 </table>
                 
                 <div id="emptyState" style="display: none; text-align: center; padding: 40px;">
@@ -330,10 +337,26 @@
             </div>
             
         </main>
-        
+    </div>
+
+    <div id="notificationMenu" class="profile-menu-modal notification-menu" style="display: none;">
+        <div class="profile-menu-header">
+            <span class="profile-menu-name">Notificaciones</span>
+            <a href="notificaciones.html">Ver todas</a>
+        </div>
+        <div class="notification-list" id="notificationList"></div>
+    </div>
+
+    <div id="profileMenuModal" class="profile-menu-modal">
+        <div class="profile-menu-header">
+            <div class="profile-menu-avatar"></div>
+            <span class="profile-menu-name" id="menuUserName">Cargando...</span>
+        </div>
+        <nav class="profile-menu-nav">
+            <ul><li><a href="#" id="headerLogoutBtn" style="color: #ff6b6b;">Cerrar sesión</a></li></ul>
+        </nav>
     </div>
     
-    <!-- Modal Crear/Editar Promoción -->
     <div class="modal-overlay" id="modalPromocion">
         <div class="modal-content">
             <div class="modal-header">
@@ -429,20 +452,21 @@
         </div>
     </div>
     
-    <!-- Loader -->
     <div class="admin-loader" id="loader" style="display: none;">
         <div class="loader-spinner"></div>
     </div>
     
-    <!-- Scripts -->
     <script src="../../config/api.config.js"></script>
     <script src="../../services/http.service.js"></script>
     <script src="../../services/auth.service.js"></script>
     <script src="../../services/promociones.service.js"></script>
     <script src="../../services/servicios.service.js"></script>
+    <script src="../../services/notificaciones.service.js"></script>
     <script src="../../utils/error-handler.js"></script>
     <script src="../../utils/state-manager.js"></script>
+    
     <script src="../../js/admin/promociones.js"></script>
+    <script src="../../js/admin/dashboard.js"></script>
     
     <script>
         fetch('_sidebar.html')

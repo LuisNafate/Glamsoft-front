@@ -815,40 +815,185 @@ body.admin-page {
     color: #d63031;
 }
 /* =====================================
-   MENÚ DE NOTIFICACIONES (DROPDOWN)
+   ESTILOS GLOBALES ADMIN 
+   ===================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --sidebar-bg: #000000;         
+    --sidebar-text: #ffffff;       
+    --sidebar-text-muted: #f9f7f7; 
+    --sidebar-hover: #1a1a1a;      
+    --sidebar-accent: #536dfe;     
+    --admin-bg: #f4f6f9;          
+    --admin-text: #333333;        
+    --admin-primary: #000000;     
+    --admin-border: #e0e0e0;
+    --admin-success: #27ae60;
+    --admin-warning: #f1c40f;
+    --admin-danger: #e74c3c;
+    --admin-accent: #3498db;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body.admin-page {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--admin-bg);
+    color: var(--admin-text);
+    line-height: 1.6;
+    font-size: 14px; 
+}
+
+/* --- SIDEBAR Y HEADER FLOTANTES --- */
+.admin-sidebar {
+    position: fixed !important;
+    top: 20px; left: 20px; width: 260px; height: calc(100vh - 40px);
+    background-color: #000000; color: white; border-radius: 20px;
+    z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+
+.admin-header {
+    position: fixed !important;
+    top: 20px; left: 300px !important; right: 20px !important;
+    height: 80px; background-color: #000000; color: white;
+    border-radius: 15px; z-index: 1500;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    width: auto !important;
+}
+
+.admin-content {
+    margin-left: 300px !important;
+    width: calc(100% - 320px) !important;
+    margin-right: 20px !important;
+    min-height: 100vh; background-color: #ffffff;
+    position: relative; z-index: 1;
+}
+
+.main-content { padding-top: 130px !important; padding-bottom: 40px; }
+
+/* --- HEADER ELEMENTS --- */
+.header-title h1 { color: #ffffff; font-weight: 300; font-size: 20px; margin: 0; }
+.header-actions { display: flex; align-items: center; gap: 25px; }
+.header-actions i { font-size: 24px; color: #ffffff; cursor: pointer; transition: opacity 0.3s ease; }
+.header-actions i:hover { opacity: 0.7; }
+
+.notification-icon { position: relative; display: flex; align-items: center; }
+.notification-badge {
+    position: absolute; top: -5px; right: -5px;
+    background: #ff4444; color: white; border-radius: 50%;
+    width: 16px; height: 16px; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 10px; font-weight: bold; border: 1px solid #000;
+}
+
+/* --- SIDEBAR INTERNALS --- */
+.sidebar-header { padding: 30px 25px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.brand-text h2 { font-size: 18px; font-weight: 600; color: white; margin: 0; }
+.sidebar-menu { flex: 1; padding: 25px 0; overflow-y: auto; }
+.sidebar-menu ul { list-style: none; }
+.sidebar-menu li { margin-bottom: 8px; }
+.menu-section-label { padding: 20px 30px 10px; font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+
+.menu-item {
+    display: flex; align-items: center; padding: 14px 30px;
+    color: var(--sidebar-text-muted); text-decoration: none;
+    transition: all 0.3s ease; border-radius: 0 30px 30px 0;
+    margin-right: 20px; font-weight: 400;
+}
+.menu-item i.sidebar-icon { width: 24px; font-size: 22px; margin-right: 12px; text-align: center; }
+.menu-item:hover, .menu-item.active { background-color: var(--sidebar-hover); color: white; }
+.menu-item.active { border-left: 3px solid var(--sidebar-accent); }
+.menu-item.active i.sidebar-icon { color: var(--sidebar-accent); }
+.sidebar-footer { padding: 25px; border-top: 1px solid rgba(255,255,255,0.05); }
+.logout-link { color: #ff8a80 !important; }
+
+/* --- LOADER --- */
+.admin-loader {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+}
+.loader-spinner {
+    width: 60px; height: 60px; border: 4px solid var(--admin-bg);
+    border-top-color: var(--admin-accent); border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =====================================
+   MENÚ DE NOTIFICACIONES (ESTILO DARK)
    ===================================== */
 
 .notification-menu {
-    width: 350px; /* Un poco más ancho para leer bien los mensajes */
-    right: 70px !important; /* Ajustado para alinearse con la campana */
-    max-height: 450px; /* Altura máxima con scroll */
+    width: 360px; /* Un poco más ancho para leer mejor */
+    right: 70px !important; /* Alineado con la campana */
+    max-height: 450px;
     overflow-y: auto;
-    padding: 0 !important; /* Quitamos padding del contenedor para que los items lleguen al borde */
+    padding: 0 !important;
+
+    /* --- ESTILO OSCURO (Igual al usuario) --- */
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    border-radius: 8px;
+    color: #f0f0f0;
+    z-index: 2000;
 }
 
+/* Cabecera del menú (Fija arriba) */
 .notification-menu .profile-menu-header {
     padding: 15px 20px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 0;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #333;
     position: sticky;
     top: 0;
-    background: white;
     z-index: 10;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+/* Título "Notificaciones" */
+.notification-menu .profile-menu-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Enlace "Ver todas" */
+.notification-menu a {
+    font-size: 11px;
+    color: #B8860B; /* Dorado */
+    text-decoration: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.3s;
+}
+
+.notification-menu a:hover {
+    color: #d4af37;
+    text-decoration: underline;
+}
+
+/* Lista de items */
 .notification-list {
     padding: 0;
 }
 
+/* Cada Notificación */
 .notification-item {
     padding: 15px 20px;
-    border-bottom: 1px solid #f1f1f1;
+    border-bottom: 1px solid #2a2a2a; /* Separador sutil */
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
     display: flex;
     gap: 15px;
     align-items: flex-start;
@@ -859,33 +1004,36 @@ body.admin-page {
 }
 
 .notification-item:hover {
-    background-color: #fafafa;
+    background-color: #252525; /* Un poco más claro al pasar el mouse */
 }
 
-/* Estilo para no leídas */
+/* Notificación NO LEÍDA */
 .notification-item.unread {
-    background-color: #fdf8e4; /* Fondo sutil amarillo/dorado */
-    border-left: 4px solid #B8860B;
+    background-color: rgba(184, 134, 11, 0.08); /* Fondo dorado muy sutil */
+    border-left: 3px solid #B8860B; /* Borde izquierdo dorado */
 }
 
+/* Icono Circular */
 .notif-icon-box {
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: #eee;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555;
     flex-shrink: 0;
-    font-size: 16px;
+    font-size: 14px;
+    background-color: #333; /* Fondo del icono */
+    color: #fff;
 }
 
-.notif-icon-box.info { background: #e3f2fd; color: #1976d2; }
-.notif-icon-box.success { background: #e8f5e9; color: #2e7d32; }
-.notif-icon-box.warning { background: #fff3e0; color: #ef6c00; }
-.notif-icon-box.error { background: #ffebee; color: #c62828; }
+/* Colores de iconos según tipo */
+.notif-icon-box.info { color: #3498db; }    /* Azul */
+.notif-icon-box.success { color: #2ecc71; } /* Verde */
+.notif-icon-box.warning { color: #f1c40f; } /* Amarillo */
+.notif-icon-box.error { color: #e74c3c; }   /* Rojo */
 
+/* Contenido de texto */
 .notif-info {
     flex: 1;
 }
@@ -894,34 +1042,52 @@ body.admin-page {
     display: flex;
     justify-content: space-between;
     margin-bottom: 4px;
+    align-items: center;
 }
 
 .notif-title {
     font-weight: 600;
     font-size: 13px;
-    color: #333;
-}
-
-.notif-desc {
-    font-size: 12px;
-    color: #666;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .notif-time {
     font-size: 10px;
-    color: #999;
+    color: #888;
     white-space: nowrap;
-    margin-left: 10px;
 }
 
+.notif-desc {
+    font-size: 12px;
+    color: #ccc; /* Gris claro */
+    line-height: 1.4;
+    font-family: 'Lato', sans-serif;
+}
+
+/* Estado vacío */
 .empty-notif {
-    padding: 30px;
+    padding: 40px 20px;
     text-align: center;
-    color: #999;
+    color: #666;
     font-size: 13px;
+    font-style: italic;
+}
+
+/* Scrollbar personalizado oscuro */
+.notification-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-menu::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.notification-menu::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+.notification-menu::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
