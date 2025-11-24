@@ -3,12 +3,13 @@
 const CitasService = {
     /**
      * Obtener todas las citas
-     * @param {Object} params - Query params opcionales: estadoCita, fechaCita
+     * @param {Object} params - Query params opcionales: estilistaId, estadoCita, fechaCita
      */
     async getAll(params = {}) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.GET_ALL);
-            const response = await httpService.get(url, params);
+            let url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.GET_ALL);
+            url = API_CONFIG.addQueryParams(url, params);
+            const response = await httpService.get(url);
             return response.data;
         } catch (error) {
             console.error('Error al obtener citas:', error);
@@ -18,7 +19,7 @@ const CitasService = {
 
     /**
      * Obtener citas del cliente por ID
-     * @param {number|string} clienteId 
+     * @param {number|string} clienteId
      */
     async getByClient(clienteId) {
         try {
@@ -30,6 +31,24 @@ const CitasService = {
             return response.data;
         } catch (error) {
             console.error('Error al obtener citas del cliente:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtener citas del estilista por ID
+     * @param {number|string} estilistaId
+     */
+    async getByEstilista(estilistaId) {
+        try {
+            const url = API_CONFIG.buildUrl(
+                API_CONFIG.ENDPOINTS.CITAS.GET_BY_ESTILISTA,
+                { id: estilistaId }
+            );
+            const response = await httpService.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener citas del estilista:', error);
             throw error;
         }
     },

@@ -1,7 +1,12 @@
 const PortafolioService = {
-    async getAll() {
+    /**
+     * Obtener todos los trabajos del portafolio
+     * @param {Object} params - Query params opcionales: estilistaId
+     */
+    async getAll(params = {}) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PORTAFOLIO.GET_ALL);
+            let url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.PORTAFOLIO.GET_ALL);
+            url = API_CONFIG.addQueryParams(url, params);
             const response = await httpService.get(url);
             // La API devuelve { data: [...], message: "...", status: "..." }
             return response.data?.data || response.data || [];

@@ -131,20 +131,21 @@ class DashboardEstilista {
         }
     }
 
-    async loadCitas(estilistaId) { 
-        try { 
-            const r = await CitasService.getAll({ estilistaId: estilistaId }); 
-            console.log('Respuesta de CitasService.getAll:', r);
-            const d = r.data?.data || r.data || []; 
-            const h = new Date().toISOString().split('T')[0]; 
-            return { 
-                total: d.filter(c => (c.fechaCita || c.fecha) === h).length, 
-                pendientes: d.filter(c => (c.estadoCita || c.estado) === 'pendiente').length, 
-                todas: d 
-            }; 
-        } catch (e) { 
-            return { total: 0, pendientes: 0, todas: [] }; 
-        } 
+    async loadCitas(estilistaId) {
+        try {
+            const r = await CitasService.getByEstilista(estilistaId);
+            console.log('Respuesta de CitasService.getByEstilista:', r);
+            const d = r.data?.data || r.data || [];
+            const h = new Date().toISOString().split('T')[0];
+            return {
+                total: d.filter(c => (c.fechaCita || c.fecha) === h).length,
+                pendientes: d.filter(c => (c.estadoCita || c.estado) === 'pendiente').length,
+                todas: d
+            };
+        } catch (e) {
+            console.error('Error al cargar citas:', e);
+            return { total: 0, pendientes: 0, todas: [] };
+        }
     }
 
     async loadNotificaciones() {

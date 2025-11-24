@@ -220,14 +220,14 @@ class CalendarioEstilista {
                 this.citas = [];
                 return;
             }
-            // Suponiendo que el servicio puede filtrar por estilista si el rol es 'estilista'
-            const response = await CitasService.getAll({ estilistaId: user.id });
+            // Usar endpoint específico para citas de estilista
+            const response = await CitasService.getByEstilista(user.id);
             console.log('loadCitas - Response completo:', response);
             // Manejar estructura: {data: [...], message: "...", status: "success"}
             this.citas = response.data?.data || response.data || [];
             console.log('Citas cargadas:', this.citas.length);
             console.log('Detalle de todas las citas:', this.citas);
-            
+
             // Mostrar cada cita individualmente
             this.citas.forEach((cita, index) => {
                 console.log(`Cita ${index + 1}:`, {

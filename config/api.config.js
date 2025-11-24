@@ -30,6 +30,7 @@ const API_CONFIG = {
             GET_ALL: '/citas',
             GET_BY_ID: '/citas/:id',
             GET_BY_CLIENT: '/citas/cliente/:id',
+            GET_BY_ESTILISTA: '/citas/estilista/:id',
             GET_BY_MES: '/citas/mes',
             GET_BY_SEMANA: '/citas/semanas',
             GET_BY_DIA: '/citas/dias',

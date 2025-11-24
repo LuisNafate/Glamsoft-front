@@ -3,10 +3,12 @@
 const ComentariosService = {
     /**
      * Obtener todos los comentarios
+     * @param {Object} params - Query params opcionales: estilistaId
      */
-    async getAll() {
+    async getAll(params = {}) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.COMENTARIOS.GET_ALL);
+            let url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.COMENTARIOS.GET_ALL);
+            url = API_CONFIG.addQueryParams(url, params);
             const response = await httpService.get(url);
             console.log('ComentariosService.getAll - Response:', response);
             return response; // Retorna response completo con {data, message, status}
@@ -96,11 +98,6 @@ const ComentariosService = {
         }
     }
 };
-
-// Exportar servicio
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ComentariosService;
-}
 
 // Exportar servicio
 if (typeof module !== 'undefined' && module.exports) {

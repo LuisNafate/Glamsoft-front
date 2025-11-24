@@ -192,15 +192,9 @@ class PortafolioEstilista {
     async loadImagenes() {
         this.showLoader();
         try {
-            const response = await PortafolioService.getAll();
-            const allImages = response.data || response || [];
-
-            // FILTRO CLAVE: Solo mostrar imágenes de ESTE estilista
-            this.imagenes = allImages.filter(img => {
-                // Verificar idEstilista directo o dentro de objeto anidado
-                const imgEstilistaId = img.idEstilista || (img.estilista ? img.estilista.id : 0);
-                return imgEstilistaId == this.currentUserId;
-            });
+            // FILTRO EN BACKEND: Solicitar solo las imágenes de este estilista
+            const response = await PortafolioService.getAll({ estilistaId: this.currentUserId });
+            this.imagenes = response.data || response || [];
 
             this.renderGallery();
         } catch (error) {
