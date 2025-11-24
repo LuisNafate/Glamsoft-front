@@ -371,12 +371,12 @@
 
                             if (confirmed) {
                                 await AuthService.logout();
-                                window.location.href = '../login.html';
+                                window.location.href = '../inicio.html';
                             }
                         } else {
                             // Fallback si no cargaron las librerías
                             if(confirm('¿Cerrar sesión?')) {
-                                window.location.href = '../login.html';
+                                window.location.href = '../inicio.html';
                             }
                         }
                     });
