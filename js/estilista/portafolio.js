@@ -1,10 +1,11 @@
-// js/estilista/portafolio.js
+// js/estilista/portafolio.js - Versión Mejorada (Tipo Admin)
 
 class PortafolioEstilista {
     constructor() {
-        this.currentUser = null;
+        this.imagenes = [];
+        this.currentImageBase64 = null;
+        this.currentImagesBase64 = [];
         this.currentUserId = null;
-        this.editingImageId = null;
         this.init();
     }
 
@@ -12,338 +13,466 @@ class PortafolioEstilista {
         try {
             await this.checkAuth();
             this.setupEventListeners();
-            await this.loadPortfolio();
+            await this.loadImagenes();
         } catch (error) {
-            console.error('Error al inicializar portafolio:', error);
+            console.error('Error al inicializar:', error);
         }
     }
 
     async checkAuth() {
-        try {
-            // Obtener usuario solo de localStorage
-            const userStr = localStorage.getItem('user_data');
-
-            console.log("[PORTAFOLIO] user_data raw:", userStr);
-
-            if (!userStr) {
-                console.warn("[PORTAFOLIO] No hay usuario en localStorage. Redirigiendo...");
-                window.location.href = '../inicio.html';
-                return;
-            }
-
-            const user = JSON.parse(userStr);
-            console.log("[PORTAFOLIO] Usuario parseado:", user);
-
-            const rol = parseInt(user.idRol || user.rol || 0);
-            console.log("[PORTAFOLIO] Rol detectado:", rol);
-
-            if (rol !== 2 && rol !== 1) {
-                console.warn("[PORTAFOLIO] Rol no autorizado:", rol, "- Se requiere 1 o 2");
-                window.location.href = '../inicio.html';
-                return;
-            }
-
-            const nombre = user.nombre || 'Estilista';
-            const menuName = document.getElementById('menuUserName');
-            if (menuName) menuName.textContent = nombre;
-
-            this.currentUser = user;
-            this.currentUserId = user.idUsuario || user.id;
-
-            console.log("[PORTAFOLIO] ✅ Auth exitosa. Usuario ID:", this.currentUserId);
-
-        } catch (error) {
-            console.error("[PORTAFOLIO] ❌ Error auth:", error);
+        const userStr = localStorage.getItem('user_data');
+        if (!userStr) {
             window.location.href = '../inicio.html';
+            return;
         }
+        const user = JSON.parse(userStr);
+        // Validar que sea Estilista (Rol 2) o Admin (Rol 1)
+        if (user.idRol !== 2 && user.idRol !== 1) {
+            window.location.href = '../inicio.html';
+            return;
+        }
+        this.currentUserId = user.idUsuario || user.id;
+        document.getElementById('menuUserName').textContent = user.nombre || 'Estilista';
     }
 
     setupEventListeners() {
-        // Profile menu
+        // 1. Drag & Drop y Archivos
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        if (uploadZone && fileInput) {
+            uploadZone.addEventListener('click', (e) => {
+                if(e.target !== document.getElementById('btnNuevaImagen')) fileInput.click();
+            });
+            
+            // Botón explícito
+            document.getElementById('btnNuevaImagen')?.addEventListener('click', (e) => {
+                e.stopPropagation(); // Evitar doble click
+                this.openModal();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) this.processFiles(Array.from(e.target.files));
+            });
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+            
+            uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+            
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) this.processFiles(Array.from(e.dataTransfer.files));
+            });
+        }
+
+        // 2. Formulario
+        document.getElementById('formImagen')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveImagen();
+        });
+
+        // 3. Menú Perfil
         const userIcon = document.getElementById('stylistUserIcon');
         const profileMenu = document.getElementById('profileMenuModal');
-        const logoutBtn = document.getElementById('headerLogoutBtn');
-
-        if (userIcon && profileMenu) {
+        
+        if (userIcon) {
             userIcon.addEventListener('click', (e) => {
                 e.stopPropagation();
                 profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
             });
+            document.addEventListener('click', () => profileMenu.style.display = 'none');
         }
 
-        document.addEventListener('click', (e) => {
-            if (profileMenu && profileMenu.style.display === 'block') {
-                if (!profileMenu.contains(e.target) && !userIcon.contains(e.target)) {
-                    profileMenu.style.display = 'none';
-                }
+        // 4. Logout
+        document.getElementById('headerLogoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (confirm('¿Cerrar sesión?')) {
+                await AuthService.logout();
+                window.location.href = '../login.html';
             }
-        });
-
-        window.addEventListener('scroll', () => {
-            if (profileMenu) profileMenu.style.display = 'none';
-        });
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                if (confirm('¿Cerrar sesión?')) {
-                    await AuthService.logout();
-                    window.location.href = '../login.html';
-                }
-            });
-        }
-
-        // Modal controls
-        const addBtn = document.getElementById('addImageBtn');
-        const modal = document.getElementById('imageModal');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const form = document.getElementById('imageForm');
-        const imageUrlInput = document.getElementById('imageUrl');
-
-        if (addBtn) {
-            addBtn.addEventListener('click', () => this.openModal());
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal());
-        }
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => this.closeModal());
-        }
-
-        if (form) {
-            form.addEventListener('submit', (e) => this.handleSubmit(e));
-        }
-
-        if (imageUrlInput) {
-            imageUrlInput.addEventListener('input', (e) => this.previewImage(e.target.value));
-        }
-
-        // Close modal on outside click
-        modal?.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeModal();
         });
     }
 
-    async loadPortfolio() {
+    // --- LÓGICA DE IMÁGENES (Igual que Admin) ---
+
+    processFiles(files) {
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        if (imageFiles.length === 0) {
+            alert('Solo se permiten imágenes');
+            return;
+        }
+
+        this.currentImagesBase64 = [];
+        let processed = 0;
+
+        // Si es solo una, abrir modal edición simple
+        if (imageFiles.length === 1) {
+            this.compressImage(imageFiles[0], (base64) => {
+                this.currentImageBase64 = base64;
+                this.openModal(null, base64);
+            });
+            return;
+        }
+
+        // Si son varias, procesar todas
+        imageFiles.forEach(file => {
+            this.compressImage(file, (base64) => {
+                this.currentImagesBase64.push(base64);
+                processed++;
+                if (processed === imageFiles.length) this.openModalMultiple();
+            });
+        });
+    }
+
+    compressImage(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Redimensionar (Max 1920px)
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 1920;
+
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = (height / width) * maxDim;
+                        width = maxDim;
+                    } else {
+                        width = (width / height) * maxDim;
+                        height = maxDim;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Calidad 0.8 JPEG
+                callback(canvas.toDataURL('image/jpeg', 0.8));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async loadImagenes() {
         this.showLoader();
         try {
             const response = await PortafolioService.getAll();
-            const allImages = response || [];
+            const allImages = response.data || response || [];
 
-            // Filtrar solo las imágenes del estilista actual
-            const myImages = allImages.filter(img => {
-                const idEstilista = img.idEstilista || (img.estilista ? img.estilista.id : 0);
-                return idEstilista == this.currentUserId;
+            // FILTRO CLAVE: Solo mostrar imágenes de ESTE estilista
+            this.imagenes = allImages.filter(img => {
+                // Verificar idEstilista directo o dentro de objeto anidado
+                const imgEstilistaId = img.idEstilista || (img.estilista ? img.estilista.id : 0);
+                return imgEstilistaId == this.currentUserId;
             });
 
-            this.renderGallery(myImages);
-
+            this.renderGallery();
         } catch (error) {
-            console.error('Error al cargar portafolio:', error);
-            this.showError('Error al cargar el portafolio');
+            console.error('Error cargando portafolio:', error);
         } finally {
             this.hideLoader();
         }
     }
 
-    renderGallery(images) {
-        const container = document.getElementById('galleryGrid');
-        if (!container) return;
+    renderGallery() {
+        const grid = document.getElementById('galleryGrid');
+        const emptyState = document.getElementById('emptyState');
+        
+        if (!grid) return;
 
-        if (images.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1/-1;">
-                    <i class="ph ph-images"></i>
-                    <h3>No tienes trabajos en tu portafolio</h3>
-                    <p>Comienza a subir tus mejores trabajos para mostrar tu talento</p>
+        if (this.imagenes.length === 0) {
+            grid.innerHTML = '';
+            if(emptyState) emptyState.style.display = 'block';
+            return;
+        }
+        
+        if(emptyState) emptyState.style.display = 'none';
+
+        // Agrupar por álbumes (Título)
+        const albumes = this.agruparPorTitulo(this.imagenes);
+
+        grid.innerHTML = albumes.map(album => {
+            const imageSrc = album.portada || 'https://via.placeholder.com/300?text=Sin+Imagen';
+            
+            return `
+                <div class="gallery-item">
+                    <div style="position: relative;">
+                        <img src="${imageSrc}" class="gallery-image" alt="${album.titulo}">
+                        ${album.imagenes.length > 1 ? `
+                            <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px;">
+                                <i class="fas fa-images"></i> ${album.imagenes.length}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-title">${album.titulo}</div>
+                        <div class="gallery-description">${album.descripcion || 'Sin descripción'}</div>
+                        <div class="gallery-actions" style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="btn-icon" style="flex: 1; background: #3498db; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer;" 
+                                onclick="window.portfolioInstance.viewAlbum('${album.titulo}')">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn-icon" style="flex: 1; background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer;"
+                                onclick="window.portfolioInstance.deleteAlbum('${album.titulo}')">
+                                <i class="fas fa-trash"></i> Borrar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
+        }).join('');
+    }
+
+    agruparPorTitulo(imagenes) {
+        const grupos = {};
+        imagenes.forEach(img => {
+            const titulo = img.titulo || 'Sin título';
+            if (!grupos[titulo]) {
+                grupos[titulo] = {
+                    titulo: titulo,
+                    descripcion: img.descripcion,
+                    idCategoria: img.idCategoria,
+                    portada: img.urlImagen,
+                    imagenes: []
+                };
+            }
+            grupos[titulo].imagenes.push(img);
+            if (img.destacado) grupos[titulo].portada = img.urlImagen;
+        });
+        return Object.values(grupos);
+    }
+
+    // --- MODALES Y GUARDADO ---
+
+    openModal(imagen = null, newImageBase64 = null) {
+        const modal = document.getElementById('modalImagen');
+        const form = document.getElementById('formImagen');
+        const preview = document.getElementById('previewImagen');
+        const previewMultiple = document.getElementById('previewMultiple');
+        
+        // Resetear vistas
+        preview.style.display = 'block';
+        previewMultiple.style.display = 'none';
+        
+        if (imagen) {
+            // Editar
+            document.getElementById('modoEdicion').value = 'true';
+            document.getElementById('imagenId').value = imagen.idImagen;
+            document.getElementById('tituloImagen').value = imagen.titulo;
+            document.getElementById('descripcionImagen').value = imagen.descripcion || '';
+            document.getElementById('categoriaImagen').value = imagen.idCategoria || 1;
+            document.getElementById('destacadaImagen').checked = imagen.destacado;
+            
+            preview.src = imagen.urlImagen;
+            this.currentImageBase64 = imagen.urlImagen;
+        } else {
+            // Nuevo
+            document.getElementById('modoEdicion').value = 'false';
+            form.reset();
+            document.getElementById('imagenId').value = '';
+            
+            if (newImageBase64) {
+                preview.src = newImageBase64;
+                this.currentImageBase64 = newImageBase64;
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        }
+        
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
+
+    openModalMultiple() {
+        const modal = document.getElementById('modalImagen');
+        const form = document.getElementById('formImagen');
+        const preview = document.getElementById('previewImagen');
+        const previewMultiple = document.getElementById('previewMultiple');
+        const previewGrid = document.getElementById('previewGrid');
+        
+        preview.style.display = 'none';
+        previewMultiple.style.display = 'block';
+        
+        document.getElementById('modoEdicion').value = 'false';
+        form.reset();
+        
+        document.getElementById('cantidadImagenes').textContent = this.currentImagesBase64.length;
+        
+        previewGrid.innerHTML = this.currentImagesBase64.map((base64, index) => `
+            <div style="position: relative;">
+                <img src="${base64}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px;">
+                <button type="button" onclick="window.portfolioInstance.removeImage(${index})" 
+                    style="position: absolute; top: 2px; right: 2px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;">×</button>
+            </div>
+        `).join('');
+        
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
+
+    removeImage(index) {
+        this.currentImagesBase64.splice(index, 1);
+        if (this.currentImagesBase64.length === 0) {
+            document.getElementById('modalImagen').classList.remove('active');
+            document.getElementById('modalImagen').style.display = 'none';
+        } else {
+            this.openModalMultiple(); // Refrescar
+        }
+    }
+
+    async saveImagen() {
+        const id = document.getElementById('imagenId').value;
+        const modoEdicion = document.getElementById('modoEdicion').value === 'true';
+        const titulo = document.getElementById('tituloImagen').value.trim();
+        const descripcion = document.getElementById('descripcionImagen').value;
+        const categoria = parseInt(document.getElementById('categoriaImagen').value);
+        const destacado = document.getElementById('destacadaImagen').checked;
+
+        if (!titulo) {
+            alert('El título es obligatorio');
             return;
         }
 
-        container.innerHTML = images.map(img => `
-            <div class="gallery-item" data-id="${img.idImagen}">
-                <img src="${img.urlImagen}" alt="${img.titulo}" class="gallery-image"
-                     onerror="this.src='https://via.placeholder.com/280x280?text=Imagen+no+disponible'">
-                <div class="gallery-info">
-                    <div class="gallery-title">${img.titulo}</div>
-                    <div class="gallery-description">${img.descripcion || 'Sin descripción'}</div>
-                    <div class="gallery-actions">
-                        <button class="btn-edit" onclick="portfolioInstance.editImage(${img.idImagen})">
-                            <i class="ph ph-pencil"></i> Editar
-                        </button>
-                        <button class="btn-delete" onclick="portfolioInstance.deleteImage(${img.idImagen})">
-                            <i class="ph ph-trash"></i> Eliminar
-                        </button>
+        // CAMBIO CLAVE: Usar this.currentUserId para idEstilista
+        const baseData = {
+            titulo,
+            descripcion,
+            idCategoria: categoria,
+            destacado,
+            idEstilista: this.currentUserId // ¡IMPORTANTE!
+        };
+
+        this.showLoader();
+
+        try {
+            if (this.currentImagesBase64.length > 0 && !modoEdicion) {
+                // Guardar Múltiples
+                for (const base64 of this.currentImagesBase64) {
+                    await PortafolioService.create({
+                        ...baseData,
+                        url: base64
+                    });
+                }
+            } else {
+                // Guardar Individual (Crear o Editar)
+                if (!this.currentImageBase64) {
+                    alert('Debes seleccionar una imagen');
+                    this.hideLoader();
+                    return;
+                }
+                
+                const data = { ...baseData, url: this.currentImageBase64 };
+                
+                if (modoEdicion && id) {
+                    data.idImagen = parseInt(id);
+                    await PortafolioService.update(data);
+                } else {
+                    await PortafolioService.create(data);
+                }
+            }
+
+            // Limpiar y recargar
+            document.getElementById('modalImagen').classList.remove('active');
+            document.getElementById('modalImagen').style.display = 'none';
+            this.currentImagesBase64 = [];
+            this.currentImageBase64 = null;
+            await this.loadImagenes();
+            alert('Guardado correctamente');
+
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            alert('Error al guardar. Verifica la consola.');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    // Acciones sobre Álbumes
+    async deleteAlbum(titulo) {
+        if (!confirm(`¿Borrar todo el álbum "${titulo}"?`)) return;
+        
+        const album = this.agruparPorTitulo(this.imagenes).find(a => a.titulo === titulo);
+        if (!album) return;
+
+        this.showLoader();
+        try {
+            for (const img of album.imagenes) {
+                await PortafolioService.delete(img.idImagen);
+            }
+            await this.loadImagenes();
+        } catch (e) { console.error(e); }
+        finally { this.hideLoader(); }
+    }
+
+    viewAlbum(titulo) {
+        const album = this.agruparPorTitulo(this.imagenes).find(a => a.titulo === titulo);
+        if (!album) return;
+        
+        // Reutilizamos el modal de Admin para ver álbumes, o creamos uno simple aquí
+        // Para simplificar, voy a expandir el álbum en un modal temporal rápido
+        const modalHtml = `
+            <div class="modal-overlay active" style="z-index: 10001; display: flex;" id="viewAlbumModal">
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2>${album.titulo}</h2>
+                        <button onclick="document.getElementById('viewAlbumModal').remove()" style="border:none; background:none; font-size: 24px; cursor:pointer;">&times;</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 20px;">
+                        ${album.imagenes.map(img => `
+                            <div style="position: relative;">
+                                <img src="${img.urlImagen}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">
+                                <button onclick="window.portfolioInstance.deleteSingle(${img.idImagen})" 
+                                    style="position: absolute; bottom: 5px; right: 5px; background: red; color: white; border:none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10px;">
+                                    Borrar
+                                </button>
+                                <button onclick="window.portfolioInstance.editSingle(${img.idImagen})" 
+                                    style="position: absolute; bottom: 5px; left: 5px; background: blue; color: white; border:none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10px;">
+                                    Editar
+                                </button>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
-    openModal(imageData = null) {
-        const modal = document.getElementById('imageModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const form = document.getElementById('imageForm');
-
-        if (!modal || !form) return;
-
-        if (imageData) {
-            // Modo edición
-            this.editingImageId = imageData.idImagen;
-            modalTitle.textContent = 'Editar Imagen';
-            document.getElementById('imageTitulo').value = imageData.titulo;
-            document.getElementById('imageDescripcion').value = imageData.descripcion || '';
-            document.getElementById('imageUrl').value = imageData.urlImagen;
-            this.previewImage(imageData.urlImagen);
-        } else {
-            // Modo creación
-            this.editingImageId = null;
-            modalTitle.textContent = 'Agregar Imagen';
-            form.reset();
-            document.getElementById('imagePreview').style.display = 'none';
-        }
-
-        modal.classList.add('active');
-    }
-
-    closeModal() {
-        const modal = document.getElementById('imageModal');
-        const form = document.getElementById('imageForm');
-
-        if (modal) modal.classList.remove('active');
-        if (form) form.reset();
-
-        this.editingImageId = null;
-        document.getElementById('imagePreview').style.display = 'none';
-    }
-
-    previewImage(url) {
-        const preview = document.getElementById('imagePreview');
-        const img = document.getElementById('previewImg');
-
-        if (!url) {
-            preview.style.display = 'none';
-            return;
-        }
-
-        img.src = url;
-        preview.style.display = 'block';
-
-        img.onerror = () => {
-            preview.style.display = 'none';
-        };
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-
-        const titulo = document.getElementById('imageTitulo').value.trim();
-        const descripcion = document.getElementById('imageDescripcion').value.trim();
-        const urlImagen = document.getElementById('imageUrl').value.trim();
-
-        if (!titulo || !urlImagen) {
-            alert('Por favor completa los campos requeridos');
-            return;
-        }
-
-        const data = {
-            titulo,
-            descripcion,
-            urlImagen,
-            idEstilista: this.currentUserId
-        };
-
-        this.showLoader();
-
-        try {
-            if (this.editingImageId) {
-                // Actualizar
-                data.idImagen = this.editingImageId;
-                await PortafolioService.update(data);
-                alert('Imagen actualizada correctamente');
-            } else {
-                // Crear
-                await PortafolioService.create(data);
-                alert('Imagen agregada correctamente');
-            }
-
-            this.closeModal();
-            await this.loadPortfolio();
-
-        } catch (error) {
-            console.error('Error al guardar imagen:', error);
-            alert('Error al guardar la imagen. Por favor intenta nuevamente.');
-        } finally {
-            this.hideLoader();
-        }
-    }
-
-    async editImage(id) {
-        try {
-            const response = await PortafolioService.getAll();
-            const allImages = response || [];
-            const image = allImages.find(img => img.idImagen === id);
-
-            if (image) {
-                this.openModal(image);
-            } else {
-                alert('No se encontró la imagen');
-            }
-        } catch (error) {
-            console.error('Error al cargar imagen:', error);
-            alert('Error al cargar la imagen');
-        }
-    }
-
-    async deleteImage(id) {
-        if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
-            return;
-        }
-
-        this.showLoader();
-
-        try {
+    async deleteSingle(id) {
+        if(confirm('¿Borrar esta imagen?')) {
+            this.showLoader();
             await PortafolioService.delete(id);
-            alert('Imagen eliminada correctamente');
-            await this.loadPortfolio();
-        } catch (error) {
-            console.error('Error al eliminar imagen:', error);
-            alert('Error al eliminar la imagen');
-        } finally {
+            document.getElementById('viewAlbumModal').remove(); // Cerrar modal álbum
+            await this.loadImagenes(); // Recargar todo
             this.hideLoader();
         }
     }
 
-    showError(message) {
-        const container = document.getElementById('galleryGrid');
-        if (container) {
-            container.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e74c3c;">
-                    <i class="ph ph-warning" style="font-size: 48px; margin-bottom: 15px;"></i>
-                    <p>${message}</p>
-                </div>
-            `;
+    async editSingle(id) {
+        const img = this.imagenes.find(i => i.idImagen === id);
+        if(img) {
+            document.getElementById('viewAlbumModal').remove();
+            this.openModal(img);
         }
     }
 
-    showLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'flex';
-    }
-
-    hideLoader() {
-        const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'none';
-    }
+    showLoader() { document.getElementById('loader').style.display = 'flex'; }
+    hideLoader() { document.getElementById('loader').style.display = 'none'; }
 }
 
-// Instancia global para acceder desde onclick
 let portfolioInstance;
-
 document.addEventListener('DOMContentLoaded', () => {
     portfolioInstance = new PortafolioEstilista();
+    window.portfolioInstance = portfolioInstance; // Hacerlo global para onclicks
 });

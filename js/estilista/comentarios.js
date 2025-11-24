@@ -1,10 +1,8 @@
-// js/estilista/comentarios.js
-
+// Gestión de Comentarios Estilista
 class ComentariosEstilista {
     constructor() {
-        this.currentUser = null;
-        this.currentUserId = null;
-        this.allReviews = [];
+        this.comentarios = [];
+        this.filteredComentarios = [];
         this.init();
     }
 
@@ -12,278 +10,166 @@ class ComentariosEstilista {
         try {
             await this.checkAuth();
             this.setupEventListeners();
-            await this.loadReviews();
+            await this.loadComentarios();
         } catch (error) {
-            console.error('Error al inicializar comentarios:', error);
+            console.error('Error al inicializar:', error);
+            this.showNotification('Error al inicializar comentarios', 'error');
         }
     }
 
     async checkAuth() {
         try {
-            // Obtener usuario solo de localStorage
-            const userStr = localStorage.getItem('user_data');
-
-            console.log("[COMENTARIOS] user_data raw:", userStr);
-
-            if (!userStr) {
-                console.warn("[COMENTARIOS] No hay usuario en localStorage. Redirigiendo...");
-                window.location.href = '../inicio.html';
-                return;
+            if (typeof StateManager !== 'undefined' && StateManager.get) {
+                const user = StateManager.get('user');
+                if (!user || (user.rol !== 'estilista' && user.rol !== 'admin')) {
+                    console.warn('Usuario no autenticado o no es estilista');
+                    // Opcional: descomentar para forzar redirección
+                    // window.location.href = '../login.html';
+                }
             }
-
-            const user = JSON.parse(userStr);
-            console.log("[COMENTARIOS] Usuario parseado:", user);
-
-            const rol = parseInt(user.idRol || user.rol || 0);
-            console.log("[COMENTARIOS] Rol detectado:", rol);
-
-            if (rol !== 2 && rol !== 1) {
-                console.warn("[COMENTARIOS] Rol no autorizado:", rol, "- Se requiere 1 o 2");
-                window.location.href = '../inicio.html';
-                return;
-            }
-
-            const nombre = user.nombre || 'Estilista';
-            const menuName = document.getElementById('menuUserName');
-            if (menuName) menuName.textContent = nombre;
-
-            this.currentUser = user;
-            this.currentUserId = user.idUsuario || user.id;
-
-            console.log("[COMENTARIOS] ✅ Auth exitosa. Usuario ID:", this.currentUserId);
-
         } catch (error) {
-            console.error("[COMENTARIOS] ❌ Error auth:", error);
-            window.location.href = '../inicio.html';
+            console.warn('StateManager no disponible:', error);
         }
     }
 
     setupEventListeners() {
-        // Profile menu
-        const userIcon = document.getElementById('stylistUserIcon');
-        const profileMenu = document.getElementById('profileMenuModal');
-        const logoutBtn = document.getElementById('headerLogoutBtn');
-
-        if (userIcon && profileMenu) {
-            userIcon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (profileMenu && profileMenu.style.display === 'block') {
-                if (!profileMenu.contains(e.target) && !userIcon.contains(e.target)) {
-                    profileMenu.style.display = 'none';
-                }
-            }
+        document.getElementById('searchInput')?.addEventListener('input', () => {
+            this.filterComentarios();
         });
-
-        window.addEventListener('scroll', () => {
-            if (profileMenu) profileMenu.style.display = 'none';
-        });
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                if (confirm('¿Cerrar sesión?')) {
-                    await AuthService.logout();
-                    window.location.href = '../login.html';
-                }
-            });
-        }
-
-        // Filter
-        const filterRating = document.getElementById('filterRating');
-        if (filterRating) {
-            filterRating.addEventListener('change', () => this.applyFilter());
-        }
     }
 
-    async loadReviews() {
+    async loadComentarios() {
         this.showLoader();
+        
         try {
-            // Cargar comentarios
-            const comentariosResponse = await ComentariosService.getAll();
-            const todosComentarios = comentariosResponse.data || comentariosResponse || [];
-
-            // Cargar citas para relacionar comentario -> cita -> estilista
-            const citasResponse = await CitasService.getAll();
-            const todasCitas = citasResponse.data || citasResponse || [];
-
-            // Filtrar solo las citas de este estilista
-            const misCitasIds = todasCitas
-                .filter(cita => {
-                    const idEstilista = cita.idEstilista || (cita.estilista ? cita.estilista.id : 0);
-                    return idEstilista == this.currentUserId;
-                })
-                .map(cita => cita.idCita || cita.id);
-
-            // Filtrar comentarios que pertenecen a mis citas
-            this.allReviews = todosComentarios.filter(comentario => {
-                const idCita = comentario.idCita || comentario.cita?.id || 0;
-                return misCitasIds.includes(idCita);
-            });
-
-            // Enriquecer comentarios con información de la cita
-            this.allReviews = this.allReviews.map(comentario => {
-                const cita = todasCitas.find(c => (c.idCita || c.id) === (comentario.idCita || comentario.cita?.id));
-                return {
-                    ...comentario,
-                    citaInfo: cita
-                };
-            });
-
-            console.log(`Comentarios cargados: ${this.allReviews.length}`);
-
-            this.updateStats();
-            this.renderReviews(this.allReviews);
-
+            const user = StateManager.get('user');
+            let response;
+            if (user && user.id) {
+                // Asumiendo que el servicio puede filtrar por estilista
+                response = await ComentariosService.getAll({ estilistaId: user.id });
+            } else {
+                response = await ComentariosService.getAll();
+            }
+            
+            console.log('loadComentarios - Response completo:', response);
+            
+            const comentariosData = response.data?.data || response.data || [];
+            console.log('loadComentarios - Comentarios extraídos:', comentariosData);
+            
+            this.comentarios = comentariosData;
+            this.filteredComentarios = [...this.comentarios];
+            this.renderComentarios();
         } catch (error) {
             console.error('Error al cargar comentarios:', error);
-            this.showError('Error al cargar las reseñas');
+            this.showNotification('Error al cargar comentarios', 'error');
+            this.comentarios = [];
+            this.filteredComentarios = [];
+            this.renderComentarios();
         } finally {
             this.hideLoader();
         }
     }
 
-    updateStats() {
-        const total = this.allReviews.length;
-        const fiveStars = this.allReviews.filter(r => (r.calificacion || 0) === 5).length;
-
-        // Calcular promedio
-        const sum = this.allReviews.reduce((acc, r) => acc + (r.calificacion || 0), 0);
-        const avg = total > 0 ? (sum / total).toFixed(1) : '0.0';
-
-        document.getElementById('totalReviews').textContent = total;
-        document.getElementById('avgRating').innerHTML = `<i class="ph-fill ph-star"></i> ${avg}`;
-        document.getElementById('fiveStars').textContent = fiveStars;
+    filterComentarios() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        this.filteredComentarios = this.comentarios.filter(comentario => {
+            const contenido = (comentario.contenido || comentario.comentario || '').toLowerCase();
+            const clienteNombre = (comentario.cliente?.nombre || '').toLowerCase();
+            
+            return contenido.includes(searchTerm) || clienteNombre.includes(searchTerm);
+        });
+        
+        this.renderComentarios();
     }
 
-    applyFilter() {
-        const filterValue = document.getElementById('filterRating').value;
-
-        if (filterValue === 'all') {
-            this.renderReviews(this.allReviews);
-        } else {
-            const rating = parseInt(filterValue);
-            const filtered = this.allReviews.filter(r => (r.calificacion || 0) === rating);
-            this.renderReviews(filtered);
-        }
-    }
-
-    renderReviews(reviews) {
-        const container = document.getElementById('reviewsList');
+    renderComentarios() {
+        const container = document.getElementById('comentariosContainer');
+        const emptyState = document.getElementById('emptyState');
+        
         if (!container) return;
-
-        if (reviews.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="ph ph-chat-teardrop-text"></i>
-                    <h3>No tienes reseñas aún</h3>
-                    <p>Las reseñas de tus clientes aparecerán aquí</p>
-                </div>
-            `;
+        
+        if (this.filteredComentarios.length === 0) {
+            container.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
-
-        // Ordenar por fecha (más reciente primero)
-        const sortedReviews = [...reviews].sort((a, b) => {
-            const dateA = new Date(a.fechaComentario || a.fecha || 0);
-            const dateB = new Date(b.fechaComentario || b.fecha || 0);
-            return dateB - dateA;
-        });
-
-        container.innerHTML = sortedReviews.map(review => {
-            const calificacion = review.calificacion || 0;
-            const comentario = review.comentario || 'Sin comentario';
-            const fecha = this.formatDate(review.fechaComentario || review.fecha);
-
-            // Información del cliente
-            let clienteNombre = 'Cliente';
-            let servicioNombre = 'Servicio';
-
-            if (review.citaInfo) {
-                clienteNombre = review.citaInfo.clienteNombre ||
-                               (review.citaInfo.cliente ? review.citaInfo.cliente.nombre : 'Cliente');
-
-                if (review.citaInfo.servicios && Array.isArray(review.citaInfo.servicios) && review.citaInfo.servicios.length > 0) {
-                    servicioNombre = review.citaInfo.servicios[0].nombre || review.citaInfo.servicios[0];
-                } else if (review.citaInfo.servicioNombre) {
-                    servicioNombre = review.citaInfo.servicioNombre;
-                }
-            }
-
-            const inicial = clienteNombre.charAt(0).toUpperCase();
-
-            // Generar estrellas
-            const stars = this.generateStars(calificacion);
-
+        
+        if (emptyState) emptyState.style.display = 'none';
+        
+        container.innerHTML = this.filteredComentarios.map(comentario => {
+            const clienteNombre = comentario.cliente?.nombre || 'Usuario Anónimo';
+            const iniciales = clienteNombre.charAt(0).toUpperCase();
+            const fechaFormateada = this.formatFecha(comentario.fecha);
+            const textoComentario = comentario.contenido || comentario.comentario || '';
+            
             return `
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="review-user">
-                            <div class="user-avatar">${inicial}</div>
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-user">
+                            <div class="user-avatar">${iniciales}</div>
                             <div class="user-info">
                                 <h4>${clienteNombre}</h4>
-                                <div class="review-date">${fecha}</div>
+                                <div class="comment-date">${fechaFormateada}</div>
                             </div>
                         </div>
-                        <div class="review-rating">
-                            ${stars}
+                        <div>
+                            ${comentario.cita ? `
+                                <span class="comment-badge" style="background: #3498db; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    <i class="fas fa-calendar"></i> Cita #${comentario.cita.idCita}
+                                </span>
+                            ` : ''}
                         </div>
                     </div>
-                    <div class="review-content">${comentario}</div>
-                    <div class="review-service">
-                        <i class="ph ph-scissors"></i> ${servicioNombre}
+                    
+                    <div class="comment-text">
+                        ${textoComentario}
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    generateStars(rating) {
-        let stars = '';
-        for (let i = 1; i <= 5; i++) {
-            if (i <= rating) {
-                stars += '<i class="ph-fill ph-star"></i>';
-            } else {
-                stars += '<i class="ph ph-star"></i>';
-            }
+    formatFecha(fecha) {
+        if (Array.isArray(fecha)) {
+            const [year, month, day, hour = 0, minute = 0] = fecha;
+            const date = new Date(year, month - 1, day, hour, minute);
+            return date.toLocaleDateString('es-ES', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
-        return stars;
-    }
-
-    formatDate(dateString) {
-        if (!dateString) return 'Fecha desconocida';
-
-        const date = new Date(dateString);
-        const now = new Date();
-        const diff = now - date;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-        if (days === 0) return 'Hoy';
-        if (days === 1) return 'Ayer';
-        if (days < 7) return `Hace ${days} días`;
-        if (days < 30) return `Hace ${Math.floor(days / 7)} semanas`;
-
-        return date.toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
+        
+        const date = new Date(fecha);
+        return date.toLocaleDateString('es-ES', { 
+            day: '2-digit', 
+            month: 'long', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     }
 
-    showError(message) {
-        const container = document.getElementById('reviewsList');
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                    <i class="ph ph-warning" style="font-size: 48px; margin-bottom: 15px;"></i>
-                    <p>${message}</p>
-                </div>
-            `;
-        }
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db'};
+            color: white;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
     }
 
     showLoader() {
@@ -297,6 +183,8 @@ class ComentariosEstilista {
     }
 }
 
+let comentariosEstilista;
+
 document.addEventListener('DOMContentLoaded', () => {
-    new ComentariosEstilista();
+    comentariosEstilista = new ComentariosEstilista();
 });

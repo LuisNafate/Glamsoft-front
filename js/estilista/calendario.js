@@ -1,14 +1,9 @@
-// js/estilista/calendario.js
-
+// Calendario de Citas Estilista
 class CalendarioEstilista {
     constructor() {
-        this.currentUser = null;
-        this.currentUserId = null;
-        this.allAppointments = [];
-        this.currentMonth = new Date().getMonth();
-        this.currentYear = new Date().getFullYear();
-        this.currentFilter = 'all';
-        this.currentView = 'list';
+        this.currentWeekStart = this.getMonday(new Date());
+        this.citas = [];
+        this.currentCita = null;
         this.init();
     }
 
@@ -16,353 +11,457 @@ class CalendarioEstilista {
         try {
             await this.checkAuth();
             this.setupEventListeners();
-            await this.loadAppointments();
+            await this.loadCitas();
+            this.renderCalendar();
         } catch (error) {
-            console.error('Error al inicializar calendario:', error);
+            console.error('Error al inicializar:', error);
+            ErrorHandler.handle(error);
         }
     }
 
     async checkAuth() {
         try {
-            // Obtener usuario solo de localStorage
-            const userStr = localStorage.getItem('user_data');
-
-            console.log("[CALENDARIO] user_data raw:", userStr);
-
-            if (!userStr) {
-                console.warn("[CALENDARIO] No hay usuario en localStorage. Redirigiendo...");
-                window.location.href = '../inicio.html';
-                return;
+            const user = StateManager.get('user');
+            if (!user || (user.rol !== 'estilista' && user.rol !== 'admin')) {
+                console.warn('Usuario no autenticado o no es estilista');
+                // window.location.href = '../login.html';
             }
-
-            const user = JSON.parse(userStr);
-            console.log("[CALENDARIO] Usuario parseado:", user);
-
-            const rol = parseInt(user.idRol || user.rol || 0);
-            console.log("[CALENDARIO] Rol detectado:", rol);
-
-            if (rol !== 2 && rol !== 1) {
-                console.warn("[CALENDARIO] Rol no autorizado:", rol, "- Se requiere 1 o 2");
-                window.location.href = '../inicio.html';
-                return;
-            }
-
-            const nombre = user.nombre || 'Estilista';
-            const menuName = document.getElementById('menuUserName');
-            if (menuName) menuName.textContent = nombre;
-
-            this.currentUser = user;
-            this.currentUserId = user.idUsuario || user.id;
-
-            console.log("[CALENDARIO] ✅ Auth exitosa. Usuario ID:", this.currentUserId);
-
         } catch (error) {
-            console.error("[CALENDARIO] ❌ Error auth:", error);
-            window.location.href = '../inicio.html';
+            console.warn('StateManager no disponible:', error);
         }
     }
 
     setupEventListeners() {
-        // Profile menu
-        const userIcon = document.getElementById('stylistUserIcon');
-        const profileMenu = document.getElementById('profileMenuModal');
-        const logoutBtn = document.getElementById('headerLogoutBtn');
-
-        if (userIcon && profileMenu) {
-            userIcon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (profileMenu && profileMenu.style.display === 'block') {
-                if (!profileMenu.contains(e.target) && !userIcon.contains(e.target)) {
-                    profileMenu.style.display = 'none';
-                }
-            }
+        // Navegación de semana
+        document.getElementById('prevWeek')?.addEventListener('click', () => {
+            this.changeWeek(-1);
         });
-
-        window.addEventListener('scroll', () => {
-            if (profileMenu) profileMenu.style.display = 'none';
+        
+        document.getElementById('nextWeek')?.addEventListener('click', () => {
+            this.changeWeek(1);
         });
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                if (confirm('¿Cerrar sesión?')) {
-                    await AuthService.logout();
-                    window.location.href = '../login.html';
-                }
-            });
-        }
-
-        // Calendar navigation
-        document.getElementById('prevMonth')?.addEventListener('click', () => {
-            this.currentMonth--;
-            if (this.currentMonth < 0) {
-                this.currentMonth = 11;
-                this.currentYear--;
-            }
-            this.updateCalendar();
-        });
-
-        document.getElementById('nextMonth')?.addEventListener('click', () => {
-            this.currentMonth++;
-            if (this.currentMonth > 11) {
-                this.currentMonth = 0;
-                this.currentYear++;
-            }
-            this.updateCalendar();
-        });
-
-        // View toggle
-        document.getElementById('listViewBtn')?.addEventListener('click', () => {
-            this.switchView('list');
-        });
-
-        document.getElementById('calendarViewBtn')?.addEventListener('click', () => {
-            this.switchView('calendar');
-        });
-
-        // Filter tabs
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                this.currentFilter = tab.dataset.filter;
-                this.applyFilter();
-            });
-        });
-    }
-
-    switchView(view) {
-        this.currentView = view;
-
-        const listView = document.getElementById('listView');
-        const calendarView = document.getElementById('calendarView');
-        const listBtn = document.getElementById('listViewBtn');
-        const calendarBtn = document.getElementById('calendarViewBtn');
-
-        if (view === 'list') {
-            listView.style.display = 'block';
-            calendarView.classList.remove('active');
-            listBtn.classList.add('active');
-            calendarBtn.classList.remove('active');
-        } else {
-            listView.style.display = 'none';
-            calendarView.classList.add('active');
-            listBtn.classList.remove('active');
-            calendarBtn.classList.add('active');
+        
+        // Botón "Hoy"
+        document.getElementById('todayBtn')?.addEventListener('click', () => {
+            this.currentWeekStart = this.getMonday(new Date());
             this.renderCalendar();
-        }
+        });
+        
+        document.getElementById('btnNuevaCita')?.addEventListener('click', () => {
+            window.location.href = '../agendar.html';
+        });
+        
+        // Botones del modal
+        document.getElementById('btnConfirmar')?.addEventListener('click', () => {
+            this.updateEstadoCita('confirmada');
+        });
+        
+        document.getElementById('btnCancelar')?.addEventListener('click', () => {
+            this.updateEstadoCita('cancelada');
+        });
     }
 
-    async loadAppointments() {
-        this.showLoader();
+    changeWeek(direction) {
+        const newDate = new Date(this.currentWeekStart);
+        newDate.setDate(newDate.getDate() + (direction * 7));
+        this.currentWeekStart = newDate;
+        this.renderCalendar();
+    }
+
+    getMonday(date) {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        monday.setHours(0, 0, 0, 0);
+        return monday;
+    }
+
+    renderCalendar() {
+        this.renderWeekView();
+    }
+    
+    
+    renderWeekView() {
+        // Actualizar título
+        const weekEnd = new Date(this.currentWeekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        
+        console.log('Renderizando semana:', this.currentWeekStart.toISOString(), 'hasta', weekEnd.toISOString());
+        console.log('Total de citas cargadas:', this.citas.length);
+        
+        document.getElementById('calendarTitle').textContent = 
+            `Semana del ${this.formatShortDate(this.currentWeekStart)} - ${this.formatShortDate(weekEnd)}`;
+        
+        // Renderizar grid
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+        
+        const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+        const horas = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+        
+        let html = '<div class="calendar-header-cell">Hora</div>';
+        
+        // Headers de días
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(this.currentWeekStart);
+            date.setDate(date.getDate() + i);
+            html += `
+                <div class="calendar-header-cell">
+                    ${dias[i]}<br>
+                    <small>${date.getDate()}</small>
+                </div>
+            `;
+        }
+        
+        // Filas de horarios
+        horas.forEach(hora => {
+            html += `<div class="calendar-time-cell">${hora}</div>`;
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(this.currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const dateStr = this.formatDateForAPI(date);
+                
+                // Buscar citas para este día y hora
+                const citasDelSlot = this.citas.filter(cita => {
+                    // Extraer fecha y hora del formato del backend
+                    let citaFecha = '';
+                    let citaHora = '';
+
+                    // Manejar formato array [2025, 11, 28, 13, 0]
+                    if (Array.isArray(cita.fechaHoraCita) && cita.fechaHoraCita.length >= 3) {
+                        const [year, month, day, hour, minute] = cita.fechaHoraCita;
+                        citaFecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        if (hour !== undefined && minute !== undefined) {
+                            citaHora = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                        }
+                    } else {
+                        // Formato string separado
+                        citaFecha = cita.fecha || cita.fechaCita || '';
+                        citaHora = cita.hora || cita.horaCita || '';
+                    }
+
+                    // Comparar fechas
+                    const fechaMatch = citaFecha === dateStr;
+
+                    // Comparar horas (solo las primeras 2 cifras: "16:00" con "16")
+                    const horaMatch = citaHora?.startsWith(hora.substring(0, 2));
+
+                    const match = fechaMatch && horaMatch;
+
+                    if (match) {
+                        console.log('✓ Cita encontrada para mostrar:', {
+                            fecha: citaFecha,
+                            hora: citaHora,
+                            cliente: cita.nombreCliente || cita.cliente?.nombre,
+                            estado: cita.estadoCita || cita.estado
+                        });
+                    }
+
+                    return match;
+                });
+                
+                html += `<div class="calendar-cell" data-date="${dateStr}" data-hora="${hora}">`;
+                
+                citasDelSlot.forEach(cita => {
+                    const estadoRaw = (cita.estadoCita || cita.estado || 'PENDIENTE').toUpperCase();
+                    let estadoClass = 'pendiente';
+
+                    if (estadoRaw.includes('CONFIRMADA') || estadoRaw.includes('APROBADA')) {
+                        estadoClass = 'confirmada';
+                    } else if (estadoRaw.includes('CANCELADA') || estadoRaw.includes('RECHAZADA')) {
+                        estadoClass = 'cancelada';
+                    } else if (estadoRaw.includes('COMPLETADA') || estadoRaw.includes('FINALIZADA')) {
+                        estadoClass = 'completada';
+                    } else if (estadoRaw.includes('PENDIENTE')) {
+                        estadoClass = 'pendiente';
+                    }
+
+                    const clienteNombre = cita.nombreCliente || cita.cliente?.nombre || 'Cliente';
+
+                    // Extraer nombre del servicio
+                    let servicioNombre = 'Servicio';
+                    if (Array.isArray(cita.servicios) && cita.servicios.length > 0) {
+                        servicioNombre = cita.servicios[0].nombre || cita.servicios[0].nombreServicio || 'Servicio';
+                    } else if (cita.nombreServicio) {
+                        servicioNombre = cita.nombreServicio;
+                    }
+
+                    const citaId = cita.idCita || cita.id;
+
+                    html += `
+                        <div class="appointment-card ${estadoClass}" onclick="calendarioEstilista.showCitaDetail(${citaId})">
+                            <div class="appointment-client">${clienteNombre}</div>
+                            <div class="appointment-service">${servicioNombre}</div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+        });
+        
+        grid.innerHTML = html;
+    }
+
+    changeWeek(direction) {
+        const newDate = new Date(this.currentWeekStart);
+        newDate.setDate(newDate.getDate() + (direction * 7));
+        this.currentWeekStart = newDate;
+        this.renderCalendar();
+    }
+
+    async loadCitas() {
         try {
-            const response = await CitasService.getAll();
-            const todasCitas = response.data || response || [];
-
-            // Filtrar solo mis citas
-            this.allAppointments = todasCitas.filter(cita => {
-                const idEstilista = cita.idEstilista || (cita.estilista ? cita.estilista.id : 0);
-                return idEstilista == this.currentUserId;
+            const user = StateManager.get('user');
+            if (!user) {
+                this.citas = [];
+                return;
+            }
+            // Suponiendo que el servicio puede filtrar por estilista si el rol es 'estilista'
+            const response = await CitasService.getAll({ estilistaId: user.id });
+            console.log('loadCitas - Response completo:', response);
+            // Manejar estructura: {data: [...], message: "...", status: "success"}
+            this.citas = response.data?.data || response.data || [];
+            console.log('Citas cargadas:', this.citas.length);
+            console.log('Detalle de todas las citas:', this.citas);
+            
+            // Mostrar cada cita individualmente
+            this.citas.forEach((cita, index) => {
+                console.log(`Cita ${index + 1}:`, {
+                    id: cita.idCita || cita.id,
+                    fecha: cita.fechaCita,
+                    hora: cita.horaCita,
+                    cliente: cita.cliente?.nombre || cita.cliente_nombre,
+                    estado: cita.estadoCita || cita.estado
+                });
             });
-
-            console.log(`Citas cargadas: ${this.allAppointments.length}`);
-
-            this.updateCalendar();
-            this.applyFilter();
-
         } catch (error) {
             console.error('Error al cargar citas:', error);
-            this.showError('Error al cargar las citas');
+            this.citas = [];
+        }
+    }
+
+    formatShortDate(date) {
+        return `${date.getDate()} ${['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][date.getMonth()]}`;
+    }
+
+    formatDateForAPI(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    async showCitaDetail(citaId) {
+        this.showLoader();
+        
+        try {
+            const response = await CitasService.getById(citaId);
+            console.log('showCitaDetail - Response:', response);
+            this.currentCita = response.data?.data || response.data;
+            
+            if (!this.currentCita) {
+                throw new Error('Cita no encontrada');
+            }
+            
+            const modal = document.getElementById('modalCita');
+            const detalle = document.getElementById('citaDetalle');
+            
+            const estadoColors = {
+                'pendiente': '#f39c12',
+                'confirmada': '#27ae60',
+                'cancelada': '#e74c3c',
+                'PENDIENTE': '#f39c12',
+                'CONFIRMADA': '#27ae60',
+                'CANCELADA': '#e74c3c'
+            };
+            
+            const estadoCita = this.currentCita.estadoCita || this.currentCita.estado || 'PENDIENTE';
+            const estadoColor = estadoColors[estadoCita] || '#7f8c8d';
+
+            const clienteNombre = this.currentCita.nombreCliente || this.currentCita.cliente?.nombre || this.currentCita.cliente_nombre || 'N/A';
+
+            // Extraer nombres de servicios
+            let servicioNombre = 'N/A';
+            if (Array.isArray(this.currentCita.servicios) && this.currentCita.servicios.length > 0) {
+                servicioNombre = this.currentCita.servicios.map(s => s.nombre).join(', ');
+            } else if (this.currentCita.servicio?.nombre) {
+                servicioNombre = this.currentCita.servicio.nombre;
+            } else if (this.currentCita.servicio_nombre) {
+                servicioNombre = this.currentCita.servicio_nombre;
+            }
+
+            const estilistaNombre = this.currentCita.nombreEstilista || this.currentCita.estilista?.nombre || this.currentCita.estilista_nombre || '';
+            const fechaCita = this.currentCita.fechaHoraCita || this.currentCita.fechaCita || this.currentCita.fecha;
+            const horaCita = this.currentCita.fechaHoraCita || this.currentCita.horaCita || this.currentCita.hora;
+            const notas = this.currentCita.notas || this.currentCita.observaciones || '';
+            const precioTotal = this.currentCita.precioTotal || 0;
+            
+            detalle.innerHTML = `
+                <div style="padding: 20px 0;">
+                    <div style="margin-bottom: 20px; padding: 15px; background: ${estadoColor}; color: white; border-radius: 8px; text-align: center;">
+                        <strong style="font-size: 18px; text-transform: uppercase;">${estadoCita}</strong>
+                    </div>
+                    
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <strong style="color: #7f8c8d;">Cliente:</strong><br>
+                            <span style="font-size: 18px; color: var(--admin-primary);">${clienteNombre}</span>
+                        </div>
+                        
+                        <div>
+                            <strong style="color: #7f8c8d;">Servicio:</strong><br>
+                            <span style="font-size: 16px;">${servicioNombre}</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <strong style="color: #7f8c8d;">Fecha:</strong><br>
+                                <span>${this.formatFecha(fechaCita)}</span>
+                            </div>
+                            <div>
+                                <strong style="color: #7f8c8d;">Hora:</strong><br>
+                                <span>${this.formatHora(horaCita)}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <strong style="color: #7f8c8d;">Precio Total:</strong><br>
+                            <span style="font-size: 18px; color: #27ae60; font-weight: bold;">$${Number(precioTotal).toLocaleString('es-CO')}</span>
+                        </div>
+                        
+                        ${estilistaNombre ? `
+                            <div>
+                                <strong style="color: #7f8c8d;">Estilista:</strong><br>
+                                <span>${estilistaNombre}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${notas ? `
+                            <div>
+                                <strong style="color: #7f8c8d;">Notas:</strong><br>
+                                <span>${notas}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar/ocultar botones según estado
+            const btnConfirmar = document.getElementById('btnConfirmar');
+            const btnCancelar = document.getElementById('btnCancelar');
+            
+            if (estadoCita.toLowerCase() === 'confirmada') {
+                btnConfirmar.style.display = 'none';
+            } else {
+                btnConfirmar.style.display = 'inline-flex';
+            }
+            
+            if (estadoCita.toLowerCase() === 'cancelada') {
+                btnCancelar.style.display = 'none';
+            } else {
+                btnCancelar.style.display = 'inline-flex';
+            }
+            
+            modal.classList.add('active');
+            
+        } catch (error) {
+            console.error('Error al cargar detalle de cita:', error);
+            this.showNotification('Error al cargar detalle de cita', 'error');
         } finally {
             this.hideLoader();
         }
     }
 
-    updateCalendar() {
-        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    async updateEstadoCita(nuevoEstado) {
+        if (!this.currentCita) return;
 
-        const currentMonthEl = document.getElementById('currentMonth');
-        if (currentMonthEl) {
-            currentMonthEl.textContent = `${monthNames[this.currentMonth]} ${this.currentYear}`;
-        }
+        const esConfirmacion = nuevoEstado === 'confirmada';
+        const mensaje = esConfirmacion
+            ? '¿Confirmar aprobación de la cita?\n\nSe enviará un email al cliente.'
+            : '¿Confirmar cancelación de la cita?';
 
-        if (this.currentView === 'calendar') {
-            this.renderCalendar();
-        }
-    }
-
-    renderCalendar() {
-        const grid = document.getElementById('daysGrid');
-        if (!grid) return;
-
-        // Primer día del mes
-        const firstDay = new Date(this.currentYear, this.currentMonth, 1);
-        const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDayOfWeek = firstDay.getDay();
-
-        // Días del mes anterior
-        const prevMonthLastDay = new Date(this.currentYear, this.currentMonth, 0).getDate();
-
-        let html = '';
-
-        // Días del mes anterior
-        for (let i = startingDayOfWeek - 1; i >= 0; i--) {
-            const day = prevMonthLastDay - i;
-            html += `<div class="day-cell other-month"><div class="day-number">${day}</div></div>`;
-        }
-
-        // Días del mes actual
-        const today = new Date();
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(this.currentYear, this.currentMonth, day);
-            const dateStr = date.toISOString().split('T')[0];
-
-            const isToday = date.toDateString() === today.toDateString();
-            const hasAppointments = this.allAppointments.some(apt => {
-                const aptDate = apt.fecha || (apt.fechaHoraCita ? apt.fechaHoraCita.split('T')[0] : '');
-                return aptDate === dateStr;
-            });
-
-            let classes = 'day-cell';
-            if (isToday) classes += ' today';
-            if (hasAppointments) classes += ' has-appointments';
-
-            html += `
-                <div class="${classes}">
-                    <div class="day-number">${day}</div>
-                    ${hasAppointments ? '<div class="day-indicator"></div>' : ''}
-                </div>
-            `;
-        }
-
-        // Completar con días del siguiente mes
-        const totalCells = Math.ceil((startingDayOfWeek + daysInMonth) / 7) * 7;
-        const remainingCells = totalCells - (startingDayOfWeek + daysInMonth);
-        for (let day = 1; day <= remainingCells; day++) {
-            html += `<div class="day-cell other-month"><div class="day-number">${day}</div></div>`;
-        }
-
-        grid.innerHTML = html;
-    }
-
-    applyFilter() {
-        let filtered = [...this.allAppointments];
-
-        if (this.currentFilter !== 'all') {
-            filtered = filtered.filter(apt => {
-                const estado = (apt.estado || apt.estadoCita || '').toLowerCase();
-                return estado === this.currentFilter;
-            });
-        }
-
-        // Filtrar por mes actual
-        filtered = filtered.filter(apt => {
-            const fecha = apt.fecha || (apt.fechaHoraCita ? apt.fechaHoraCita.split('T')[0] : '');
-            const date = new Date(fecha);
-            return date.getMonth() === this.currentMonth && date.getFullYear() === this.currentYear;
-        });
-
-        this.renderAppointments(filtered);
-    }
-
-    renderAppointments(appointments) {
-        const container = document.getElementById('appointmentsList');
-        if (!container) return;
-
-        if (appointments.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="ph ph-calendar-x"></i>
-                    <h3>No hay citas para este mes</h3>
-                    <p>Las citas agendadas aparecerán aquí</p>
-                </div>
-            `;
+        if (!confirm(mensaje)) {
             return;
         }
 
-        // Ordenar por fecha
-        const sorted = [...appointments].sort((a, b) => {
-            const dateA = new Date(a.fecha || a.fechaHoraCita);
-            const dateB = new Date(b.fecha || b.fechaHoraCita);
-            return dateA - dateB;
-        });
+        this.showLoader();
 
-        container.innerHTML = sorted.map(apt => {
-            let fecha = 'S/F';
-            let hora = '--:--';
+        try {
+            const citaId = this.currentCita.idCita || this.currentCita.id;
 
-            if (apt.fechaHoraCita) {
-                const partes = apt.fechaHoraCita.split('T');
-                fecha = partes[0];
-                hora = partes[1].substring(0, 5);
-            } else if (apt.fecha) {
-                fecha = apt.fecha;
-                hora = apt.hora ? apt.hora.substring(0, 5) : '';
+            if (esConfirmacion) {
+                await CitasService.aprobar(citaId);
+                this.showNotification('Cita aprobada. Email enviado al cliente.', 'success');
+            } else {
+                const motivo = prompt('Ingresa el motivo de cancelación (opcional):');
+                if (motivo === null) {
+                    this.hideLoader();
+                    return; // Usuario canceló
+                }
+                await CitasService.cancelar(citaId, motivo);
+                this.showNotification('Cita cancelada correctamente', 'success');
             }
 
-            const fechaObj = new Date(fecha);
-            const fechaLegible = fechaObj.toLocaleDateString('es-ES', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'short'
-            });
+            closeModal();
+            await this.loadCitas();
+            this.renderCalendar();
 
-            const cliente = apt.clienteNombre || (apt.cliente ? apt.cliente.nombre : 'Cliente');
-
-            let servicio = 'Servicio General';
-            if (apt.servicios && Array.isArray(apt.servicios) && apt.servicios.length > 0) {
-                servicio = apt.servicios[0].nombre || apt.servicios[0];
-                if (apt.servicios.length > 1) servicio += ` (+${apt.servicios.length - 1})`;
-            } else if (apt.servicioNombre) {
-                servicio = apt.servicioNombre;
-            }
-
-            const estado = (apt.estado || apt.estadoCita || 'pendiente').toLowerCase();
-            const estadoClass = `status-${estado}`;
-            const estadoText = estado.charAt(0).toUpperCase() + estado.slice(1);
-
-            return `
-                <div class="appointment-card">
-                    <div class="appointment-info">
-                        <div class="appointment-time">
-                            <div class="appointment-hour">${hora}</div>
-                            <div class="appointment-date">${fechaLegible}</div>
-                        </div>
-                        <div class="appointment-details">
-                            <h4>${cliente}</h4>
-                            <div class="appointment-service">
-                                <i class="ph ph-scissors"></i> ${servicio}
-                            </div>
-                            <div class="appointment-client">
-                                <i class="ph ph-calendar"></i> ${fecha}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="appointment-status ${estadoClass}">
-                        ${estadoText}
-                    </div>
-                </div>
-            `;
-        }).join('');
+        } catch (error) {
+            console.error('Error al actualizar cita:', error);
+            this.showNotification('Error al actualizar cita', 'error');
+        } finally {
+            this.hideLoader();
+        }
     }
 
-    showError(message) {
-        const container = document.getElementById('appointmentsList');
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                    <i class="ph ph-warning" style="font-size: 48px; margin-bottom: 15px;"></i>
-                    <p>${message}</p>
-                </div>
-            `;
+    formatFecha(fecha) {
+        // Manejar formato array [year, month, day]
+        if (Array.isArray(fecha)) {
+            const [year, month, day] = fecha;
+            const date = new Date(year, month - 1, day);
+            return date.toLocaleDateString('es-ES', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            });
         }
+        
+        const date = new Date(fecha);
+        return date.toLocaleDateString('es-ES', { 
+            day: '2-digit', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+    }
+    
+    formatHora(hora) {
+        // Manejar formato array [hour, minute, second]
+        if (Array.isArray(hora)) {
+            const [hour, minute] = hora;
+            return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        }
+        
+        // Formato string "10:00:00"
+        return hora.substring(0, 5);
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db'};
+            color: white;
+            z-index: 10000;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
     }
 
     showLoader() {
@@ -376,6 +475,8 @@ class CalendarioEstilista {
     }
 }
 
+let calendarioEstilista;
+
 document.addEventListener('DOMContentLoaded', () => {
-    new CalendarioEstilista();
+    calendarioEstilista = new CalendarioEstilista();
 });
