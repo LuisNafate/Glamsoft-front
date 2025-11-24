@@ -566,8 +566,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Usuario logeado:', isLoggedIn);
 
     if (!isLoggedIn) {
-        console.warn('Usuario no está logeado, redirigiendo a login...');
-        window.location.href = 'login.html';
+        console.warn('Usuario no está logeado, redirigiendo a inicio...');
+        window.location.href = 'inicio.html';
         return;
     }
 
@@ -969,14 +969,14 @@ async function enviarCitaConFormulario() {
 
         if (!user) {
             openErrorModal('Debes iniciar sesión para agendar una cita.');
-            setTimeout(() => window.location.href = 'login.html', 2000);
+            setTimeout(() => window.location.href = 'incio.html', 2000);
             return;
         }
 
         const idCliente = user.idCliente || user.idUsuario || user.id || user.userId;
         if (!idCliente) {
             openErrorModal('No se pudo obtener tu información de usuario. Por favor, inicia sesión nuevamente.');
-            setTimeout(() => window.location.href = 'login.html', 2000);
+            setTimeout(() => window.location.href = 'inicio.html', 2000);
             return;
         }
 
@@ -1275,7 +1275,7 @@ async function cargarYConfigurarModal() {
                 if (!user) {
                     console.error('No se pudo obtener el usuario de ninguna fuente');
                     openErrorModal('Debes iniciar sesión para agendar una cita.');
-                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    setTimeout(() => window.location.href = 'inicio.html', 2000);
                     return;
                 }
                 
@@ -1286,7 +1286,7 @@ async function cargarYConfigurarModal() {
                 if (!idCliente) {
                     console.error('No se encontró idCliente en el usuario:', user);
                     openErrorModal('No se pudo obtener tu información de usuario. Por favor, inicia sesión nuevamente.');
-                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    setTimeout(() => window.location.href = 'inicio.html', 2000);
                     return;
                 }
                 

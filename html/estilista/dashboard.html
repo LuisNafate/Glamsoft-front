@@ -9,7 +9,13 @@
     <link rel="stylesheet" href="../../Css/modals/profile_menu.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* Estilos específicos del dashboard */
+        
+        /* Ajustes visuales específicos */
+        .profile-menu-modal { top: 90px !important; right: 30px !important; border: 1px solid white; }
+        .notification-menu { right: 70px !important; } /* Alineado a la campana */
+        .user-profile-icon { cursor: pointer; }
+        
+        /* Cards de acciones rápidas */
         .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; }
         .quick-action-card { background: white; padding: 25px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 1px solid white; }
         .quick-action-card:hover { border-color: #B8860B; transform: translateY(-5px); box-shadow: 0 5px 20px rgba(52,152,219,0.2); }
@@ -95,8 +101,7 @@
 
     <div id="notificationMenu" class="profile-menu-modal notification-menu" style="display: none;">
         <div class="profile-menu-header">
-            <span class="profile-menu-name" style="font-size: 14px; color: #333;">Notificaciones</span>
-            <a href="notificaciones.html" style="font-size: 7px; color: #B8860B; text-decoration: none; font-weight: 600;">Ver todas</a>
+            <span class="profile-menu-name" style="font-size: 14px; color: #fff;">Notificaciones</span>
         </div>
         <div class="notification-list" id="notificationList">
             <div class="empty-notif">Cargando...</div>
