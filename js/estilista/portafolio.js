@@ -26,13 +26,39 @@ class PortafolioEstilista {
             return;
         }
         const user = JSON.parse(userStr);
-        // Validar que sea Estilista (Rol 2) o Admin (Rol 1)
+        
+        // 1. Validar Rol
         if (user.idRol !== 2 && user.idRol !== 1) {
             window.location.href = '../inicio.html';
             return;
         }
-        this.currentUserId = user.idUsuario || user.id;
-        document.getElementById('menuUserName').textContent = user.nombre || 'Estilista';
+
+        // 2. Mostrar nombre en el menú
+        const nombre = user.nombre || 'Estilista';
+        const menuName = document.getElementById('menuUserName');
+        if (menuName) menuName.textContent = nombre;
+
+        // 3. OBTENER EL ID DE ESTILISTA REAL (CRÍTICO)
+        // El ID de usuario (login) NO siempre es el mismo que el ID de estilista (empleado)
+        try {
+            const response = await EstilistasService.getAll();
+            const estilistas = response.data || response || [];
+            
+            // Buscamos al estilista que tenga el mismo idUsuario que el logueado
+            const miPerfilEstilista = estilistas.find(e => e.idUsuario === (user.idUsuario || user.id));
+
+            if (miPerfilEstilista) {
+                this.currentUserId = miPerfilEstilista.idEstilista; // Usamos el ID de empleado/estilista
+                console.log("✅ Identidad confirmada. ID Usuario:", user.idUsuario, "-> ID Estilista:", this.currentUserId);
+            } else {
+                console.warn("⚠️ No se encontró perfil de estilista asociado a este usuario.");
+                // Fallback por si acaso es admin o hay inconsistencia
+                this.currentUserId = user.idUsuario || user.id; 
+            }
+        } catch (error) {
+            console.error("Error al verificar identidad de estilista:", error);
+            this.currentUserId = user.idUsuario || user.id;
+        }
     }
 
     setupEventListeners() {
