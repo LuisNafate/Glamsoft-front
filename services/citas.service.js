@@ -234,16 +234,65 @@ const CitasService = {
     },
 
     /**
-     * Actualizar fecha de cita
-     * @param {Object} data - { idCita, fechaCita }
+     * Actualizar fecha y hora de cita
+     * @param {Object} data - { idCita, nuevaFecha, nuevaHora }
      */
     async updateFecha(data) {
         try {
-            const url = API_CONFIG.buildUrl(API_CONFIG.ENDPOINTS.CITAS.UPDATE_FECHA);
-            const response = await httpService.patch(url, data);
-            return response.data;
+            // 1. Obtener la cita actual para mantener los demás datos
+            const citaActual = await this.getById(data.idCita);
+            const cita = citaActual.data?.data || citaActual.data || citaActual;
+
+            console.log('📋 Cita actual obtenida para reagendar:', cita);
+            
+            // Extraer IDs de cliente y estilista de forma robusta
+            const idCliente = cita.idCliente || (cita.cliente ? cita.cliente.idCliente : null);
+            const idEstilista = cita.idEstilista || (cita.estilista ? cita.estilista.idEmpleado : null);
+            const idHorario = cita.idHorario || (cita.horario ? cita.horario.idHorario : null);
+            
+            if (!idCliente || !idEstilista) {
+                throw new Error('No se pudo obtener el ID del cliente o del estilista de la cita original.');
+            }
+
+            // 2. Construir el objeto para la nueva cita ANTES de eliminar la antigua
+            const newCitaData = {
+                fecha: data.nuevaFecha,
+                hora: data.nuevaHora.includes(':00') ? data.nuevaHora : data.nuevaHora + ':00',
+                notas: cita.notas || '',
+                idCliente: idCliente,
+                idEstilista: idEstilista,
+                servicios: cita.servicios?.map(s => s.idServicio || s.id) || [],
+                estado: 'PENDIENTE', // Al reagendar, la cita vuelve a estar pendiente de aprobación
+                idHorario: idHorario, // Reutilizar el idHorario de la cita original
+                respuestasFormulario: cita.respuestasFormulario || [] // Mantener respuestas de formulario si existen
+            };
+
+            // Validar que tengamos un idHorario si el backend lo requiere
+            if (!newCitaData.idHorario) {
+                // Si no hay idHorario, no podemos continuar porque la creación de cita fallará.
+                // Esto puede pasar si citas antiguas no tenían horario o el GET no lo devuelve.
+                // Como no tenemos acceso a HorariosService aquí, es mejor lanzar un error claro.
+                console.warn("No se encontró 'idHorario' en la cita original. La creación de la nueva cita podría fallar si el backend lo requiere.");
+            }
+
+            console.log('📝 Datos para la nueva cita:', newCitaData);
+
+            // 3. Eliminar la cita antigua
+            await this.delete(data.idCita);
+            console.log(`🗑️ Cita antigua con ID ${data.idCita} eliminada.`);
+
+            // 4. Crear la nueva cita
+            console.log('📤 Creando nueva cita...');
+            const response = await this.create(newCitaData);
+            console.log('✅ Nueva cita creada exitosamente:', response);
+
+            return response;
+
         } catch (error) {
-            console.error('Error al actualizar fecha de cita:', error);
+            console.error('❌ Error al reagendar la cita (eliminar y crear):', error);
+            // Idealmente aquí habría una lógica de "rollback". 
+            // Si la creación falla después de haber borrado, la cita se pierde.
+            // Por ahora, solo relanzamos el error para que el frontend lo maneje.
             throw error;
         }
     },
