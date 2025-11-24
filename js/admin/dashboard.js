@@ -92,7 +92,7 @@ class Dashboard {
                 );
                 if (confirmed) {
                     await AuthService.logout();
-                    window.location.href = '../login.html';
+                    window.location.href = '../inicio.html';
                 }
             });
         }
